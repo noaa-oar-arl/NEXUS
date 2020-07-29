@@ -5,7 +5,7 @@
 CO           CO             -1    -1  -1   2   kg/m2/s
 SO2          SO2            -1    -1  -1   2   kg/m2/s
 NO2          NO2            -1    -1  -1   2   kg/m2/s
-NO           NO             -1    -1  -1   2   kg/m2/s
+NO           NOT            -1    -1  -1   2   kg/m2/s
 HCL          HCL            -1    -1  -1   2   kg/m2/s
 CL2          CL2            -1    -1  -1   2   kg/m2/s
 HONO         HONO           -1    -1  -1   2   kg/m2/s
