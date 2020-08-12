@@ -689,6 +689,8 @@ Cap time shift              : true
 0 NEI2016v1_ONROAD_PSI            $ROOT/NEI2016v1/v2020-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          PSI           2016/1-12/1-31/$HH C xy  kg/m2/s  PSI          1007     12 50
 0 NEI2016v1_ONROAD_PMC            $ROOT/NEI2016v1/v2020-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          PMC           2016/1-12/1-31/$HH C xy  kg/m2/s  PMC          1007     12 50
 0 NEI2016v1_ONROAD_PSO4           $ROOT/NEI2016v1/v2020-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          PSO4          2016/1-12/1-31/$HH C xy  kg/m2/s  PSO4         1007     12 50
+0 NEI2016v1_ONROAD_CH4_INV        $ROOT/NEI2016v1/v2020-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          CH4_INV       2016/1-12/1-31/$HH C xy  kg/m2/s  CH4_INV      1007     12 50
+0 NEI2016v1_ONROAD_CO2_INV        $ROOT/NEI2016v1/v2020-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          CO2_INV       2016/1-12/1-31/$HH C xy  kg/m2/s  CO2_INV      1007     12 50
 
 # SURFACE ONROADCAADJ INVENTORY
 0 NEI2016v1_ONROADCAADJ_CO             $ROOT/NEI2016v1/v2020-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroadcaadj.nc          CO            2016/1-12/1-31/$HH C xy  kg/m2/s  CO           1007     13 50
@@ -742,6 +744,8 @@ Cap time shift              : true
 0 NEI2016v1_ONROADCAADJ_PSI            $ROOT/NEI2016v1/v2020-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroadcaadj.nc          PSI           2016/1-12/1-31/$HH C xy  kg/m2/s  PSI          1007     13 50
 0 NEI2016v1_ONROADCAADJ_PMC            $ROOT/NEI2016v1/v2020-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroadcaadj.nc          PMC           2016/1-12/1-31/$HH C xy  kg/m2/s  PMC          1007     13 50
 0 NEI2016v1_ONROADCAADJ_PSO4           $ROOT/NEI2016v1/v2020-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroadcaadj.nc          PSO4          2016/1-12/1-31/$HH C xy  kg/m2/s  PSO4         1007     13 50
+0 NEI2016v1_ONROADCAADJ_CH4_INV        $ROOT/NEI2016v1/v2020-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroadcaadj.nc          CH4_INV       2016/1-12/1-31/$HH C xy  kg/m2/s  CH4_INV      1007     13 50
+0 NEI2016v1_ONROADCAADJ_CO2_INV        $ROOT/NEI2016v1/v2020-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroadcaadj.nc          CO2_INV       2016/1-12/1-31/$HH C xy  kg/m2/s  CO2_INV      1007     13 50
 
 # SURFACE ONROADCAN INVENTORY
 0 NEI2016v1_ONROADCAN_CO             $ROOT/NEI2016v1/v2020-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroadcan.nc          CO            2016/1-12/1-31/$HH C xy  kg/m2/s  CO           1007     14 50
