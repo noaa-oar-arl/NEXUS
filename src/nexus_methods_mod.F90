@@ -3189,6 +3189,7 @@ contains
     ! -- local variables
     integer :: localrc
     integer :: item, itemCount, rank
+    integer :: srcTermProcessing
     integer :: stat
     integer :: lb(1), ub(1)
     type(ESMF_Field) :: srcfield, dstfield
@@ -3263,10 +3264,12 @@ contains
 
         if (.not.ESMF_RouteHandleIsCreated(NXS_RouteHandle)) then
           write(6,'(1x,"Precomputing regridding operation ...")')
+          srcTermProcessing = 0
           call ESMF_FieldRegridStore(srcfield, dstfield, &
-            regridmethod   = ESMF_REGRIDMETHOD_CONSERVE, &
-            unmappedaction = ESMF_UNMAPPEDACTION_IGNORE, &
-            routehandle    = NXS_RouteHandle, rc=localrc)
+            regridmethod      = ESMF_REGRIDMETHOD_CONSERVE, &
+            unmappedaction    = ESMF_UNMAPPEDACTION_IGNORE, &
+            srcTermProcessing = srcTermProcessing,       &
+            routehandle       = NXS_RouteHandle, rc=localrc)
           if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
              line=__LINE__,  &
              file=__FILE__,  &
