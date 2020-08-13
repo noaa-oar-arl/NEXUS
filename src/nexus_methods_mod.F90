@@ -96,7 +96,7 @@ module NEXUS_Methods_Mod
 
 contains
 
-  subroutine Init( ConfigFile, ReGridFile, debugLevel, rc )
+  subroutine Init( ConfigFile, ReGridFile, OutputFile, debugLevel, rc )
 
     use HCO_Config_Mod,    only : Config_ReadFile
     use HCO_State_Mod,     only : HcoState_Init
@@ -106,6 +106,7 @@ contains
 
     character(len=*),  intent(in)  :: ConfigFile
     character(len=*),  intent(in)  :: ReGridFile
+    character(len=*),  intent(in)  :: OutputFile
     integer,           intent(in)  :: debugLevel
     integer, optional, intent(out) :: rc
 
@@ -138,6 +139,8 @@ contains
 
     do_Regrid = (len_trim(ReGridFile) > 0)
     do_Debug  = (debugLevel > 0)
+
+    if (len_trim(OutputFile) > 0) ExptFile = OutputFile
 
     if ( am_I_Root ) then
       if ( do_Debug  ) print *,'Writing debug emissions to: '//trim(DiagFile)

@@ -5,7 +5,7 @@ program NEXUS_driver
 
   implicit none
 
-  character(len=*), parameter :: NEXUS_options(7,2) = reshape( &
+  character(len=*), parameter :: NEXUS_options(9,2) = reshape( &
     (/ &
       "-c           ", "c:           ", &
       "--config     ", "c:           ", & 
@@ -13,8 +13,10 @@ program NEXUS_driver
       "-r           ", "r:           ", &
       "--regrid-to  ", "r:           ", &
       "-d           ", "d            ", &
-      "--debug      ", "d            "  &
-    /), (/ 7, 2 /), order=(/ 2, 1 /))
+      "--debug      ", "d            ", &
+      "-o           ", "o:           ", &
+      "--output     ", "o:           "  &
+    /), (/ 9, 2 /), order=(/ 2, 1 /))
 
 
   integer :: localrc, rc
@@ -24,8 +26,9 @@ program NEXUS_driver
   integer :: ibuf(1)
   character(ESMF_MAXSTR) :: ConfigFile
   character(ESMF_MAXSTR) :: ReGridFile
+  character(ESMF_MAXSTR) :: OutputFile
   character(ESMF_MAXSTR) :: optarg
-  character(ESMF_MAXSTR) :: sbuf(2)
+  character(ESMF_MAXSTR) :: sbuf(3)
   type(ESMF_VM) :: vm
 
   ! ---------------------------------------------------------------------------
@@ -54,6 +57,7 @@ program NEXUS_driver
 
   ConfigFile = ""
   ReGridFile = ""
+  OutputFile = ""
 
   localrc = ESMF_SUCCESS
 
@@ -78,6 +82,8 @@ program NEXUS_driver
             ConfigFile = optarg
           case ("r:")
             ReGridFile = optarg
+          case ("o:")
+            OutputFile = optarg
           case ("d")
             debugLevel = 1
           case ("h")
@@ -103,6 +109,7 @@ program NEXUS_driver
 
   sbuf(1) = ConfigFile
   sbuf(2) = ReGridFile
+  sbuf(3) = OutputFile
   call ESMF_VMBroadcast(vm, sbuf, 2*len(sbuf(1)), rootPet, rc=rc)
   if (ESMF_LogFoundError(rc, msg=ESMF_LOGERR_PASSTHRU, &
     line=__LINE__,  &
@@ -110,11 +117,12 @@ program NEXUS_driver
     call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
   ConfigFile = sbuf(1)
   ReGridFile = sbuf(2)
+  OutputFile = sbuf(3)
 
   ! ----------------------------------------------------------------------------
   !   Initialize NEXUS
   ! ----------------------------------------------------------------------------
-  call NEXUS_Initialize( ConfigFile, ReGridFile, debugLevel, rc=rc )
+  call NEXUS_Initialize( ConfigFile, ReGridFile, OutputFile, debugLevel, rc=rc )
   if (ESMF_LogFoundError(rc, msg=ESMF_LOGERR_PASSTHRU, &
     line=__LINE__,  &
     file=__FILE__)) &
