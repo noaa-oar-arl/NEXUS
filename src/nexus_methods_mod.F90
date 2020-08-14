@@ -21,6 +21,7 @@ module NEXUS_Methods_Mod
 
   logical :: do_Regrid = .false.
   logical :: do_Debug  = .false.
+  logical :: do_NEXUS  = .false.
 
 
   ! Default values for HEMCO input files: contain definitions of
@@ -139,6 +140,7 @@ contains
 
     do_Regrid = (len_trim(ReGridFile) > 0)
     do_Debug  = (debugLevel > 0)
+    do_NEXUS  = (do_Debug .or. do_Regrid)
 
     if (len_trim(OutputFile) > 0) ExptFile = OutputFile
 
@@ -302,24 +304,25 @@ contains
     !=======================================================================
     ! Start NEXUS Init
     !=======================================================================
+    if (do_NEXUS) then
+      HCO_Grid = HCO_GridCreate( HcoState, rc=localrc )
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+         line=__LINE__,  &
+         file=__FILE__,  &
+         rcToReturn=rc)) return  ! bail out
 
-    HCO_Grid = HCO_GridCreate( HcoState, rc=localrc )
-    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-       line=__LINE__,  &
-       file=__FILE__,  &
-       rcToReturn=rc)) return  ! bail out
+      NXS_Diag_State = ESMF_StateCreate( rc=localrc )
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+         line=__LINE__,  &
+         file=__FILE__,  &
+         rcToReturn=rc)) return  ! bail out
 
-    NXS_Diag_State = ESMF_StateCreate( rc=localrc )
-    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-       line=__LINE__,  &
-       file=__FILE__,  &
-       rcToReturn=rc)) return  ! bail out
-
-    call NXS_DiagState_Init( HCO_Grid, HcoState, NXS_Diag_State, rc=localrc ) 
-    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-       line=__LINE__,  &
-       file=__FILE__,  &
-       rcToReturn=rc)) return  ! bail out
+      call NXS_DiagState_Init( HCO_Grid, HcoState, NXS_Diag_State, rc=localrc )
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+         line=__LINE__,  &
+         file=__FILE__,  &
+         rcToReturn=rc)) return  ! bail out
+    end if
 
 !   if (do_Debug) then
 !     call GridWrite( HCO_Grid, DiagFile, rc=localrc ) 
@@ -510,6 +513,17 @@ contains
           line=__LINE__, &
           file=__FILE__, &
           rcToReturn=rc)) return
+
+       !=================================================================
+       ! Update NEXUS Diagnostic state
+       !=================================================================
+       if (do_NEXUS) then
+         call NXS_DiagState_Update( HcoState, NXS_Diag_State, rc=localrc )
+         if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+            line=__LINE__,  &
+            file=__FILE__,  &
+            rcToReturn=rc)) return  ! bail out
+       end if
 
        !=================================================================
        ! Write NEXUS Diagnostic state
@@ -2886,6 +2900,8 @@ contains
     ! -- local variables
     integer :: localrc
     integer :: item, s
+    integer :: ie, ue
+    integer, dimension(2) :: lb, ub
     real(ESMF_KIND_R8), pointer :: fp(:,:)
 
     ! -- begin
@@ -2928,7 +2944,8 @@ contains
       do item = 1, 2
         nullify(fp)
         call ESMF_GridGetCoord(grid, item, staggerloc=staggerList(s), &
-          localDE=0, farrayPtr=fp, rc=localrc)
+          localDE=0, farrayPtr=fp, computationalLBound=lb, &
+          computationalUBound=ub, rc=localrc)
         if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
            line=__LINE__,  &
            file=__FILE__,  &
@@ -2936,16 +2953,26 @@ contains
         if      (staggerList(s) == ESMF_STAGGERLOC_CENTER) then
           select case (item)
             case (1)
-              fp = HcoState % Grid % XMID % Val 
+              fp(lb(1):ub(1),lb(2):ub(2)) = HcoState % Grid % XMID % Val(lb(1):ub(1),lb(2):ub(2))
             case (2)
-              fp = HcoState % Grid % YMID % Val 
+              fp(lb(1):ub(1),lb(2):ub(2)) = HcoState % Grid % YMID % Val(lb(1):ub(1),lb(2):ub(2))
           end select
         else if (staggerList(s) == ESMF_STAGGERLOC_CORNER) then
           select case (item)
             case (1)
-              fp = HcoState % Grid % XEDGE % Val 
+              ue = min(ub(2), HcoState % NY)
+              fp(lb(1):ub(1),lb(2):ue) = HcoState % Grid % XEDGE % Val(lb(1):ub(1),lb(2):ue)
+              ! -- fill missing edge points
+              do ie = ue + 1, ub(2)
+                fp(lb(1):ub(1),ie) = fp(lb(1):ub(1),ue)
+              end do
             case (2)
-              fp = HcoState % Grid % YEDGE % Val 
+              ue = min(ub(1), HcoState % NX)
+              fp(lb(1):ue,lb(2):ub(2)) = HcoState % Grid % YEDGE % Val(lb(1):ue,lb(2):ub(2))
+              ! -- fill missing edge points
+              do ie = ue + 1, ub(1)
+                fp(ie,lb(2):ub(2)) = fp(ue,lb(2):ub(2))
+              end do
           end select
         end if
       end do
@@ -2960,13 +2987,14 @@ contains
 
     nullify(fp)
     call ESMF_GridGetItem(grid, ESMF_GRIDITEM_AREA, &
-      localDE=0, farrayPtr=fp, rc=localrc)
+      localDE=0, farrayPtr=fp, computationalLBound=lb, &
+      computationalUBound=ub, rc=localrc)
     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
        line=__LINE__,  &
        file=__FILE__,  &
        rcToReturn=rc)) return  ! bail out
 
-    fp = HcoState % Grid % AREA_M2 % Val
+    fp(lb(1):ub(1),lb(2):ub(2)) = HcoState % Grid % AREA_M2 % Val(lb(1):ub(1),lb(2):ub(2))
   
   end function HCO_GridCreate
 
@@ -2985,6 +3013,7 @@ contains
     integer :: ncid, dimid, varid
     integer :: ncerr
     integer :: dimLengths(2)
+    integer :: lb(2), ub(2)
     real(ESMF_KIND_R8), pointer :: fp(:,:)
 
     character(len=*), parameter :: dimNames(2) = (/ "grid_xt", "grid_yt" /)
@@ -3035,7 +3064,8 @@ contains
       do item = 1, 2
         nullify(fp)
         call ESMF_GridGetCoord(grid, item, staggerloc=staggerList(s), &
-          localDE=0, farrayPtr=fp, rc=localrc)
+          localDE=0, farrayPtr=fp, computationalLBound=lb, &
+          computationalUBound=ub, rc=localrc)
         if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
            line=__LINE__,  &
            file=__FILE__,  &
@@ -3045,7 +3075,7 @@ contains
            line=__LINE__,  &
            file=__FILE__,  &
            rcToReturn=rc)) return  ! bail out
-        ncerr = nf90_get_var(ncid, varid, fp)
+        ncerr = nf90_get_var(ncid, varid, fp, start=lb, count=ub-lb+1)
         if (ESMF_LogFoundNetCDFError(ncerrToCheck=ncerr, msg=ESMF_LOGERR_PASSTHRU, &
            line=__LINE__,  &
            file=__FILE__,  &
@@ -3062,7 +3092,8 @@ contains
 
     nullify(fp)
     call ESMF_GridGetItem(grid, ESMF_GRIDITEM_AREA, &
-      localDE=0, farrayPtr=fp, rc=localrc)
+      localDE=0, farrayPtr=fp, computationalLBound=lb, &
+      computationalUBound=ub, rc=localrc)
     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
        line=__LINE__,  &
        file=__FILE__,  &
@@ -3073,7 +3104,7 @@ contains
        line=__LINE__,  &
        file=__FILE__,  &
        rcToReturn=rc)) return  ! bail out
-    ncerr = nf90_get_var(ncid, varid, fp)
+    ncerr = nf90_get_var(ncid, varid, fp, start=lb, count=ub-lb+1)
     if (ESMF_LogFoundNetCDFError(ncerrToCheck=ncerr, msg=ESMF_LOGERR_PASSTHRU, &
        line=__LINE__,  &
        file=__FILE__,  &
@@ -3144,15 +3175,17 @@ contains
     do while (flag == HCO_SUCCESS) 
       select case ( thisDiagn % spaceDim )
         case (2)
-          field = ESMF_FieldCreate( HcoGrid, thisDiagn % Arr2D % Val, &
-                                    name=thisDiagn % cName, rc=localrc)
+          field = ESMF_FieldCreate( HcoGrid, ESMF_TYPEKIND_R4, &
+            name=thisDiagn % cName, rc=localrc)
           if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
              line=__LINE__,  &
              file=__FILE__,  &
              rcToReturn=rc)) return  ! bail out
         case (3)
-          field = ESMF_FieldCreate( HcoGrid, thisDiagn % Arr3D % Val, &
-                                    name=thisDiagn % cName, rc=localrc)
+          field = ESMF_FieldCreate( HcoGrid, ESMF_TYPEKIND_R4, &
+            ungriddedLBound = (/ lbound(thisDiagn % Arr3D % Val, dim=3) /), &
+            ungriddedUBound = (/ ubound(thisDiagn % Arr3D % Val, dim=3) /), &
+            name=thisDiagn % cName, rc=localrc)
           if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
              line=__LINE__,  &
              file=__FILE__,  &
@@ -3179,6 +3212,64 @@ contains
        rcToReturn=rc)) return  ! bail out
     
   end subroutine NXS_DiagState_Init
+
+  subroutine NXS_DiagState_Update( HcoState, DiagState, rc )
+    type(HCO_State), pointer       :: HcoState
+    type(ESMF_State)               :: DiagState
+    integer, optional, intent(out) :: rc
+
+    ! -- local variables
+    integer :: localrc
+    integer :: flag
+    integer :: lb(2), ub(2)
+    logical :: EOI
+    real(sp), pointer :: fp2d(:,:), fp3d(:,:,:)
+    type(ESMF_Field) :: field
+    type(DiagnCont), pointer :: thisDiagn
+
+    ! -- begin
+    if (present(rc)) rc = ESMF_SUCCESS
+
+    nullify(thisDiagn)
+    call Diagn_Get( HcoState, EOI, thisDiagn, flag, localrc )
+    if (NEXUS_Error_Log(localrc, msg='Error encountered in routine "Diagn_Get!"', &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
+    do while (flag == HCO_SUCCESS)
+      call ESMF_StateGet( DiagState, thisDiagn % cName, field, rc=localrc)
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__,  &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+      select case ( thisDiagn % spaceDim )
+        case (2)
+          call ESMF_FieldGet(field, farrayPtr=fp2d, &
+            computationalLBound=lb, computationalUBound=ub, rc=localrc)
+          if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+            line=__LINE__,  &
+            file=__FILE__,  &
+            rcToReturn=rc)) return  ! bail out
+          fp2d = thisDiagn % Arr2D % Val(lb(1):ub(1),lb(2):ub(2))
+        case (3)
+          call ESMF_FieldGet(field, farrayPtr=fp3d, &
+            computationalLBound=lb, computationalUBound=ub, rc=localrc)
+          if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+            line=__LINE__,  &
+            file=__FILE__,  &
+            rcToReturn=rc)) return  ! bail out
+          fp3d = thisDiagn % Arr3D % Val(lb(1):ub(1),lb(2):ub(2),:)
+      end select
+
+      call Diagn_Get( HcoState, EOI, thisDiagn, flag, localrc )
+      if (NEXUS_Error_Log(localrc, msg='Error encountered in routine "Diagn_Get!"', &
+        line=__LINE__, &
+        file=__FILE__, &
+        rcToReturn=rc)) return
+    end do
+
+  end subroutine NXS_DiagState_Update
 
   subroutine NXS_ExptState_Init( grid, importState, exportState, rc )
     type(ESMF_Grid)                :: grid
