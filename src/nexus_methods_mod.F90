@@ -225,7 +225,7 @@ contains
     HcoState%Options%isESMF = .FALSE.
 
     ! Let HEMCO schedule the diagnostics output
-    HcoState%Options%HcoWritesDiagn = .TRUE.
+    HcoState%Options%HcoWritesDiagn = .not.do_NEXUS
 
     ! If not explicitly set, make sure that option Field2Diagn is true
     call GetExtOpt ( HcoState%Config, CoreNr, &
