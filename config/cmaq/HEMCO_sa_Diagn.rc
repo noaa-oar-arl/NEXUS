@@ -57,3 +57,5 @@ PTI          PTI            -1    -1  -1   2   kg/m2/s
 PSI          PSI            -1    -1  -1   2   kg/m2/s
 PMC          PMC            -1    -1  -1   2   kg/m2/s
 PSO4         PSO4           -1    -1  -1   2   kg/m2/s
+CH4_INV      CH4_INV        -1    -1  -1   2   kg/m2/s
+CO2_INV      CO2_INV        -1    -1  -1   2   kg/m2/s

@@ -13,14 +13,14 @@ from glob import glob
 import sys
 import subprocess
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-
+from datetime import datetime
 
 def fix_time_string(input_str,date_str, cycle, start=False):
     s = input_str.split()
     if start:
-        s[1] = '  ' + date_str
+        s[1] = '  ' + date_str.strftime('%Y-%m-%d')
     else:
-        s[1] = '    ' + date_str
+        s[1] = '    ' + date_str.strftime("%Y-%m-%d")
     #s[1] = date_str
     s[2] = ':'.join(map(str, [cycle,'00','00']))
     return ' '.join(map(str, s)) + '\n'
@@ -29,15 +29,15 @@ if __name__ == '__main__':
 
     parser = ArgumentParser(description='Modify the start and end date of the NEXUS config script', formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('-f', '--files', help='input nemsio file name', type=str, required=True)
-    parser.add_argument('-s', '--start_date', help='starting date: format %Y-%m-%d', required=True)
-    parser.add_argument('-e', '--end_date', help='ending date: format %Y-%m-%d', required=True)
+    parser.add_argument('-s', '--start_date', help='starting date: format %Y%m%d', required=True)
+    parser.add_argument('-e', '--end_date', help='ending date: format %Y%m%d', required=True)
     parser.add_argument('-c', '--cycle', help='cycle: format %H',default = '00', required=False)
     parser.add_argument('-t', '--time_step', help='time step in seconds', default='3600', required=False)
     args = parser.parse_args()
 
     finput = args.files
-    sdate = args.start_date
-    edate = args.end_date
+    sdate = datetime.strptime(args.start_date,'%Y%m%d')
+    edate = datetime.strptime(args.end_date,'%Y%m%d')
     cycle = args.cycle
     tstep = args.time_step
 
