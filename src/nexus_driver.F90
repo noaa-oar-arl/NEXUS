@@ -59,6 +59,8 @@ program NEXUS_driver
   ReGridFile = ""
   OutputFile = ""
 
+  debugLevel = 0
+
   localrc = ESMF_SUCCESS
 
   if (localPet == 0) then
