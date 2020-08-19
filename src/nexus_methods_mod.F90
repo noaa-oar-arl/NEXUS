@@ -202,6 +202,16 @@ contains
       rcToReturn=rc)) return
 
     !-----------------------------------------------------------------------
+    ! Create NEXUS grid and reset HEMCO grid as distributed
+    if (do_NEXUS) then
+      HCO_Grid = HCO_GridCreate( HcoState, rc=localrc )
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+         line=__LINE__,  &
+         file=__FILE__,  &
+         rcToReturn=rc)) return  ! bail out
+    end if
+
+    !-----------------------------------------------------------------------
     ! Register species
     call Register_Species( HcoState, localrc )
     if (NEXUS_Error_Log(localrc, msg='Error encountered in routine "Register_Species"!', &
@@ -305,12 +315,6 @@ contains
     ! Start NEXUS Init
     !=======================================================================
     if (do_NEXUS) then
-      HCO_Grid = HCO_GridCreate( HcoState, rc=localrc )
-      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-         line=__LINE__,  &
-         file=__FILE__,  &
-         rcToReturn=rc)) return  ! bail out
-
       NXS_Diag_State = ESMF_StateCreate( rc=localrc )
       if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
          line=__LINE__,  &
@@ -2892,15 +2896,16 @@ contains
 
   function HCO_GridCreate( HcoState, rc ) result ( grid )
 
-    type(HCO_State),   intent(in)  :: HcoState
+    type(HCO_State),   pointer     :: HcoState
     integer, optional, intent(out) :: rc
 
     type(ESMF_Grid) :: grid
 
     ! -- local variables
-    integer :: localrc
+    integer :: localrc, stat
     integer :: item, s
-    integer :: ie, ue
+    integer :: ie, ux, uy
+    integer :: nx, ny
     integer, dimension(2) :: lb, ub
     real(ESMF_KIND_R8), pointer :: fp(:,:)
 
@@ -2951,28 +2956,96 @@ contains
            file=__FILE__,  &
            rcToReturn=rc)) return  ! bail out
         if      (staggerList(s) == ESMF_STAGGERLOC_CENTER) then
+          nx = ub(1) - lb(1) + 1
+          ny = ub(2) - lb(2) + 1
           select case (item)
             case (1)
-              fp(lb(1):ub(1),lb(2):ub(2)) = HcoState % Grid % XMID % Val(lb(1):ub(1),lb(2):ub(2))
+              ! -- reset HEMCO center longitudes
+              nullify(HcoState % Grid % XMID % Val)
+              allocate(HcoState % Grid % XMID % Val(nx,ny), stat=stat)
+              if (ESMF_LogFoundAllocError(statusToCheck=stat, &
+                msg="Unable to allocate memory", &
+                line=__LINE__,  &
+                file=__FILE__,  &
+                rcToReturn=rc)) return  ! bail out
+              HcoState % Grid % XMID % Alloc = .true.
+              HcoState % Grid % XMID % Val = XMID(lb(1):ub(1),lb(2):ub(2),1)
+              deallocate(XMID, stat=stat)
+              if (ESMF_LogFoundDeallocError(statusToCheck=stat, &
+                msg="Unable to deallocate memory", &
+                line=__LINE__,  &
+                file=__FILE__,  &
+                rcToReturn=rc)) return  ! bail out
+              fp(lb(1):ub(1),lb(2):ub(2)) = HcoState % Grid % XMID % Val
             case (2)
-              fp(lb(1):ub(1),lb(2):ub(2)) = HcoState % Grid % YMID % Val(lb(1):ub(1),lb(2):ub(2))
+              ! -- reset HEMCO center latitudes
+              nullify(HcoState % Grid % YMID % Val)
+              allocate(HcoState % Grid % YMID % Val(nx,ny), stat=stat)
+              if (ESMF_LogFoundAllocError(statusToCheck=stat, &
+                msg="Unable to allocate memory", &
+                line=__LINE__,  &
+                file=__FILE__,  &
+                rcToReturn=rc)) return  ! bail out
+              HcoState % Grid % YMID % Alloc = .true.
+              HcoState % Grid % YMID % Val = YMID(lb(1):ub(1),lb(2):ub(2),1)
+              deallocate(YMID, stat=stat)
+              if (ESMF_LogFoundDeallocError(statusToCheck=stat, &
+                msg="Unable to deallocate memory", &
+                line=__LINE__,  &
+                file=__FILE__,  &
+                rcToReturn=rc)) return  ! bail out
+              fp(lb(1):ub(1),lb(2):ub(2)) = HcoState % Grid % YMID % Val
           end select
         else if (staggerList(s) == ESMF_STAGGERLOC_CORNER) then
+          ux = min(ub(1), HcoState % NX)
+          nx = ux - lb(1) + 1
+          uy = min(ub(2), HcoState % NY)
+          ny = uy - lb(2) + 1
           select case (item)
             case (1)
-              ue = min(ub(2), HcoState % NY)
-              fp(lb(1):ub(1),lb(2):ue) = HcoState % Grid % XEDGE % Val(lb(1):ub(1),lb(2):ue)
+              ! -- reset HEMCO edge longitudes
+              nullify(HcoState % Grid % XEDGE % Val)
+              allocate(HcoState % Grid % XEDGE % Val(nx+1,ny), stat=stat)
+              if (ESMF_LogFoundAllocError(statusToCheck=stat, &
+                msg="Unable to allocate memory", &
+                line=__LINE__,  &
+                file=__FILE__,  &
+                rcToReturn=rc)) return  ! bail out
+              HcoState % Grid % XEDGE % Alloc = .true.
+              HcoState % Grid % XEDGE % Val = XEDGE(lb(1):ux+1,lb(2):uy,1)
+              fp(lb(1):ub(1),lb(2):uy) = XEDGE(lb(1):ub(1),lb(2):uy,1)
               ! -- fill missing edge points
-              do ie = ue + 1, ub(2)
-                fp(lb(1):ub(1),ie) = fp(lb(1):ub(1),ue)
+              do ie = uy + 1, ub(2)
+                fp(lb(1):ub(1),ie) = fp(lb(1):ub(1),uy)
               end do
+              deallocate(XEDGE, stat=stat)
+              if (ESMF_LogFoundDeallocError(statusToCheck=stat, &
+                msg="Unable to deallocate memory", &
+                line=__LINE__,  &
+                file=__FILE__,  &
+                rcToReturn=rc)) return  ! bail out
             case (2)
-              ue = min(ub(1), HcoState % NX)
-              fp(lb(1):ue,lb(2):ub(2)) = HcoState % Grid % YEDGE % Val(lb(1):ue,lb(2):ub(2))
+              ! -- reset HEMCO edge latitudes
+              nullify(HcoState % Grid % YEDGE % Val)
+              allocate(HcoState % Grid % YEDGE % Val(nx,ny+1), stat=stat)
+              if (ESMF_LogFoundAllocError(statusToCheck=stat, &
+                msg="Unable to allocate memory", &
+                line=__LINE__,  &
+                file=__FILE__,  &
+                rcToReturn=rc)) return  ! bail out
+              HcoState % Grid % YEDGE % Alloc = .true.
+              HcoState % Grid % YEDGE % Val = YEDGE(lb(1):ux,lb(2):uy+1,1)
+              fp(lb(1):ux,lb(2):ub(2)) = YEDGE(lb(1):ux,lb(2):ub(2),1)
               ! -- fill missing edge points
-              do ie = ue + 1, ub(1)
-                fp(ie,lb(2):ub(2)) = fp(ue,lb(2):ub(2))
+              do ie = ux + 1, ub(1)
+                fp(ie,lb(2):ub(2)) = fp(ux,lb(2):ub(2))
               end do
+              deallocate(YEDGE, stat=stat)
+              if (ESMF_LogFoundDeallocError(statusToCheck=stat, &
+                msg="Unable to deallocate memory", &
+                line=__LINE__,  &
+                file=__FILE__,  &
+                rcToReturn=rc)) return  ! bail out
           end select
         end if
       end do
@@ -2994,8 +3067,34 @@ contains
        file=__FILE__,  &
        rcToReturn=rc)) return  ! bail out
 
-    fp(lb(1):ub(1),lb(2):ub(2)) = HcoState % Grid % AREA_M2 % Val(lb(1):ub(1),lb(2):ub(2))
-  
+    ! -- reset HEMCO grid items
+    nx = ub(1) - lb(1) + 1
+    ny = ub(2) - lb(2) + 1
+    nullify(HcoState % Grid % AREA_M2 % Val)
+    nullify(HcoState % Grid % YSIN % Val)
+    allocate(HcoState % Grid % AREA_M2 % Val(nx,ny), &
+             HcoState % Grid % YSIN % Val(nx,ny+1), stat=stat)
+    if (ESMF_LogFoundAllocError(statusToCheck=stat, &
+       msg="Unable to allocate memory", &
+       line=__LINE__,  &
+       file=__FILE__,  &
+       rcToReturn=rc)) return  ! bail out
+    HcoState % Grid % AREA_M2 % Alloc = .true.
+    HcoState % Grid % YSIN    % Alloc = .true.
+    HcoState % Grid % AREA_M2 % Val = AREA_M2(lb(1):ub(1),lb(2):ub(2),1)
+    HcoState % Grid % YSIN    % Val = YSIN   (lb(1):ub(1),lb(2):ub(2)+1,1)
+    deallocate(AREA_M2, YSIN, stat=stat)
+    if (ESMF_LogFoundDeallocError(statusToCheck=stat, &
+       msg="Unable to deallocate memory", &
+       line=__LINE__,  &
+       file=__FILE__,  &
+       rcToReturn=rc)) return  ! bail out
+    fp(lb(1):ub(1),lb(2):ub(2)) = HcoState % Grid % AREA_M2 % Val
+
+    ! -- reset HEMCO grid size
+    HcoState % NX = size(HcoState % Grid % XMID % Val, dim=1)
+    HcoState % NY = size(HcoState % Grid % XMID % Val, dim=2)
+
   end function HCO_GridCreate
 
   function GridCreate_GridSpec( fileName, rc ) result ( grid )
@@ -3223,7 +3322,7 @@ contains
     integer :: flag
     integer :: lb(2), ub(2)
     logical :: EOI
-    real(sp), pointer :: fp2d(:,:), fp3d(:,:,:)
+    real(ESMF_KIND_R4), pointer :: fp2d(:,:), fp3d(:,:,:)
     type(ESMF_Field) :: field
     type(DiagnCont), pointer :: thisDiagn
 
@@ -3251,7 +3350,7 @@ contains
             line=__LINE__,  &
             file=__FILE__,  &
             rcToReturn=rc)) return  ! bail out
-          fp2d = thisDiagn % Arr2D % Val(lb(1):ub(1),lb(2):ub(2))
+          fp2d(lb(1):ub(1),lb(2):ub(2)) = thisDiagn % Arr2D % Val
         case (3)
           call ESMF_FieldGet(field, farrayPtr=fp3d, &
             computationalLBound=lb, computationalUBound=ub, rc=localrc)
@@ -3259,7 +3358,7 @@ contains
             line=__LINE__,  &
             file=__FILE__,  &
             rcToReturn=rc)) return  ! bail out
-          fp3d = thisDiagn % Arr3D % Val(lb(1):ub(1),lb(2):ub(2),:)
+          fp3d(lb(1):ub(1),lb(2):ub(2),:) = thisDiagn % Arr3D % Val
       end select
 
       call Diagn_Get( HcoState, EOI, thisDiagn, flag, localrc )
