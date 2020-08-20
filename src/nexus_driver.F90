@@ -23,7 +23,7 @@ program NEXUS_driver
   integer :: localPet
   integer :: idx, ind, item
   integer :: debugLevel
-  integer :: ibuf(1)
+  integer :: ibuf(2)
   character(ESMF_MAXSTR) :: ConfigFile
   character(ESMF_MAXSTR) :: ReGridFile
   character(ESMF_MAXSTR) :: OutputFile
@@ -58,6 +58,8 @@ program NEXUS_driver
   ConfigFile = ""
   ReGridFile = ""
   OutputFile = ""
+
+  debugLevel = 0
 
   localrc = ESMF_SUCCESS
 
@@ -95,7 +97,7 @@ program NEXUS_driver
 
   ibuf(1) = localrc
   ibuf(2) = debugLevel
-  call ESMF_VMBroadcast(vm, ibuf, 2, rootPet, rc=rc)
+  call ESMF_VMBroadcast(vm, ibuf, size(ibuf), rootPet, rc=rc)
   if (ESMF_LogFoundError(rc, msg=ESMF_LOGERR_PASSTHRU, &
     line=__LINE__,  &
     file=__FILE__)) &
@@ -110,7 +112,7 @@ program NEXUS_driver
   sbuf(1) = ConfigFile
   sbuf(2) = ReGridFile
   sbuf(3) = OutputFile
-  call ESMF_VMBroadcast(vm, sbuf, 2*len(sbuf(1)), rootPet, rc=rc)
+  call ESMF_VMBroadcast(vm, sbuf, size(sbuf)*len(sbuf(1)), rootPet, rc=rc)
   if (ESMF_LogFoundError(rc, msg=ESMF_LOGERR_PASSTHRU, &
     line=__LINE__,  &
     file=__FILE__)) &
