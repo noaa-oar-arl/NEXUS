@@ -22,9 +22,10 @@ def get_date_yyyymmdd(date=None):
     return datetime.strptime(date,'%Y%m%d')
 
 def get_nei2016_files(src_dir=None,current_month='08',sector='airport'):
-#    fullpath = "{}/NEI2016v1/v2020-07/{}/NEI2016v1_0.1x0.1_????????_{}.nc".format(src_dir,current_month,sector)
- #   print(fullpath)
-    files = glob("{}/NEI2016v1/v2020-07/{}/NEI2016v1_0.1x0.1_????????_{}.nc".format(src_dir,current_month,sector))
+    month = int(current_month)
+    files = []
+    for m in [-1, 0, +1]:
+        files.extend(glob("{}/NEI2016v1/v2020-07/{}/NEI2016v1_0.1x0.1_????????_{}.nc".format(src_dir,"%2.2i" % (month+m),sector)))
     return sorted(files)
 
 def get_nei2016_dates(files):
@@ -78,38 +79,46 @@ def link_file(src_file,target_file):
     else:
         os.symlink(src_file, target_file)
 
+
+def find_closest_index(lst, val):
+    return min(range(len(lst)), key = lambda i: abs(lst[i]-val))
+
+
 def find_day_in_iso_week(target_date, dates, files):
     iso_week = [ da.isocalendar()[1] for da in dates ]
     iso_week_max = max(iso_week)
     iso_week_min = min(iso_week)
     dow = [ da.isoweekday() for da in dates ]
     dweek = d.isocalendar()[1]
-#    print(dweek in iso_week, d.isocalendar()[1])
+    days_of_week = []
     if (dweek in iso_week):
         indexs = [ index for index,val in enumerate(iso_week) if val == dweek ]
-#        print(indexs)
-        days_of_week = [ dow[i]    for i in indexs]
+        days_of_week  = [  dow[i] for i in indexs]
         dates_of_week = [dates[i] for i in indexs]
         files_of_week = [files[i] for i in indexs]
-#        print(days_of_week)
-#        print(dates_of_week)
     if target_date.isoweekday() in days_of_week:
-#        print('here')
         index = days_of_week.index(target_date.isoweekday())
         return files_of_week[index]
     else:
-#        print('here2')
         if (dweek + 1 > iso_week_max) & (dweek > iso_week_min):
             dweek -= 1
         else:
             dweek += 1
         indexs = [ index for index,val in enumerate(iso_week) if val == dweek ]
-        days_of_week = [ dow[i]    for i in indexs]
+        if len(indexs) == 0:
+            # return closest available week
+            indexs = [ find_closest_index(iso_week, dweek) ]
+        days_of_week  = [  dow[i] for i in indexs]
         dates_of_week = [dates[i] for i in indexs]
-        files_of_week =    [files[i] for i    in indexs]
+        files_of_week = [files[i] for i in indexs]
         if target_date.isoweekday() in days_of_week:
             index = days_of_week.index(target_date.isoweekday())
             return files_of_week[index]
+        else:
+            # return closest day of the week
+            index = find_closest_index(days_of_week, target_date.isoweekday())
+            return files_of_week[index]
+
 
 def create_target_name(workdir,fname,month,target_date):
     basename = 'NEI2016v1/v2020-07/{}/{}'.format(month,os.path.basename(fname))
