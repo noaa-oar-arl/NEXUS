@@ -36,11 +36,15 @@ def get_day_of_week(dates):
     days_of_week = [date.isoweekday() for date in dates]
     return days_of_week
 
+def get_month(dates):
+    return [date.month for date in dates]
+
 def get_closest_file(target_date,dates,files):
     # get the day of the week
     dow = get_day_of_week(dates)
-    tiwd = target_date.isoweekday() # target date day of the week (ie sunday monday tuesday ....) 
-    if len(files) > 7:
+    tiwd = target_date.isoweekday() # target date day of the week (ie sunday monday tuesday ....)
+    nfiles_per_month = get_num_files_per_month(files,dates)
+    if nfiles_per_month > 7:
         print('ALL DAYS HERE')
         #daily files available for the entire month
         if target_date.day <= 7: 
@@ -51,26 +55,36 @@ def get_closest_file(target_date,dates,files):
             return files[index]
         else: 
             return find_day_in_iso_week(d, dates,files)
-    elif len(files) == 7:
+    elif nfiles_per_month == 7:
         print('ONLY ONE WEEK')
         #daily files are availbale for a single month
-        index = dow.index(target_date.isoweekday())
-        return files[index]
-    elif len(files) == 4:
+        files_in_month, iwd_in_month = get_files_in_month(files, dates, target_date)
+        index = iwd_in_month.index(target_date.isoweekday())
+        return files_in_month[index]
+    elif nfiles_per_month == 4:
         print('ONLY 4 DAYS')
         # a week day and friday sat and sunday are available
+        # should return the files in the current month regardless
+        files_in_month, iwd_in_month = get_files_in_month(files, dates, target_date)
         if tiwd == 1:
-            return files[0]
+            index = iwd_in_month.index(tiwd)
+            return files_in_month[index]
         elif tiwd == 6:
-            return files[-2]
+            index = iwd_in_month.index(tiwd)
+            return files_in_month[index]
         elif tiwd == 7:
-            return files[-1]
+            index = iwd_in_month.index(tiwd)
+            return files_in_month[index]
         else:
-            return files[1]
+            index = [iwd_in_month.index(item) for item in iwd_in_month if item not in [1, 6, 7]][0]
+            return files_in_month[index]
     else:
         print('SINGLE_FILE')
         # only a single file for the entire month
-        return files[0]
+        target_month = target_date.month
+        file_month = get_month(dates)
+        index = find_closest_index(file_month, target_month)
+        return files[index]
 
 
 def link_file(src_file,target_file):
@@ -79,6 +93,17 @@ def link_file(src_file,target_file):
     else:
         os.symlink(src_file, target_file)
 
+def get_num_files_per_month(files,dates):
+    months = get_month(dates)
+    unique_months = list(set(months))
+    return min([months.count(um) for um in unique_months])
+
+def get_files_in_month(files, dates, target_date):
+    months = get_month(dates)
+    target_month = target_date.month
+    files_in_month = [ f for f,m in zip(files,months) if m == target_month]
+    iwd_in_month = [ d.isoweekday() for d,m in zip(dates,months) if m == target_month]
+    return files_in_month, iwd_in_month
 
 def find_closest_index(lst, val):
     return min(range(len(lst)), key = lambda i: abs(lst[i]-val))
