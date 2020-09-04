@@ -83,7 +83,7 @@ def get_closest_file(target_date,dates,files):
         # only a single file for the entire month
         target_month = target_date.month
         file_month = get_month(dates)
-        index, _ = min(enumerate(file_month), key=lambda x: abs(x[1] - target_month))
+        index = find_closest_index(file_month, target_month)
         return files[index]
 
 
