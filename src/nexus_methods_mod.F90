@@ -3264,6 +3264,7 @@ contains
     ! -- begin
     if (present(rc)) rc = ESMF_SUCCESS
 
+    EOI = .false.
     nullify(thisDiagn)
     call Diagn_Get( HcoState, EOI, thisDiagn, flag, localrc )
     if (NEXUS_Error_Log(localrc, msg='Error encountered in routine "Diagn_Get!"', &
@@ -3329,6 +3330,7 @@ contains
     ! -- begin
     if (present(rc)) rc = ESMF_SUCCESS
 
+    EOI = .false.
     nullify(thisDiagn)
     call Diagn_Get( HcoState, EOI, thisDiagn, flag, localrc )
     if (NEXUS_Error_Log(localrc, msg='Error encountered in routine "Diagn_Get!"', &
