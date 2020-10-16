@@ -153,30 +153,63 @@ def create_target_name(workdir,fname,month,target_date):
     return struct_name
 
 
+def get_hemco_simulation_time(file_path):
+    from datetime import datetime
+    from datetime import timedelta
+    with open(file_path,'r') as reader:
+        # skip the first three comment lines
+        reader.readline() 
+        reader.readline()
+        reader.readline()
+        # get the start time 
+        start = reader.readline()
+        # get the end time
+        end = reader.readline()
+        start_time = datetime.strptime(start,'START:   %Y-%m-%d %H:00:00\n')
+        end_time = datetime.strptime(end,'END:     %Y-%m-%d %H:00:00\n')
+    dates = []
+    currtime = start_time
+    print(currtime, end_time)
+    while currtime <= end_time:
+        print(currtime)
+        dates.append(currtime)
+        currtime = currtime + timedelta(days=1)
+    return dates
+
 if __name__ == '__main__':
 
      parser = ArgumentParser(description='Modify the start and end date of the NEXUS config script', formatter_class=ArgumentDefaultsHelpFormatter)
      parser.add_argument('-s', '--src_dir', help='Source Directory to Emission files', type=str, required=True)
-     parser.add_argument('-d', '--date', help='date for file: format %Y-%m-%d', required=True)
+     parser.add_argument('-d', '--date', help='date for file: format %Y-%m-%d', required=False)
      parser.add_argument('-w', '--work_dir', help='work directory in the workflow', required=False)
+     parser.add_argument('-t', '--read_hemco_time', help='Read HEMCO time file', default=True, required=True)
+     parser.add_argument('-tf','--time_file_path', help='Location of the HEMCO Time File', default=None, required=False)
      args = parser.parse_args()
 
      src_dir = args.src_dir
-     d = datetime.strptime(args.date, '%Y%m%d')
      work_dir = args.work_dir
-     
-     month = d.strftime('%m')
 
-     all_files = glob('{}/NEI2016v1/v2020-07/{}/*.nc'.format(src_dir,month))
-     sectors = sorted(list(set([ os.path.basename(i)[27:][:-3] for i in all_files])))
-     for i in sectors:
-         print(i,month,src_dir)
-         if (i == 'ptfire') | (i == 'ptagfire'):
-             pass
+     d = datetime.strptime(args.date, '%Y%m%d')
+     if args.read_hemco_time:
+         if args.time_file_path is None:
+             hemco_time_file = os.path.join(args.work_dir,'../','HEMCO_sa_Time.rc')
          else:
-             files = get_nei2016_files(src_dir=src_dir, current_month=month, sector=i)
-             dates = get_nei2016_dates(files)
-             fname = get_closest_file(d,dates,files)
-             target_name = create_target_name(work_dir,fname,month,d)
-             print(fname,target_name)
-             link_file(fname, target_name)
+             hemco_time_file = args.time_file_path
+         dates = get_hemco_simulation_time(hemco_time_file)
+
+     for d in dates:
+         month = d.strftime('%m')
+
+         all_files = glob('{}/NEI2016v1/v2020-07/{}/*.nc'.format(src_dir,month))
+         sectors = sorted(list(set([ os.path.basename(i)[27:][:-3] for i in all_files])))
+         for i in sectors:
+             print(i,month,src_dir)
+             if (i == 'ptfire') | (i == 'ptagfire'):
+                 pass
+             else:
+                 files = get_nei2016_files(src_dir=src_dir, current_month=month, sector=i)
+                 dates = get_nei2016_dates(files)
+                 fname = get_closest_file(d,dates,files)
+                 target_name = create_target_name(work_dir,fname,month,d)
+                 print(fname,target_name)
+                 link_file(fname, target_name)
