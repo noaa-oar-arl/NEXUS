@@ -182,7 +182,7 @@ if __name__ == '__main__':
      parser.add_argument('-s', '--src_dir', help='Source Directory to Emission files', type=str, required=True)
      parser.add_argument('-d', '--date', help='date for file: format %Y-%m-%d', required=False)
      parser.add_argument('-w', '--work_dir', help='work directory in the workflow', required=False)
-     parser.add_argument('-t', '--read_hemco_time', help='Read HEMCO time file', default=True, required=True)
+     parser.add_argument('-t', '--read_hemco_time', help='Read HEMCO time file', default=True, required=False)
      parser.add_argument('-tf','--time_file_path', help='Location of the HEMCO Time File', default=None, required=False)
      args = parser.parse_args()
 
@@ -192,7 +192,7 @@ if __name__ == '__main__':
      d = datetime.strptime(args.date, '%Y%m%d')
      if args.read_hemco_time:
          if args.time_file_path is None:
-             hemco_time_file = os.path.join(args.work_dir,'../','HEMCO_sa_Time.rc')
+             hemco_time_file = os.path.join(args.work_dir,'../HEMCO_sa_Time.rc')
          else:
              hemco_time_file = args.time_file_path
          dates = get_hemco_simulation_time(hemco_time_file)
