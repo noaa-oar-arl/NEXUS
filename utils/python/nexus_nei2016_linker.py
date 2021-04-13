@@ -71,7 +71,7 @@ def find_day_in_iso_week(target_date, dates, files):
     iso_week_max = max(iso_week)
     iso_week_min = min(iso_week)
     dow = [da.isoweekday() for da in dates]
-    dweek = d.isocalendar()[1]
+    dweek = target_date.isocalendar()[1]
     days_of_week = []
     if dweek in iso_week:
         indexs = find_indexes(iso_week, dweek)
@@ -104,8 +104,8 @@ def find_day_in_iso_week(target_date, dates, files):
 
 def get_closest_file(target_date, dates, files):
     # get the day of the week
-    dow = get_day_of_week(dates)
-    tiwd = target_date.isoweekday()  # target date day of the week (ie sunday monday tuesday ....)
+    # dow = get_day_of_week(dates)
+
     nfiles_per_month = get_num_files_per_month(files, dates)
     if nfiles_per_month > 7:
         print('ALL DAYS HERE')
@@ -118,7 +118,7 @@ def get_closest_file(target_date, dates, files):
         #     return files[index]
         # else:
         #     return find_day_in_iso_week(d, dates,files)
-        return find_day_in_iso_week(d, dates, files)
+        return find_day_in_iso_week(target_date, dates, files)
     elif nfiles_per_month == 7:
         print('ONLY ONE WEEK')
         # daily files are availbale for a single month
@@ -129,6 +129,7 @@ def get_closest_file(target_date, dates, files):
         print('ONLY 4 DAYS')
         # a week day and friday sat and sunday are available
         # should return the files in the current month regardless
+        tiwd = target_date.isoweekday()  # target date day of the week (ie sunday monday tuesday ....)
         files_in_month, iwd_in_month = get_files_in_month(files, dates, target_date)
         if tiwd == 1:
             index = iwd_in_month.index(tiwd)
