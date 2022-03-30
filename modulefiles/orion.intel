@@ -8,32 +8,24 @@ proc ModulesHelp {} {
 
 module-whatis "loads NEXUS prerequisites for Orion/Intel"
 
-##
-## clean up environment
-##
+## clean up environment ---------------------------------------------------
 module purge
 
-##
-## load programming environment
-## this typically includes compiler, MPI and job scheduler
-##
-module load intel/2018
-module load impi/2018
+module load contrib noaatools
 
+## load hpc-stack ---------------------------------------------------------
+module use /apps/contrib/NCEP/libs/hpc-stack/modulefiles/stack
+module load hpc/1.1.0
+module load hpc-intel/2018.4
+module load hpc-impi/2018.4
 
-##
-## load ESMF library for above compiler / MPI combination
-## use pre-compiled EMSF library for above compiler / MPI combination
-##
-module use /apps/contrib/NCEPLIBS/lib/modulefiles
-module load netcdfp/4.7.4
-module load esmflocal/8.0.0.para
-module load post-intel-sandybridge/8.0.5
+## load esmf / netcdf -----------------------------------------------------
+module load hdf5/1.10.6
+module load netcdf/4.7.4
+module load esmf/8_2_0
 
-##
-## load cmake
-##
-module load cmake/3.15.4
+## cmake environment ------------------------------------------------------
+module load cmake/3.18.1
 setenv CMAKE_C_COMPILER mpiicc
 setenv CMAKE_CXX_COMPILER mpiicpc
 setenv CMAKE_Fortran_COMPILER mpiifort
