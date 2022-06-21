@@ -2,13 +2,11 @@
 # ID        : species ID
 # NAME      : species name
 # MW        : molecular weight (g/mol) 
-# MWEMIS    : molecular weight of emitted species (g/mol)
-# MOLECRATIO: molecules of emitted species per molecule of species
 # K0        : Henry constant at 298 K (M/atm, liquid over gas)
 # CR        : Henry temperature dependency (-d ln(KH)/d(1/T)
 # pKA       : acid dissociation constant
 
-# ID NAME MW MWEMIS MOLECRATIO K0 CR PKA
+# ID NAME MW K0 CR PKA
 1 CO            28.0  12.0 1.0  0.0 0.0 0.0
 2 SO2           64.0  64.0 1.0  0.0 0.0 0.0
 3 NOT           30.0  30.0 1.0  0.0 0.0 0.0
@@ -64,5 +62,16 @@
 53 PEC          12.0  12.0 1.0  0.0 0.0 0.0
 54 POC          12.0  12.0 1.0  0.0 0.0 0.0
 55 PSO4         96.1  96.1 1.0  0.0 0.0 0.0
-56 CH4_INV      16.0  12.0 1.0  0.0 0.0 0.0
-57 CO2_INV      44.0  12.0 1.0  0.0 0.0 0.0
+56 VOC_INV      12.0  12.0 1.0  0.0 0.0 0.0
+57 UNR          12.0  12.0 1.0  0.0 0.0 0.0
+58 UNK          12.0  12.0 1.0  0.0 0.0 0.0
+59 CH4_INV      16.0  12.0 1.0  0.0 0.0 0.0
+60 CO2_INV      44.0  12.0 1.0  0.0 0.0 0.0
+61 C2H4         28.1  12.0 2.0  0.000000E+00      0.00      0.00
+62 EOH          46.1  12.0 2.0  1.900000E+02   6600.00      0.00
+63 MOH          32.0  12.0 1.0  2.000000E+02   5600.00      0.00
+64 PRPE         42.1  12.0 3.0  0.000000E+00      0.00      0.00
+65 MTPA         136.2 12.0 10.0 4.900000E-02      0.00      0.00
+66 MTPO         136.2 12.0 10.0 4.900000E-02      0.00      0.00
+67 LIMO         136.2 12.0 10.0 7.000000E-02      0.00      0.00
+68 SESQ         204.0 12.0 15.0 0.000000E+00      0.00      0.00
