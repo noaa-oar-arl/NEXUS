@@ -48,8 +48,6 @@ module NEXUS_Methods_Mod
   character(len= 31),    pointer :: ModelSpecNames     (:) => NULL()
   integer,               pointer :: ModelSpecIDs       (:) => NULL()
   real(hp),              pointer :: ModelSpecMW        (:) => NULL()
-  real(hp),              pointer :: ModelSpecEmMW      (:) => NULL()
-  real(hp),              pointer :: ModelSpecMolecRatio(:) => NULL()
   real(hp),              pointer :: ModelSpecK0        (:) => NULL()
   real(hp),              pointer :: ModelSpecCR        (:) => NULL()
   real(hp),              pointer :: ModelSpecPKA       (:) => NULL()
@@ -714,7 +712,6 @@ contains
   subroutine Model_GetSpecies( HcoConfig,                          &
                                nModelSpec,     ModelSpecNames,     &
                                ModelSpecIDs,   ModelSpecMW,        &
-                               ModelSpecEmMW,  ModelSpecMolecRatio,&
                                ModelSpecK0,    ModelSpecCR,        &
                                ModelSpecPKA,   RC                   )
 !
@@ -730,8 +727,6 @@ contains
     character(len= 31), pointer     :: ModelSpecNames     (:)
     integer,            pointer     :: ModelSpecIDs       (:)
     real(hp),           pointer     :: ModelSpecMW        (:)
-    real(hp),           pointer     :: ModelSpecEmMW      (:)
-    real(hp),           pointer     :: ModelSpecMolecRatio(:)
     real(hp),           pointer     :: ModelSpecK0        (:)
     real(hp),           pointer     :: ModelSpecCR        (:)
     real(hp),           pointer     :: ModelSpecPKA       (:)
@@ -831,8 +826,6 @@ contains
     allocate(ModelSpecNames     (nModelSpec))
     allocate(ModelSpecIDs       (nModelSpec))
     allocate(ModelSpecMW        (nModelSpec))
-    allocate(ModelSpecEmMW      (nModelSpec))
-    allocate(ModelSpecMolecRatio(nModelSpec))
     allocate(ModelSpecK0        (nModelSpec))
     allocate(ModelSpecCR        (nModelSpec))
     allocate(ModelSpecPKA       (nModelSpec))
@@ -881,7 +874,7 @@ contains
                           ' on line ', trim(DUM), '. Each ', &
                           'species definition line is expected ', &
                           'to have 8 entries (ID, Name, MW, MWemis, ', &
-                          'MOLECRATIO, K0, CR, PKA, e.g.: ', &
+                          'MolecRatio, K0, CR, PKA, e.g.: ', &
                           '1 CO   28.0 28.0 1.0 0.0 0.0 0.0'
              call HCO_Error ( HcoConfig%Err, MSG, RC, THISLOC=LOC )
              return
@@ -896,9 +889,9 @@ contains
              CASE ( 3 )
                 READ( DUM(LOW:UPP), * ) ModelSpecMW(N)
              CASE ( 4 )
-                READ( DUM(LOW:UPP), * ) ModelSpecEmMW(N)
+                ! EmMW - Do nothing
              CASE ( 5 )
-                READ( DUM(LOW:UPP), * ) ModelSpecMolecRatio(N)
+                ! MolecRatio - Do nothing
              CASE ( 6 )
                 READ( DUM(LOW:UPP), * ) ModelSpecK0(N)
              CASE ( 7 )
@@ -1568,7 +1561,6 @@ contains
     call Model_GetSpecies( HcoConfig,                           &
                            nModelSpec,     ModelSpecNames,      &
                            ModelSpecIDs,   ModelSpecMW,         &
-                           ModelSpecEmMW,  ModelSpecMolecRatio, &
                            ModelSpecK0,    ModelSpecCR,         &
                            ModelSpecPKA,   RC                    )
     if ( RC /= HCO_SUCCESS ) then
@@ -2875,8 +2867,6 @@ contains
     if ( associated(ModelSpecNames     ) ) deallocate(ModelSpecNames     )
     if ( associated(ModelSpecIDs       ) ) deallocate(ModelSpecIDs       )
     if ( associated(ModelSpecMW        ) ) deallocate(ModelSpecMW        )
-    if ( associated(ModelSpecEmMW      ) ) deallocate(ModelSpecEmMW      )
-    if ( associated(ModelSpecMolecRatio) ) deallocate(ModelSpecMolecRatio)
     if ( associated(ModelSpecK0        ) ) deallocate(ModelSpecK0        )
     if ( associated(ModelSpecCR        ) ) deallocate(ModelSpecCR        )
     if ( associated(ModelSpecPKA       ) ) deallocate(ModelSpecPKA       )
