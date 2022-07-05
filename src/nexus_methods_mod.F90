@@ -1652,12 +1652,8 @@ contains
        HcoState%Spc(cnt)%SpcName  = HcoSpecNames(I)
        HcoState%Spc(cnt)%ModID    = IDX
 
-       ! Molecular weights of species & emitted species.
+       ! Molecular weights of species
        HcoState%Spc(cnt)%MW_g     = ModelSpecMW(IDX)
-       !HcoState%Spc(cnt)%EmMW_g   = ModelSpecEmMW(IDX)
-
-       ! Emitted molecules per molecule of species.
-       !HcoState%Spc(cnt)%MolecRatio = ModelSpecMolecRatio(IDX)
 
        ! Set Henry coefficients
        HcoState%Spc(cnt)%HenryK0  = ModelSpecK0(IDX)
