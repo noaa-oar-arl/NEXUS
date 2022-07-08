@@ -64,6 +64,7 @@ module NEXUS_Methods_Mod
   real(hp), allocatable, target  :: YEDGE  (:,:,:)
   real(hp), allocatable, target  :: YSIN   (:,:,:)
   real(hp), allocatable, target  :: AREA_M2(:,:,:)
+  real(hp), allocatable, target  :: PBL_M  (:,:)
 
   ! MAXIT is the maximum number of run calls allowed
   integer, parameter             :: MAXIT = 100000
@@ -614,6 +615,7 @@ contains
     if ( allocated( YEDGE   ) ) deallocate ( YEDGE   )
     if ( allocated( YSIN    ) ) deallocate ( YSIN    )
     if ( allocated( AREA_M2 ) ) deallocate ( AREA_M2 )
+    if ( allocated( PBL_M   ) ) deallocate ( PBL_M   )
 
     ! Cleanup HcoState object
     call HcoState_Final( HcoState )
@@ -963,6 +965,7 @@ contains
     use HCO_inquireMod,   only  : findFreeLUN
     use HCO_ExtList_Mod,  only  : HCO_GetOpt, GetExtOpt, CoreNr
     use HCO_VertGrid_Mod, only  : HCO_VertGrid_Define
+    use HCO_GeoTools_Mod, only  : HCO_SetPBLm
 !
 ! !INPUT/OUTPUT PARAMETERS:
 !
@@ -1152,6 +1155,7 @@ contains
     allocate ( AREA_M2  (NX,  NY,  1   ) )
     allocate ( AP       (          NZ+1) )
     allocate ( BP       (          NZ+1) )
+    allocate ( PBL_M    ( NX, NY       ) )
     YSIN      = HCO_MISSVAL
     AREA_M2   = HCO_MISSVAL
     XMID      = HCO_MISSVAL
@@ -1160,6 +1164,7 @@ contains
     YEDGE     = HCO_MISSVAL
     AP        = HCO_MISSVAL
     BP        = HCO_MISSVAL
+    PBL_M     = HCO_MISSVAL
 
     ! ------------------------------------------------------------------
     ! Check if grid box edges and/or midpoints are explicitly given.
@@ -1462,6 +1467,14 @@ contains
     HcoState%Grid%YEDGE%Val      => YEDGE  (:,:,1)
     HcoState%Grid%YSIN%Val       => YSIN   (:,:,1)
     HcoState%Grid%AREA_M2%Val    => AREA_M2(:,:,1)
+    HcoState%Grid%PBLHEIGHT%Val  => PBL_M
+
+    ! Define a default PBL height
+    CALL HCO_SetPBLm( HcoState = HcoState, &
+                      FldName  ='PBL_HEIGHT', &
+                      PBLM     = HcoState%Grid%PBLHEIGHT%Val, &
+                      DefVal   = 1000.0_hp, &
+                      RC       = RC )
 
     ! The pressure edges and grid box heights are obtained from
     ! an external file in ExtState_SetFields
