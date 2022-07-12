@@ -48,8 +48,6 @@ module NEXUS_Methods_Mod
   character(len= 31),    pointer :: ModelSpecNames     (:) => NULL()
   integer,               pointer :: ModelSpecIDs       (:) => NULL()
   real(hp),              pointer :: ModelSpecMW        (:) => NULL()
-  real(hp),              pointer :: ModelSpecEmMW      (:) => NULL()
-  real(hp),              pointer :: ModelSpecMolecRatio(:) => NULL()
   real(hp),              pointer :: ModelSpecK0        (:) => NULL()
   real(hp),              pointer :: ModelSpecCR        (:) => NULL()
   real(hp),              pointer :: ModelSpecPKA       (:) => NULL()
@@ -66,6 +64,7 @@ module NEXUS_Methods_Mod
   real(hp), allocatable, target  :: YEDGE  (:,:,:)
   real(hp), allocatable, target  :: YSIN   (:,:,:)
   real(hp), allocatable, target  :: AREA_M2(:,:,:)
+  real(hp), allocatable, target  :: PBL_M  (:,:)
 
   ! MAXIT is the maximum number of run calls allowed
   integer, parameter             :: MAXIT = 100000
@@ -616,6 +615,7 @@ contains
     if ( allocated( YEDGE   ) ) deallocate ( YEDGE   )
     if ( allocated( YSIN    ) ) deallocate ( YSIN    )
     if ( allocated( AREA_M2 ) ) deallocate ( AREA_M2 )
+    if ( allocated( PBL_M   ) ) deallocate ( PBL_M   )
 
     ! Cleanup HcoState object
     call HcoState_Final( HcoState )
@@ -714,7 +714,6 @@ contains
   subroutine Model_GetSpecies( HcoConfig,                          &
                                nModelSpec,     ModelSpecNames,     &
                                ModelSpecIDs,   ModelSpecMW,        &
-                               ModelSpecEmMW,  ModelSpecMolecRatio,&
                                ModelSpecK0,    ModelSpecCR,        &
                                ModelSpecPKA,   RC                   )
 !
@@ -730,8 +729,6 @@ contains
     character(len= 31), pointer     :: ModelSpecNames     (:)
     integer,            pointer     :: ModelSpecIDs       (:)
     real(hp),           pointer     :: ModelSpecMW        (:)
-    real(hp),           pointer     :: ModelSpecEmMW      (:)
-    real(hp),           pointer     :: ModelSpecMolecRatio(:)
     real(hp),           pointer     :: ModelSpecK0        (:)
     real(hp),           pointer     :: ModelSpecCR        (:)
     real(hp),           pointer     :: ModelSpecPKA       (:)
@@ -831,8 +828,6 @@ contains
     allocate(ModelSpecNames     (nModelSpec))
     allocate(ModelSpecIDs       (nModelSpec))
     allocate(ModelSpecMW        (nModelSpec))
-    allocate(ModelSpecEmMW      (nModelSpec))
-    allocate(ModelSpecMolecRatio(nModelSpec))
     allocate(ModelSpecK0        (nModelSpec))
     allocate(ModelSpecCR        (nModelSpec))
     allocate(ModelSpecPKA       (nModelSpec))
@@ -881,7 +876,7 @@ contains
                           ' on line ', trim(DUM), '. Each ', &
                           'species definition line is expected ', &
                           'to have 8 entries (ID, Name, MW, MWemis, ', &
-                          'MOLECRATIO, K0, CR, PKA, e.g.: ', &
+                          'MolecRatio, K0, CR, PKA, e.g.: ', &
                           '1 CO   28.0 28.0 1.0 0.0 0.0 0.0'
              call HCO_Error ( HcoConfig%Err, MSG, RC, THISLOC=LOC )
              return
@@ -896,9 +891,9 @@ contains
              CASE ( 3 )
                 READ( DUM(LOW:UPP), * ) ModelSpecMW(N)
              CASE ( 4 )
-                READ( DUM(LOW:UPP), * ) ModelSpecEmMW(N)
+                ! EmMW - Do nothing
              CASE ( 5 )
-                READ( DUM(LOW:UPP), * ) ModelSpecMolecRatio(N)
+                ! MolecRatio - Do nothing
              CASE ( 6 )
                 READ( DUM(LOW:UPP), * ) ModelSpecK0(N)
              CASE ( 7 )
@@ -970,6 +965,7 @@ contains
     use HCO_inquireMod,   only  : findFreeLUN
     use HCO_ExtList_Mod,  only  : HCO_GetOpt, GetExtOpt, CoreNr
     use HCO_VertGrid_Mod, only  : HCO_VertGrid_Define
+    use HCO_GeoTools_Mod, only  : HCO_SetPBLm
 !
 ! !INPUT/OUTPUT PARAMETERS:
 !
@@ -1159,6 +1155,7 @@ contains
     allocate ( AREA_M2  (NX,  NY,  1   ) )
     allocate ( AP       (          NZ+1) )
     allocate ( BP       (          NZ+1) )
+    allocate ( PBL_M    ( NX, NY       ) )
     YSIN      = HCO_MISSVAL
     AREA_M2   = HCO_MISSVAL
     XMID      = HCO_MISSVAL
@@ -1167,6 +1164,7 @@ contains
     YEDGE     = HCO_MISSVAL
     AP        = HCO_MISSVAL
     BP        = HCO_MISSVAL
+    PBL_M     = HCO_MISSVAL
 
     ! ------------------------------------------------------------------
     ! Check if grid box edges and/or midpoints are explicitly given.
@@ -1469,6 +1467,14 @@ contains
     HcoState%Grid%YEDGE%Val      => YEDGE  (:,:,1)
     HcoState%Grid%YSIN%Val       => YSIN   (:,:,1)
     HcoState%Grid%AREA_M2%Val    => AREA_M2(:,:,1)
+    HcoState%Grid%PBLHEIGHT%Val  => PBL_M
+
+    ! Define a default PBL height
+    CALL HCO_SetPBLm( HcoState = HcoState, &
+                      FldName  ='PBL_HEIGHT', &
+                      PBLM     = HcoState%Grid%PBLHEIGHT%Val, &
+                      DefVal   = 1000.0_hp, &
+                      RC       = RC )
 
     ! The pressure edges and grid box heights are obtained from
     ! an external file in ExtState_SetFields
@@ -1568,7 +1574,6 @@ contains
     call Model_GetSpecies( HcoConfig,                           &
                            nModelSpec,     ModelSpecNames,      &
                            ModelSpecIDs,   ModelSpecMW,         &
-                           ModelSpecEmMW,  ModelSpecMolecRatio, &
                            ModelSpecK0,    ModelSpecCR,         &
                            ModelSpecPKA,   RC                    )
     if ( RC /= HCO_SUCCESS ) then
@@ -1652,12 +1657,8 @@ contains
        HcoState%Spc(cnt)%SpcName  = HcoSpecNames(I)
        HcoState%Spc(cnt)%ModID    = IDX
 
-       ! Molecular weights of species & emitted species.
+       ! Molecular weights of species
        HcoState%Spc(cnt)%MW_g     = ModelSpecMW(IDX)
-       HcoState%Spc(cnt)%EmMW_g   = ModelSpecEmMW(IDX)
-
-       ! Emitted molecules per molecule of species.
-       HcoState%Spc(cnt)%MolecRatio = ModelSpecMolecRatio(IDX)
 
        ! Set Henry coefficients
        HcoState%Spc(cnt)%HenryK0  = ModelSpecK0(IDX)
@@ -2879,8 +2880,6 @@ contains
     if ( associated(ModelSpecNames     ) ) deallocate(ModelSpecNames     )
     if ( associated(ModelSpecIDs       ) ) deallocate(ModelSpecIDs       )
     if ( associated(ModelSpecMW        ) ) deallocate(ModelSpecMW        )
-    if ( associated(ModelSpecEmMW      ) ) deallocate(ModelSpecEmMW      )
-    if ( associated(ModelSpecMolecRatio) ) deallocate(ModelSpecMolecRatio)
     if ( associated(ModelSpecK0        ) ) deallocate(ModelSpecK0        )
     if ( associated(ModelSpecCR        ) ) deallocate(ModelSpecCR        )
     if ( associated(ModelSpecPKA       ) ) deallocate(ModelSpecPKA       )

@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 # set compiler
-if (NOT DEFINED ENV{CMAKE_Fortran_COMPILER})
+if(NOT DEFINED ENV{CMAKE_Fortran_COMPILER})
   message(FATAL_ERROR "CMAKE_Fortran_COMPILER is not defined")
 endif()
 
@@ -14,7 +14,7 @@ project(NEXUS
         LANGUAGES Fortran)
 
 # include local macros
-list (APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 # control where the static and shared libraries are built so that on windows
 # we don't need to tinker with the path to run the executable
@@ -24,6 +24,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 
 # do not build HEMCO standalone
 set(HEMCO_EXTERNAL_CONFIG TRUE)
+set(GCCLASSIC_WRAPPER TRUE)
 
 # add project's subdirectories
 add_subdirectory(HEMCO)
