@@ -179,14 +179,14 @@ def get_hemco_simulation_time(file_path):
 
     with open(file_path, 'r') as reader:
         lines = reader.readlines()
-        for L in lines:
-            if L.startswith('START'):
-                start_base = datetime.strptime(L.split()[1],'%Y-%m-%d')
-                start_time = datetime.strptime(L, 'START:   %Y-%m-%d %H:00:00\n')
-            if L.startswith('END'):
-                end_time = datetime.strptime(L, 'END:     %Y-%m-%d %H:00:00\n')
-            if L.startswith('TS_EMIS'):
-                ts_emis = float(L.split()[1].strip('\n'))
+    for L in lines:
+        if L.startswith('START'):
+            start_base = datetime.strptime(L.split()[1],'%Y-%m-%d')
+            start_time = datetime.strptime(L, 'START:   %Y-%m-%d %H:00:00\n')
+        if L.startswith('END'):
+            end_time = datetime.strptime(L, 'END:     %Y-%m-%d %H:00:00\n')
+        if L.startswith('TS_EMIS'):
+            ts_emis = float(L.split()[1].strip('\n'))
         # skip the first three comment lines
         reader.close()
     dates = []
