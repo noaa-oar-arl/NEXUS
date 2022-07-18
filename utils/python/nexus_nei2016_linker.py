@@ -188,7 +188,6 @@ def get_hemco_simulation_time(file_path):
         if L.startswith('TS_EMIS'):
             ts_emis = float(L.split()[1].strip('\n'))
         # skip the first three comment lines
-        reader.close()
     dates = []
     currtime = start_time
     print(currtime, end_time)
