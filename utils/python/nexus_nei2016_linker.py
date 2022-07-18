@@ -203,7 +203,7 @@ if __name__ == '__main__':
     parser = ArgumentParser(description='Modify the start and end date of the NEXUS config script', formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('-s', '--src_dir', help='Source Directory to Emission files', type=str, required=True)
     parser.add_argument('-d', '--date', help='date for file: format %Y-%m-%d', required=False)
-    parser.add_argument('-w', '--work_dir', help='work directory in the workflow', required=False)
+    parser.add_argument('-w', '--work_dir', help='work directory in the workflow', required=True)
     parser.add_argument('-t', '--read_hemco_time', help='Read HEMCO time file', default=True, required=False)
     parser.add_argument('-tf', '--time_file_path', help='Location of the HEMCO Time File', default=None, required=False)
     parser.add_argument('-v', '--nei_version', help='NEI VERSION', default='v2020-07', required=False)
