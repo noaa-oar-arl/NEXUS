@@ -37,7 +37,7 @@ if __name__ == '__main__':
     parser = ArgumentParser(description='Make the NEXUS output pretty', formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('-s', '--src', help='input nexus file', type=str, required=True)
     parser.add_argument('-g', '--grid', help='input grid file', required=False)
-    parser.add_argument('-t', '--read_hemco_time', help='Read HEMCO time file', default=True, required=False)
+    parser.add_argument('-t', '--read-hemco-time', help='Read HEMCO time file', default=True, required=False)
     parser.add_argument('-o', '--output', help='output file name', default=None, required=False)
     args = parser.parse_args()
     
