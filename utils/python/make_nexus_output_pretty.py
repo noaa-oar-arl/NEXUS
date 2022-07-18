@@ -11,9 +11,8 @@ import datetime as dt
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter 
 
 def get_hemco_dates(time_file='HEMCO_sa_Time.rc'):
-    fi = open(time_file)
-    lines = fi.readlines()
-    fi.close()
+    with open(time_file, 'r') as fi:
+        lines = fi.readlines()
     for L in lines:
         if L.startswith('START'):
             start_base = dt.datetime.strptime(L.split()[1],'%Y-%m-%d')
