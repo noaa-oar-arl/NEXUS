@@ -11,6 +11,7 @@ import datetime as dt
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter 
 
 def get_hemco_dates(time_file='HEMCO_sa_Time.rc'):
+    print(time_file)
     with open(time_file, 'r') as fi:
         lines = fi.readlines()
     for L in lines:
@@ -81,9 +82,9 @@ if __name__ == '__main__':
     nc_var_dict = {} 
     for var in ds.variables.values():
         nc_var_dict[var.name] = ncfile.createVariable(var.name, np.float32, ('time','y','x',), zlib=True)
-        nc_var_dict[var.name].units= 'kg m-2 s-1'
-        nc_var_dict[var.name].units='longitude latitude time'
-        
+        nc_var_dict[var.name].units = 'kg m-2 s-1'
+        nc_var_dict[var.name].long_name = var.name
+
     #populate variables 
     
     # # first with lat and lon and time 
@@ -92,7 +93,7 @@ if __name__ == '__main__':
     
     # # now the other variables 
     for var in nc_var_dict.keys():
-        nc_var_dict[var][:] = ds_dict[var][:]
+        nc_var_dict[var][:] = np.nan_to_num(ds_dict[var][:], posinf=0.0, neginf=0.0, nan=0.0 ) 
         
     # # fill time variable
     times = date2num(dates, time.units)
