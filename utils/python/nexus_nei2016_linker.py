@@ -22,11 +22,12 @@ def get_date_yyyymmdd(date=None):
     return datetime.strptime(date, '%Y%m%d')
 
 
-def get_nei2016_files(src_dir=None, current_month='08', sector='airport'):
+def get_nei2016_files(src_dir=None, current_month='08', sector='airport', version='v2020-07'):
     month = int(current_month)
     files = []
     for m in [-1, 0, +1]:
-        files.extend(glob("{}/NEI2016v1/v2020-07/{}/NEI2016v1_0.1x0.1_????????_{}.nc".format(src_dir, "%2.2i" % (month + m), sector)))
+        files.extend(glob("{}/NEI2016v1/{}/{}/NEI2016v1_0.1x0.1_????????_{}.nc".format(src_dir, version, "%2.2i" % (month + m), sector)))
+        print("{}/NEI2016v1/{}/{}/NEI2016v1_0.1x0.1_????????_{}.nc".format(src_dir, version, "%2.2i" % (month + m), sector))
     return sorted(files)
 
 
@@ -159,11 +160,16 @@ def link_file(src_file, target_file):
         os.symlink(src_file, target_file)
 
 
-def create_target_name(workdir, fname, month, target_date):
-    basename = 'NEI2016v1/v2020-07/{}/{}'.format(month, os.path.basename(fname))
+def create_target_name(workdir, fname, month, target_date,version='v2020-07'):
+    basename = 'NEI2016v1/{}/{}/{}'.format(version, month, os.path.basename(fname))
     datestr = basename.split('_')[2]
     newname = basename.replace(datestr, target_date.strftime('%Y%m%d'))
     struct_name = '{}/{}'.format(workdir, newname)
+    # make sure directories exist
+    os.makedirs(workdir, exist_ok=True)
+    os.makedirs(os.path.join(workdir,'NEI2016v1'), exist_ok=True)
+    os.makedirs(os.path.join(workdir,'NEI2016v1',version), exist_ok=True)
+    os.makedirs(os.path.join(workdir,'NEI2016v1',version,month), exist_ok=True)
     return struct_name
 
 
@@ -172,16 +178,16 @@ def get_hemco_simulation_time(file_path):
     from datetime import timedelta
 
     with open(file_path, 'r') as reader:
+        lines = reader.readlines()
+    for L in lines:
+        if L.startswith('START'):
+            start_base = datetime.strptime(L.split()[1],'%Y-%m-%d')
+            start_time = datetime.strptime(L, 'START:   %Y-%m-%d %H:00:00\n')
+        if L.startswith('END'):
+            end_time = datetime.strptime(L, 'END:     %Y-%m-%d %H:00:00\n')
+        if L.startswith('TS_EMIS'):
+            ts_emis = float(L.split()[1].strip('\n'))
         # skip the first three comment lines
-        reader.readline()
-        reader.readline()
-        reader.readline()
-        # get the start time
-        start = reader.readline()
-        # get the end time
-        end = reader.readline()
-        start_time = datetime.strptime(start, 'START:   %Y-%m-%d %H:00:00\n')
-        end_time = datetime.strptime(end, 'END:     %Y-%m-%d %H:00:00\n')
     dates = []
     currtime = start_time
     print(currtime, end_time)
@@ -197,15 +203,18 @@ if __name__ == '__main__':
     parser = ArgumentParser(description='Modify the start and end date of the NEXUS config script', formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('-s', '--src_dir', help='Source Directory to Emission files', type=str, required=True)
     parser.add_argument('-d', '--date', help='date for file: format %Y-%m-%d', required=False)
-    parser.add_argument('-w', '--work_dir', help='work directory in the workflow', required=False)
+    parser.add_argument('-w', '--work_dir', help='work directory in the workflow', required=True)
     parser.add_argument('-t', '--read_hemco_time', help='Read HEMCO time file', default=True, required=False)
     parser.add_argument('-tf', '--time_file_path', help='Location of the HEMCO Time File', default=None, required=False)
+    parser.add_argument('-v', '--nei_version', help='NEI VERSION', default='v2020-07', required=False)
     args = parser.parse_args()
 
     src_dir = args.src_dir
     work_dir = args.work_dir
-
+    version = args.nei_version
     d = datetime.strptime(args.date, '%Y%m%d')
+
+    # ensure directory exists
     if args.read_hemco_time:
         if args.time_file_path is None:
             hemco_time_file = os.path.join(args.work_dir, '../HEMCO_sa_Time.rc')
@@ -215,17 +224,18 @@ if __name__ == '__main__':
 
     for d in dates:
         month = d.strftime('%m')
-
-        all_files = glob('{}/NEI2016v1/v2020-07/{}/*.nc'.format(src_dir, month))
+        
+        all_files = glob('{}/NEI2016v1/{}/{}/*.nc'.format(src_dir, version, month))
         sectors = sorted(list(set([os.path.basename(i)[27:][:-3] for i in all_files])))
+        print(sectors)
         for i in sectors:
             print(i, month, src_dir)
             if (i == 'ptfire') | (i == 'ptagfire'):
                 pass
             else:
-                files = get_nei2016_files(src_dir=src_dir, current_month=month, sector=i)
+                files = get_nei2016_files(src_dir=src_dir, current_month=month, sector=i,version=version)
                 dates = get_nei2016_dates(files)
                 fname = get_closest_file(d, dates, files)
-                target_name = create_target_name(work_dir, fname, month, d)
+                target_name = create_target_name(work_dir, fname, month, d, version=version)
                 print(fname, target_name)
                 link_file(fname, target_name)
