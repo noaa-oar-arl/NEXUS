@@ -25,61 +25,65 @@ echo ${specie}
 #1.Use HEMCO MEGANv2.1 instantaneous diagnostic for some bio-only species
 if [ ${specie} == "AACD" ] 
 then
-ncap2 -A -v -s "${specie} = InvMEGAN_AAXX" $input $output
+ncap2 -A -v -s "${specie} = InvMEGAN_AAXX; where(${specie} > 100000) ${specie}=0." $input $output
 elif [ ${specie} == "FACD" ]
 then
-ncap2 -A -v -s "${specie} = InvMEGAN_FAXX" $input $output
+ncap2 -A -v -s "${specie} = InvMEGAN_FAXX; where(${specie} > 100000) ${specie}=0." $input $output
 elif [ ${specie} == "APIN" ]
 then
-ncap2 -A -v -s "${specie} = InvMEGAN_APIN" $input $output
+ncap2 -A -v -s "${specie} = InvMEGAN_APIN; where(${specie} > 100000) ${specie}=0." $input $output
 #Sesquiterpene is also only biogenic
 elif [ ${specie} == "SESQ" ]
 then
-ncap2 -A -v -s "${specie} = ${specie}_bio" $input $output
+ncap2 -A -v -s "${specie} = ${specie}_bio; where(${specie} > 100000) ${specie}=0." $input $output
 
 
 #2. Following species need to combine HEMCO anthropogenic and MEGANv2.1 biogenic species
 elif [ ${specie} == "ACET" ] || [ ${specie} == "ALD2" ] || [ ${specie} == "ETH" ] || [ ${specie} == "ETOH" ] || [ ${specie} == "ISOP" ] || [ ${specie} == "MEOH" ] || [ ${specie} == "OLE" ]
 then
-ncap2 -A -v -s "${specie} = ${specie}_ant + ${specie}_bio" $input $output
+ncap2 -A -v -s "${specie} = ${specie}_ant + ${specie}_bio; where(${specie} > 100000) ${specie}=0." $input $output
 #Lumped terpene should combine all HEMCO MEGANv2.1 terpenoids
 elif [ ${specie} == "TERP" ]
 then
-ncap2 -A -v -s "${specie} = ${specie}_ant + MTPA_bio + MTPO_bio + LIMO_bio" $input $output
+ncap2 -A -v -s "${specie} = ${specie}_ant + MTPA_bio + MTPO_bio + LIMO_bio; where(${specie} > 100000) ${specie}=0." $input $output
 
 #3. Following species are approximately calculated from other BVOCs (estimated from NACC-CMAQv5.3.1/BEISv3.6.1 summer simulation) and then combined with anthropogenic
 elif [ ${specie} == "IOLE" ]
 then
-ncap2 -A -v -s "${specie} = ${specie}_ant + OLE_bio*0.967963" $input $output
+ncap2 -A -v -s "${specie} = ${specie}_ant + OLE_bio*0.967963; where(${specie} > 100000) ${specie}=0." $input $output
 elif [ ${specie} == "PAR" ]
 then
-ncap2 -A -v -s "${specie} = ${specie}_ant + (MTPA_bio + MTPO_bio + LIMO_bio)*0.576825" $input $output
+ncap2 -A -v -s "${specie} = ${specie}_ant + (MTPA_bio + MTPO_bio + LIMO_bio)*0.576825; where(${specie} > 100000) ${specie}=0." $input $output
 elif [ ${specie} == "ETHA" ]
 then
-ncap2 -A -v -s "${specie} = ${specie}_ant + ETH_bio*0.160406" $input $output
+ncap2 -A -v -s "${specie} = ${specie}_ant + ETH_bio*0.160406; where(${specie} > 100000) ${specie}=0." $input $output
 elif [ ${specie} == "ALDX" ]
 then
-ncap2 -A -v -s "${specie} = ${specie}_ant + ALD2_bio*0.166038" $input $output
+ncap2 -A -v -s "${specie} = ${specie}_ant + ALD2_bio*0.166038; where(${specie} > 100000) ${specie}=0." $input $output
 elif [ ${specie} == "FORM" ]
 then
-ncap2 -A -v -s "${specie} = ${specie}_ant + ALD2_bio*0.914909" $input $output
+ncap2 -A -v -s "${specie} = ${specie}_ant + ALD2_bio*0.914909; where(${specie} > 100000) ${specie}=0." $input $output
 elif [ ${specie} == "FORM_PRIMARY" ]
 then
-ncap2 -A -v -s "${specie} = ${specie}_ant + ALD2_bio*0.914909" $input $output
+ncap2 -A -v -s "${specie} = ${specie}_ant + ALD2_bio*0.914909; where(${specie} > 100000) ${specie}=0." $input $output
 elif [ ${specie} == "ALD2_PRIMARY" ]
 then
-ncap2 -A -v -s "${specie} = ${specie}_ant + ALD2_bio*0.670921" $input $output
+ncap2 -A -v -s "${specie} = ${specie}_ant + ALD2_bio*0.670921; where(${specie} > 100000) ${specie}=0." $input $output
 elif [ ${specie} == "KET" ]
 then
-ncap2 -A -v -s "${specie} = ${specie}_ant + ACET_bio*0.0339559" $input $output
+ncap2 -A -v -s "${specie} = ${specie}_ant + ACET_bio*0.0339559; where(${specie} > 100000) ${specie}=0." $input $output
 elif [ ${specie} == "CO" ]
 then
-ncap2 -A -v -s "${specie} = ${specie}_ant + (MTPA_bio + MTPO_bio + LIMO_bio)*0.4666" $input $output
+ncap2 -A -v -s "${specie} = ${specie}_ant + (MTPA_bio + MTPO_bio + LIMO_bio)*0.4666; where(${specie} > 100000) ${specie}=0." $input $output
 
 
 #4. The remainder of species are just anthropogenic from HEMCO
 else
-ncap2 -A -v -s "${specie} = ${specie}_ant" $input $output
+ncap2 -A -v -s "${specie} = ${specie}_ant; where(${specie} > 100000) ${specie}=0." $input $output
 fi
 
+#ncatted -O -a _FillValue,${specie},o,f,0.0 $output
+
 done
+
+
