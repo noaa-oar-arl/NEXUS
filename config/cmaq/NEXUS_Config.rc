@@ -944,7 +944,7 @@ Cap time shift              : true
 # --- OMI_HTAP_SO2---
 #==============================================================================
 (((OMI_HTAP_SO2
-0 OMI_HTAP_SO2__A $ROOT/OMI_HTAP_SO2/htapv2.2.emisso2.surface.x3600y1800t12.2019.integrate_fixtime.nc4 sanl1 2019/1-12/1/0 C xy kg/m2/s SO2 -     1 1
+0 OMI_HTAP_SO2__A $ROOT/OMI-HTAP_2019/htapv2.2.emisso2.surface.x3600y1800t12.2019.integrate_fixtime.nc4 sanl1 2019/1-12/1/0 C xy kg/m2/s SO2 -     1 1
 )))OMI_HTAP_SO2
 
 #==============================================================================
