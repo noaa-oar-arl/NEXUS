@@ -1,0 +1,75 @@
+# This file defines the diagnostics to be written
+# out by the HEMCO standalone model
+#
+# Name      Spec ExtNr Cat Hier Dim Unit   
+CO_ant           CO             0    -1  -1   2   kg/m2/s
+SO2_ant          SO2            0    -1  -1   2   kg/m2/s
+NO2_ant          NO2            0    -1  -1   2   kg/m2/s
+NO_ant           NOT            0    -1  -1   2   kg/m2/s
+HCL_ant          HCL            0    -1  -1   2   kg/m2/s
+CL2_ant          CL2            0    -1  -1   2   kg/m2/s
+HONO_ant         HONO           0    -1  -1   2   kg/m2/s
+SULF_ant         SULF           0    -1  -1   2   kg/m2/s
+NH3_ant          NH3            0    -1  -1   2   kg/m2/s
+NH3_FERT_ant     NH3_FERT       0    -1  -1   2   kg/m2/s
+CH4_ant          CH4            0    -1  -1   2   kg/m2/s
+ACROLEIN_ant     ACROLEIN       0    -1  -1   2   kg/m2/s
+BUTADIENE13_ant  BUTADIENE13    0    -1  -1   2   kg/m2/s
+ETHY_ant         ETHY           0    -1  -1   2   kg/m2/s
+TERP_ant         TERP           0    -1  -1   2   kg/m2/s
+FORM_ant         FORM           0    -1  -1   2   kg/m2/s
+PAR_ant          PAR            0    -1  -1   2   kg/m2/s
+IOLE_ant         IOLE           0    -1  -1   2   kg/m2/s
+OLE_ant          OLE            0    -1  -1   2   kg/m2/s
+ETH_ant          ETH            0    -1  -1   2   kg/m2/s
+ETHA_ant         ETHA           0    -1  -1   2   kg/m2/s
+ETOH_ant         ETOH           0    -1  -1   2   kg/m2/s
+MEOH_ant         MEOH           0    -1  -1   2   kg/m2/s
+BENZ_ant         BENZ           0    -1  -1   2   kg/m2/s
+TOL_ant          TOL            0    -1  -1   2   kg/m2/s
+XYLMN_ant        XYLMN          0    -1  -1   2   kg/m2/s
+NAPH_ant         NAPH           0    -1  -1   2   kg/m2/s
+ALD2_ant         ALD2           0    -1  -1   2   kg/m2/s
+ALDX_ant         ALDX           0    -1  -1   2   kg/m2/s
+ISOP_ant         ISOP           0    -1  -1   2   kg/m2/s
+PRPA_ant         PRPA           0    -1  -1   2   kg/m2/s
+ACET_ant         ACET           0    -1  -1   2   kg/m2/s
+KET_ant          KET            0    -1  -1   2   kg/m2/s
+ALD2_PRIMARY_ant ALD2_PRIMARY   0    -1  -1   2   kg/m2/s
+FORM_PRIMARY_ant FORM_PRIMARY   0    -1  -1   2   kg/m2/s
+SOAALK_ant       SOAALK         0    -1  -1   2   kg/m2/s
+VOC_INV_ant      VOC_INV        0    -1  -1   2   kg/m2/s
+POC_ant          POC            0    -1  -1   2   kg/m2/s
+PEC_ant          PEC            0    -1  -1   2   kg/m2/s
+PAL_ant          PAL            0    -1  -1   2   kg/m2/s
+PCA_ant          PCA            0    -1  -1   2   kg/m2/s
+PCL_ant          PCL            0    -1  -1   2   kg/m2/s
+PFE_ant          PFE            0    -1  -1   2   kg/m2/s
+PH2O_ant         PH2O           0    -1  -1   2   kg/m2/s
+PK_ant           PK             0    -1  -1   2   kg/m2/s
+PMG_ant          PMG            0    -1  -1   2   kg/m2/s
+PMN_ant          PMN            0    -1  -1   2   kg/m2/s
+PMOTHR_ant       PMOTHR         0    -1  -1   2   kg/m2/s
+PNA_ant          PNA            0    -1  -1   2   kg/m2/s
+PNCOM_ant        PNCOM          0    -1  -1   2   kg/m2/s
+PNH4_ant         PNH4           0    -1  -1   2   kg/m2/s
+PNO3_ant         PNO3           0    -1  -1   2   kg/m2/s
+PTI_ant          PTI            0    -1  -1   2   kg/m2/s
+PSI_ant          PSI            0    -1  -1   2   kg/m2/s
+PMC_ant          PMC            0    -1  -1   2   kg/m2/s
+PSO4_ant         PSO4           0    -1  -1   2   kg/m2/s
+UNR_ant          UNR            0    -1  -1   2   kg/m2/s
+UNK_ant          UNK            0    -1  -1   2   kg/m2/s
+CH4_INV_ant      CH4_INV        0    -1  -1   2   kg/m2/s
+CO2_INV_ant      CO2_INV        0    -1  -1   2   kg/m2/s
+ISOP_bio         ISOP         108    -1  -1   2   kg/m2/s ISOP_emission_flux_from_biogenic_sources
+ACET_bio         ACET         108    -1  -1   2   kg/m2/s ACET_emission_flux_from_biogenic_sources
+ALD2_bio         ALD2         108    -1  -1   2   kg/m2/s ALD2_emission_flux_from_biogenic_sources
+OLE_bio          PRPE         108    -1  -1   2   kg/m2/s OLE_emission_flux_from_biogenic_sources
+ETH_bio          C2H4         108    -1  -1   2   kg/m2/s ETH_emission_flux_from_biogenic_sources
+ETOH_bio         EOH          108    -1  -1   2   kg/m2/s ETOH_emission_flux_from_biogenic_sources
+MEOH_bio         MOH          108    -1  -1   2   kg/m2/s MEOH_emission_flux_from_biogenic_sources
+MTPA_bio         MTPA         108    -1  -1   2   kg/m2/s TERP_emission_flux_from_biogenic_sources
+MTPO_bio         MTPO         108    -1  -1   2   kg/m2/s TERP_emission_flux_from_biogenic_sources
+LIMO_bio         LIMO         108    -1  -1   2   kg/m2/s TERP_emission_flux_from_biogenic_sources
+SESQ_bio         SESQ         108    -1  -1   2   kg/m2/s SESQ_emission_flux_from_biogenic_sources
