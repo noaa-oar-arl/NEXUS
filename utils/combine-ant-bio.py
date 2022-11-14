@@ -99,7 +99,7 @@ def main(ifp, ofp):
 
     for spc in SPECIES:
 
-        ds_new.createVariable(spc, np.float32, ("time", "y", "x"), fill_value=9.96920997e+36)
+        ds_new.createVariable(spc, np.float32, ("time", "y", "x"), fill_value=9.96920997e+36, zlib=True)
         ds_new[spc].units = em_units
 
         # 1. Use HEMCO MEGANv2.1 instantaneous diagnostic for some bio-only species
