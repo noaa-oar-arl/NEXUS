@@ -122,7 +122,7 @@ def main(ifp, ofp):
         elif spc == "PAR":
             ds_new[spc][:] = (
                 ds[f"{spc}_ant"][:]
-                + (ds["MTPA_bio"][:] + ds["MTBO_bio"][:] + ds["LIMO_bio"][:]) * 0.576825
+                + (ds["MTPA_bio"][:] + ds["MTPO_bio"][:] + ds["LIMO_bio"][:]) * 0.576825
             )
         elif spc == "ETHA":
             ds_new[spc][:] = ds[f"{spc}_ant"][:] + ds["ETH_bio"][:] * 0.160406
@@ -139,7 +139,7 @@ def main(ifp, ofp):
         elif spc == "CO":
             ds_new[spc][:] = (
                 ds[f"{spc}_ant"][:]
-                + (ds["MTPA_bio"][:] + ds["MTBO_bio"][:] + ds["LIMO_bio"][:]) * 0.4666
+                + (ds["MTPA_bio"][:] + ds["MTPO_bio"][:] + ds["LIMO_bio"][:]) * 0.4666
             )
 
         # 4. The remainder of species are just anthropogenic from HEMCO
