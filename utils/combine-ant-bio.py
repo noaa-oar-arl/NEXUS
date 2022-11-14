@@ -88,12 +88,19 @@ def main(ifp, ofp):
     ds_new.createDimension("time", None)
     ds_new.createVariable("time", ds["time"].dtype, ("time",))
     ds_new["time"][:] = ds["time"][:]
+    ds_new["time"].units = ds["time"].units
     ds_new.createDimension("y", ds.dimensions["y"].size)
     ds_new.createDimension("x", ds.dimensions["x"].size)
+
+    em_units = "kg m-2 s-1"
+    for vn in ds.variables:
+        if vn not in {"time", "latitude", "longitude"} and ds[vn].units.strip() != em_units:
+            print(f"warning: expected {vn} to have units {em_units!r} but it has {ds[vn].units!r}")
 
     for spc in SPECIES:
 
         ds_new.createVariable(spc, np.float32, ("time", "y", "x"))
+        ds_new[spc].units = em_units
 
         # 1. Use HEMCO MEGANv2.1 instantaneous diagnostic for some bio-only species
         if spc == "AACD":
