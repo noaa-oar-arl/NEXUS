@@ -104,7 +104,7 @@ def main(ifp, ofp):
             ds_new[spc][:] = ds["InvMEGAN_APIN"][:]
         elif spc == "SESQ":
             # Sesquiterpene is also only biogenic
-            ds_new[spc][:] = ds["InvMEGAN_bio"][:]
+            ds_new[spc][:] = ds["SESQ_bio"][:]
 
         # 2. The following species need to combine HEMCO anthropogenic and MEGANv2.1 biogenic species
         elif spc in {"ACET", "ALD2", "ETH", "ETOH", "ISOP", "MEOH", "OLE"}:
