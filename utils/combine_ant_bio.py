@@ -72,7 +72,7 @@ SPECIES = [
 ]
 
 
-def main(ifp, ofp):
+def main(ifp, ofp, *, compress=True):
     """
     Parameters
     ----------
@@ -99,7 +99,10 @@ def main(ifp, ofp):
 
     for spc in SPECIES:
 
-        ds_new.createVariable(spc, np.float32, ("time", "y", "x"), fill_value=9.96920997e+36, zlib=True)
+        kwargs = dict(fill_value=9.96920997e+36)
+        if compress:
+            kwargs.update(zlib=True)
+        ds_new.createVariable(spc, np.float32, ("time", "y", "x"), **kwargs)
         ds_new[spc].units = em_units
 
         # 1. Use HEMCO MEGANv2.1 instantaneous diagnostic for some bio-only species
@@ -167,12 +170,16 @@ def parse_args(argv=None):
     )
     parser.add_argument("INPUT", type=Path, help="Input file path.")
     parser.add_argument("OUTPUT", type=Path, help="Output file path.")
+    parser.add_argument("--compress", action="store_true", help="Whether to apply compression for the variables.")
+    parser.add_argument("--no-compress", action="store_false", dest="compress")
+    parser.set_defaults(compress=True)
 
     args = parser.parse_args(argv)
 
     return {
         "ifp": args.INPUT,
         "ofp": args.OUTPUT,
+        "compress": args.compress,
     }
 
 
