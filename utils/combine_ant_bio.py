@@ -99,7 +99,7 @@ def main(ifp, ofp, *, compress=True):
 
     for spc in SPECIES:
 
-        kwargs = dict(fill_value=9.96920997e+36)
+        kwargs = {}
         if compress:
             kwargs.update(zlib=True, complevel=1)
         ds_new.createVariable(spc, np.float32, ("time", "y", "x"), **kwargs)

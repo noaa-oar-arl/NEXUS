@@ -93,7 +93,7 @@ if __name__ == '__main__':
     
     # # now the other variables 
     for var in nc_var_dict.keys():
-        nc_var_dict[var][:] = np.nan_to_num(ds_dict[var][:], posinf=0.0, neginf=0.0, nan=0.0 ) 
+        nc_var_dict[var][:] = np.nan_to_num(ds_dict[var][:].filled(np.nan), posinf=0.0, neginf=0.0, nan=0.0)
         
     # # fill time variable
     times = date2num(dates, time.units)
