@@ -101,7 +101,7 @@ def main(ifp, ofp, *, compress=True):
 
         kwargs = dict(fill_value=9.96920997e+36)
         if compress:
-            kwargs.update(zlib=True)
+            kwargs.update(zlib=True, complevel=1)
         ds_new.createVariable(spc, np.float32, ("time", "y", "x"), **kwargs)
         ds_new[spc].units = em_units
 
