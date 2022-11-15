@@ -114,7 +114,7 @@ def main(s_fp, g_fp, t_fp, o_fp):
         vns = vns[rank::nproc]
     for vn in vns:
         print(vn)
-        ds.createVariable(vn, np.float32, ("time", "y", "x"), zlib=True)
+        ds.createVariable(vn, np.float32, ("time", "y", "x"), zlib=True, complevel=1)
         ds[vn].units = "kg m-2 s-1"
         ds[vn].long_name = vn
         tmp[:-1, :, :] = ds_s[vn][:].filled(np.nan)
