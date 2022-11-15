@@ -84,11 +84,14 @@ def main(s_fp, g_fp, t_fp, o_fp):
     time[:] = nc.date2num(dates, time.units)
 
     # Add other variables
+    tmp = np.full((time.size, y_dim.size, x_dim.size), np.nan, dtype=np.float32)
     for vn in ds_s.variables:
         ds.createVariable(vn, np.float32, ("time", "y", "x"), zlib=True)
         ds[vn].units = "kg m-2 s-1"
         ds[vn].long_name = vn
-        ds[vn][:] = np.nan_to_num(ds_s[vn][:].filled(np.nan), posinf=0, neginf=0, nan=0)
+        tmp[:-1, :, :] = ds_s[vn][:].filled(np.nan)
+        ds[vn][:] = np.nan_to_num(tmp, posinf=0, neginf=0, nan=0)
+        # NOTE: this makes all values 0 at the last time in the dataset
 
     return 0
 
