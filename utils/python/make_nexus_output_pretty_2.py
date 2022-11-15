@@ -48,13 +48,22 @@ def get_hemco_dates(time_file=DEFAULT_TIME_FILE_PATH):
 def main(s_fp, g_fp, t_fp, o_fp):
     import netCDF4 as nc
     import numpy as np
-    from mpi4py import MPI
 
-    comm = MPI.COMM_WORLD
-    nproc = comm.Get_size()
-    rank = comm.Get_rank()
+    try:
+        from mpi4py import MPI
+    except ImportError:
+        comm = None
+        nproc = 1
+        rank = 0
+    else:
+        comm = MPI.COMM_WORLD
+        nproc = comm.Get_size()
+        rank = comm.Get_rank()
 
-    print(f"rank {rank} of {nproc}")
+    parallel = nproc > 1
+
+    if parallel:
+        print(f"rank {rank} of {nproc}")
 
     dates, date_base = get_hemco_dates(t_fp)
 
@@ -63,7 +72,10 @@ def main(s_fp, g_fp, t_fp, o_fp):
     ds_g = nc.Dataset(g_fp, "r")
 
     # Create new dataset
-    ds = nc.Dataset(o_fp, "w", format="NETCDF4")
+    kwargs = {}
+    if parallel:
+        kwargs.update(parallel=parallel, comm=comm, info=MPI.Info())
+    ds = nc.Dataset(o_fp, "w", format="NETCDF4", **kwargs)
     x_dim = ds.createDimension("x", ds_g["grid_xt"].size)
     y_dim = ds.createDimension("y", ds_g["grid_yt"].size)
     time_dim = ds.createDimension("time", None)
