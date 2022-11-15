@@ -51,7 +51,7 @@ def main(s_fp, g_fp, t_fp, o_fp):
     from mpi4py import MPI
 
     comm = MPI.COMM_WORLD
-    np = comm.Get_size()
+    nproc = comm.Get_size()
     rank = comm.Get_rank()
 
     print(f"rank {rank} of {np}")
