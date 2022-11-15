@@ -4,20 +4,12 @@ Make NEXUS output pretty
 """
 from pathlib import Path
 
-from mpi4py import MPI
-
-comm = MPI.COMM_WORLD
-np = comm.Get_size()
-rank = comm.Get_rank()
-
-print(f"rank {rank} of {np}")
-
 DEFAULT_TIME_FILE_PATH = Path("./HEMCO_sa_Time.rc")
 
 
 def get_hemco_dates(time_file=DEFAULT_TIME_FILE_PATH):
     import datetime as dt
-    
+
     print(time_file.as_posix())
 
     def parse_dt_line(line):
@@ -53,8 +45,47 @@ def get_hemco_dates(time_file=DEFAULT_TIME_FILE_PATH):
     return dates, start_base
 
 
-def main(t_fp):
+def main(s_fp, g_fp, t_fp, o_fp):
+    import netCDF4 as nc
+    import numpy as np
+    from mpi4py import MPI
+
+    comm = MPI.COMM_WORLD
+    np = comm.Get_size()
+    rank = comm.Get_rank()
+
+    print(f"rank {rank} of {np}")
+
     dates, date_base = get_hemco_dates(t_fp)
+
+    # Open source and grid datasets
+    ds_s = nc.Dataset(s_fp, "r")
+    ds_g = nc.Dataset(g_fp, "r")
+
+    # Create new dataset
+    ds = nc.Dataset(o_fp, "w", format="NETCDF4")
+    x_dim = ds.createDimension("x", ds_g["grid_xt"].size)
+    y_dim = ds.createDimension("y", ds_g["grid_yt"].size)
+    time_dim = ds.createDimension("time", None)
+    ds.title = "NEXUS Generated Emission Data"
+
+    # Add coordinates
+    lat = ds.createVariable("latitude", np.float32, ("y", "x"))
+    lat.long_name = "latitude"
+    lat.units = "degree_north"
+    lat[:] = ds_g["grid_latt"][:]
+    lon = ds.createVariable("longitude", np.float32, ("y", "x"))
+    lon.long_name = "longitude"
+    lon.units = "degree_east"
+    lon[:] = ds_g["grid_lont"][:]
+    time = ds.createVariable("time", np.float64, ("time",))
+    time.units = date_base.strftime(r"hours since %Y-%m-%d")
+    time.long_name = "time"
+    time[:] = nc.date2num(dates, time.units)
+
+    # Add other variables
+
+    return 0
 
 
 def parse_args(argv=None):
@@ -65,17 +96,41 @@ def parse_args(argv=None):
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
+        "-s",
+        "--src",
+        type=Path,
+        help="input ('ugly') NEXUS file path",
+        required=True,
+    )
+    parser.add_argument(
+        "-g",
+        "--grid",
+        type=Path,
+        help="grid file path",
+        required=True,
+    )
+    parser.add_argument(
         "-t",
-        "--hemco-time-file",
+        "--hemco-time",
         type=Path,
         default=DEFAULT_TIME_FILE_PATH,
         help="HEMCO time file path",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=Path,
+        help="output file path",
+        required=True,
     )
 
     args = parser.parse_args(argv)
 
     return {
-        "t_fp": args.hemco_time_file,
+        "s_fp": args.src,
+        "g_fp": args.grid,
+        "t_fp": args.hemco_time,
+        "o_fp": args.output,
     }
 
 
