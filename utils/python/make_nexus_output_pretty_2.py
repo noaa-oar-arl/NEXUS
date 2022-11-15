@@ -31,7 +31,7 @@ def get_hemco_dates(time_file=DEFAULT_TIME_FILE_PATH):
                 start = parse_dt_line(line)
             elif line.startswith("END:"):
                 end = parse_dt_line(line)
-            elif line.startswith("TS_EMIS:"):  # time step
+            elif line.startswith("TS_EMIS:"):  # time step (s)
                 _, s_ts = line.split()
                 ts_emis = float(s_ts)
 
@@ -39,14 +39,13 @@ def get_hemco_dates(time_file=DEFAULT_TIME_FILE_PATH):
     assert ts_emis == 3600
     start_offset = (start - start_base).total_seconds() / 3600
     dates = [
-        start + dt.timedelta(hours=h) + dt.timedelta(hours=start_offset)
+        start_base + dt.timedelta(hours=h) + dt.timedelta(hours=start_offset)
         for h in range(int((end - start).total_seconds() / 3600) + 1)
     ]
 
-    print(dates, start, end)
-    assert dates[0] == start
-    assert dates[-1] == end
-    assert (dates[1] - dates[0]).total_seconds() / 3600 == ts_emis
+    assert dates[0] == start, f"{dates[0]} should be same as {start}"
+    assert dates[-1] == end, f"{dates[-1]} should be same as {end}"
+    assert (dates[1] - dates[0]).total_seconds() == ts_emis, f"dt {dates[1] - dates[0]} should equal {ts_emis} s"
 
     return dates, start_base
 
