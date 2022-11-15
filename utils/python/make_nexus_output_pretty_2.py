@@ -65,45 +65,63 @@ def main(s_fp, g_fp, t_fp, o_fp):
     if parallel:
         print(f"rank {rank} of {nproc}")
 
-    dates, date_base = get_hemco_dates(t_fp)
+    if rank == 0:
+        dates, date_base = get_hemco_dates(t_fp)
 
-    # Open source and grid datasets
-    ds_s = nc.Dataset(s_fp, "r")
-    ds_g = nc.Dataset(g_fp, "r")
+        # Open source and grid datasets
+        ds_s = nc.Dataset(s_fp, "r", parallel=parallel)
+        ds_g = nc.Dataset(g_fp, "r")
 
-    # Create new dataset
-    kwargs = {}
+        # Create new dataset
+        kwargs = {}
+        if parallel:
+            kwargs.update(parallel=parallel, comm=comm, info=MPI.Info())
+        ds = nc.Dataset(o_fp, "w", format="NETCDF4", **kwargs)
+        x_dim = ds.createDimension("x", ds_g["grid_xt"].size)
+        y_dim = ds.createDimension("y", ds_g["grid_yt"].size)
+        time_dim = ds.createDimension("time", None)
+        ds.title = "NEXUS Generated Emission Data"
+
+        # Add coordinates
+        lat = ds.createVariable("latitude", np.float32, ("y", "x"))
+        lat.long_name = "latitude"
+        lat.units = "degree_north"
+        lat[:] = ds_g["grid_latt"][:]
+        lon = ds.createVariable("longitude", np.float32, ("y", "x"))
+        lon.long_name = "longitude"
+        lon.units = "degree_east"
+        lon[:] = ds_g["grid_lont"][:]
+        time = ds.createVariable("time", np.float64, ("time",))
+        time.units = date_base.strftime(r"hours since %Y-%m-%d")
+        time.long_name = "time"
+        if parallel:
+            time.set_collective(True)
+        time[:] = nc.date2num(dates, time.units)
+
+    elif parallel and rank != 0:
+        ds_s = time = y_dim = x_dim = None
+
     if parallel:
-        kwargs.update(parallel=parallel, comm=comm, info=MPI.Info())
-    ds = nc.Dataset(o_fp, "w", format="NETCDF4", **kwargs)
-    x_dim = ds.createDimension("x", ds_g["grid_xt"].size)
-    y_dim = ds.createDimension("y", ds_g["grid_yt"].size)
-    time_dim = ds.createDimension("time", None)
-    ds.title = "NEXUS Generated Emission Data"
-
-    # Add coordinates
-    lat = ds.createVariable("latitude", np.float32, ("y", "x"))
-    lat.long_name = "latitude"
-    lat.units = "degree_north"
-    lat[:] = ds_g["grid_latt"][:]
-    lon = ds.createVariable("longitude", np.float32, ("y", "x"))
-    lon.long_name = "longitude"
-    lon.units = "degree_east"
-    lon[:] = ds_g["grid_lont"][:]
-    time = ds.createVariable("time", np.float64, ("time",))
-    time.units = date_base.strftime(r"hours since %Y-%m-%d")
-    time.long_name = "time"
-    time[:] = nc.date2num(dates, time.units)
+        ds_s = comm.scatter(ds_s, root=0)
+        time = comm.scatter(time, root=0)
+        y_dim = comm.scatter(y_dim, root=0)
+        x_dim = comm.scatter(x_dim, root=0)
 
     # Add other variables
     tmp = np.full((time.size, y_dim.size, x_dim.size), np.nan, dtype=np.float32)
-    for vn in ds_s.variables:
+    vns = list(ds_s.variables)
+    if parallel:
+        vns = vns[rank::nproc]
+    for vn in vns:
+        print(vn)
         ds.createVariable(vn, np.float32, ("time", "y", "x"), zlib=True)
         ds[vn].units = "kg m-2 s-1"
         ds[vn].long_name = vn
         tmp[:-1, :, :] = ds_s[vn][:].filled(np.nan)
         ds[vn][:] = np.nan_to_num(tmp, posinf=0, neginf=0, nan=0)
         # NOTE: this makes all values 0 at the last time in the dataset
+
+    ds.close()
 
     return 0
 
