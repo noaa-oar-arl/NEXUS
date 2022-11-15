@@ -43,8 +43,33 @@ def get_hemco_dates(time_file=DEFAULT_TIME_FILE_PATH):
         for h in range(int((end - start).total_seconds() / 3600) + 1)
     ]
 
+    print(dates, start, end)
     assert dates[0] == start
     assert dates[-1] == end
     assert (dates[1] - dates[0]).total_seconds() / 3600 == ts_emis
 
     return dates, start_base
+
+
+def main(t_fp):
+    dates, date_base = get_hemco_dates(t_fp)
+
+
+
+def parse_args(argv=None):
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Make the NEXUS output pretty",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-t", "--hemco-time-file", type=Path, default=DEFAULT_TIME_FILE_PATH,
+        help="HEMCO time file path")
+
+    args = parser.parse_args(argv)
+
+    return {
+         "t_fp": args.hemco_time_file,
+    }
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(**parse_args()))
