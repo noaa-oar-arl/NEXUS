@@ -54,7 +54,7 @@ def main(s_fp, g_fp, t_fp, o_fp):
     nproc = comm.Get_size()
     rank = comm.Get_rank()
 
-    print(f"rank {rank} of {np}")
+    print(f"rank {rank} of {nproc}")
 
     dates, date_base = get_hemco_dates(t_fp)
 
@@ -84,6 +84,11 @@ def main(s_fp, g_fp, t_fp, o_fp):
     time[:] = nc.date2num(dates, time.units)
 
     # Add other variables
+    for vn in ds_s.variables:
+        ds.createVariable(vn, np.float32, ("time", "y", "x"), zlib=True)
+        ds[vn].units = "kg m-2 s-1"
+        ds[vn].long_name = vn
+        ds[vn][:] = np.nan_to_num(ds_s[vn][:].filled(np.nan), posinf=0, neginf=0, nan=0)
 
     return 0
 
