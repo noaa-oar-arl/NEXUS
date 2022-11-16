@@ -10,6 +10,7 @@ DEFAULT_TIME_FILE_PATH = Path("./HEMCO_sa_Time.rc")
 
 def get_hemco_dates(time_file=DEFAULT_TIME_FILE_PATH):
     import datetime as dt
+    import numpy as np
 
     print(time_file.as_posix())
 
@@ -25,16 +26,15 @@ def get_hemco_dates(time_file=DEFAULT_TIME_FILE_PATH):
                 start = parse_dt_line(line)
             elif line.startswith("END:"):
                 end = parse_dt_line(line)
-            elif line.startswith("TS_EMIS:"):  # time step (s)
+            elif line.startswith("TS_EMIS:"):  # time step (s), e.g. 3600
                 _, s_ts = line.split()
                 ts_emis = float(s_ts)
 
     start_base = start.replace(hour=0, minute=0, second=0)
-    assert ts_emis == 3600
-    start_offset = (start - start_base).total_seconds() / 3600
+    start_offset_h = (start - start_base).total_seconds() / 3600
     dates = [
-        start_base + dt.timedelta(hours=h) + dt.timedelta(hours=start_offset)
-        for h in range(int((end - start).total_seconds() / 3600) + 1)
+        start_base + dt.timedelta(hours=start_offset_h) + dt.timedelta(seconds=s)
+        for s in np.arange(0, (end - start).total_seconds() + ts_emis, ts_emis)
     ]
 
     assert dates[0] == start, f"{dates[0]} should be same as {start}"
@@ -50,11 +50,13 @@ def main(s_fp, g_fp, t_fp, o_fp):
     import netCDF4 as nc
     import numpy as np
 
-    dates, date_base = get_hemco_dates(t_fp)
-
     # Open source and grid datasets
     ds_s = nc.Dataset(s_fp, "r")
     ds_g = nc.Dataset(g_fp, "r")
+
+    # Compute datetimes
+    dates, date_base = get_hemco_dates(t_fp)
+    assert len(dates) == ds_s.dimensions["time"].size + 1
 
     # Create new dataset
     ds = nc.Dataset(o_fp, "w", format="NETCDF4")
