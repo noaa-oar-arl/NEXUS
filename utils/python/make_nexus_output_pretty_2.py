@@ -79,7 +79,6 @@ def main(s_fp, g_fp, t_fp, o_fp):
     # Add other variables
     tmp = np.full((time.size, y_dim.size, x_dim.size), np.nan, dtype=np.float32)
     for vn in ds_s.variables:
-        print(vn)
         ds.createVariable(vn, np.float32, ("time", "y", "x"), zlib=True, complevel=1)
         ds[vn].units = "kg m-2 s-1"
         ds[vn].long_name = vn
