@@ -4,6 +4,7 @@ Make NEXUS output pretty
 """
 from pathlib import Path
 
+DEFAULT_GRID_FILE_PATH = Path("./grid_spec.nc")
 DEFAULT_TIME_FILE_PATH = Path("./HEMCO_sa_Time.rc")
 
 
@@ -109,8 +110,8 @@ def parse_args(argv=None):
         "-g",
         "--grid",
         type=Path,
+        default=DEFAULT_GRID_FILE_PATH,
         help="grid file path",
-        required=True,
     )
     parser.add_argument(
         "-t",
