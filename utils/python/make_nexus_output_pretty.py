@@ -1,105 +1,144 @@
 #!/usr/bin/env python
+"""
+Make NEXUS output pretty
+"""
+from pathlib import Path
 
-__author__ = 'Barry Baker'
-__email__ = 'barry.baker@noaa.gov'
-__license__ = 'GPL'
-
-import netCDF4 as nc
-import numpy as np
-from netCDF4 import date2num,num2date
-import datetime as dt
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter 
-
-def get_hemco_dates(time_file='HEMCO_sa_Time.rc'):
-    print(time_file)
-    with open(time_file, 'r') as fi:
-        lines = fi.readlines()
-    for L in lines:
-        if L.startswith('START'):
-            start_base = dt.datetime.strptime(L.split()[1],'%Y-%m-%d')
-            start = dt.datetime.strptime(L, 'START:   %Y-%m-%d %H:00:00\n')
-        if L.startswith('END'):
-            end = dt.datetime.strptime(L, 'END:     %Y-%m-%d %H:00:00\n')
-        if L.startswith('TS_EMIS'):
-            ts_emis = float(L.split()[1].strip('\n'))
-    dates_offset = (start - start_base).total_seconds() / 3600
-    dates = [start + dt.timedelta(hours=h) + dt.timedelta(hours=dates_offset) for h in range(int((end - start).total_seconds() / 3600) + 1 )]
-    return dates,start_base
-
-def create_ds_dict(dset):
-    d = {}
-    for var in dset.variables.values():
-        d[var.name] = dset[var.name][:]
-    return d
+DEFAULT_GRID_FILE_PATH = Path("./grid_spec.nc")
+DEFAULT_TIME_FILE_PATH = Path("./HEMCO_sa_Time.rc")
 
 
-if __name__ == '__main__':
+def get_hemco_dates(time_file=DEFAULT_TIME_FILE_PATH):
+    import datetime as dt
+    import numpy as np
 
-    parser = ArgumentParser(description='Make the NEXUS output pretty', formatter_class=ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-s', '--src', help='input nexus file', type=str, required=True)
-    parser.add_argument('-g', '--grid', help='input grid file', required=False)
-    parser.add_argument('-t', '--read-hemco-time', help='Read HEMCO time file', default=True, required=False)
-    parser.add_argument('-o', '--output', help='output file name', default=None, required=False)
-    args = parser.parse_args()
-    
-    # get the hemco dates 
-    dates,date_base = get_hemco_dates(time_file=args.read_hemco_time)
-    
-    # open the nexus output 
-    ds = nc.Dataset(args.src)
-    
-    # open the grid file 
-    grid_ds = nc.Dataset(args.grid)
+    print(time_file.as_posix())
 
-    # create dataset dictionaries 
-    ds_dict = create_ds_dict(ds)
-    grid_dict = create_ds_dict(grid_ds)
-    
-    # open file
-    ncfile = nc.Dataset(args.output,mode='w',format='NETCDF4')
+    def parse_dt_line(line):
+        _, s_date, s_time = line.split()
+        return dt.datetime.strptime(f"{s_date} {s_time}", r"%Y-%m-%d %H:%M:%S")
 
-    #create dims
-    x_dim = ncfile.createDimension('x',grid_ds['grid_xt'].shape[0])
-    y_dim = ncfile.createDimension('y',grid_ds['grid_yt'].shape[0])
-    time_dim = ncfile.createDimension('time',None)
-    
-    # add attributes 
-    ncfile.title='NEXUS Generated Emission Data'
-    
-    # create variables - lat and lon and time
-    lat = ncfile.createVariable('latitude',np.float32,('y','x',))
-    lat.long_name = 'latitude'
-    lat.units = 'degrees_north'
-    lon = ncfile.createVariable('longitude',np.float32,('y','x',))
-    lon.long_name='longitude'
-    lon.units = 'degrees_east'
-    
-    time = ncfile.createVariable('time',np.float64,('time',))
-    time.units = date_base.strftime('hours since %Y-%m-%d')
-    time.long_name = 'time'
-    
-    # create all other variables 
-    nc_var_dict = {} 
-    for var in ds.variables.values():
-        nc_var_dict[var.name] = ncfile.createVariable(var.name, np.float32, ('time','y','x',), zlib=True)
-        nc_var_dict[var.name].units = 'kg m-2 s-1'
-        nc_var_dict[var.name].long_name = var.name
+    start = end = ts_emis = None
+    with open(time_file, "r") as f:
+        for line in f:
+            line = line.strip()
+            if line.startswith("START:"):
+                start = parse_dt_line(line)
+            elif line.startswith("END:"):
+                end = parse_dt_line(line)
+            elif line.startswith("TS_EMIS:"):  # time step (s), e.g. 3600
+                _, s_ts = line.split()
+                ts_emis = float(s_ts)
 
-    #populate variables 
-    
-    # # first with lat and lon and time 
-    lat[:] = grid_dict['grid_latt'][:]
-    lon[:] = grid_dict['grid_lont'][:]
-    
-    # # now the other variables 
-    for var in nc_var_dict.keys():
-        nc_var_dict[var][:] = np.nan_to_num(ds_dict[var][:].filled(np.nan), posinf=0.0, neginf=0.0, nan=0.0)
-        
-    # # fill time variable
-    times = date2num(dates, time.units)
-    time[:] = times
-    
-    ncfile.close()
+    start_base = start.replace(hour=0, minute=0, second=0)
+    start_offset_h = (start - start_base).total_seconds() / 3600
+    dates = [
+        start_base + dt.timedelta(hours=start_offset_h) + dt.timedelta(seconds=s)
+        for s in np.arange(0, (end - start).total_seconds() + ts_emis, ts_emis)
+    ]
+
+    assert dates[0] == start, f"{dates[0]} should be same as {start}"
+    assert dates[-1] == end, f"{dates[-1]} should be same as {end}"
+    assert (
+        dates[1] - dates[0]
+    ).total_seconds() == ts_emis, f"dt {dates[1] - dates[0]} should equal {ts_emis} s"
+
+    return dates, start_base
 
 
+def main(s_fp, g_fp, t_fp, o_fp):
+    import netCDF4 as nc
+    import numpy as np
 
+    # Open source and grid datasets
+    ds_s = nc.Dataset(s_fp, "r")
+    ds_g = nc.Dataset(g_fp, "r")
+
+    # Compute datetimes
+    dates, date_base = get_hemco_dates(t_fp)
+    assert len(dates) == ds_s.dimensions["time"].size + 1
+
+    # Create new dataset
+    ds = nc.Dataset(o_fp, "w", format="NETCDF4")
+    x_dim = ds.createDimension("x", ds_g["grid_xt"].size)
+    y_dim = ds.createDimension("y", ds_g["grid_yt"].size)
+    time_dim = ds.createDimension("time", None)
+    ds.title = "NEXUS Generated Emission Data"
+
+    # Add coordinates
+    lat = ds.createVariable("latitude", np.float32, ("y", "x"))
+    lat.long_name = "latitude"
+    lat.units = "degree_north"
+    lat[:] = ds_g["grid_latt"][:]
+    lon = ds.createVariable("longitude", np.float32, ("y", "x"))
+    lon.long_name = "longitude"
+    lon.units = "degree_east"
+    lon[:] = ds_g["grid_lont"][:]
+    time = ds.createVariable("time", np.float64, ("time",))
+    time.units = date_base.strftime(r"hours since %Y-%m-%d")
+    time.long_name = "time"
+    time[:] = nc.date2num(dates, time.units)
+
+    # Add other variables
+    tmp = np.full((time.size, y_dim.size, x_dim.size), np.nan, dtype=np.float32)
+    for vn in ds_s.variables:
+        ds.createVariable(vn, np.float32, ("time", "y", "x"), zlib=True, complevel=1)
+        ds[vn].units = "kg m-2 s-1"
+        ds[vn].long_name = vn
+        tmp[:-1, :, :] = ds_s[vn][:].filled(np.nan)
+        ds[vn][:] = np.nan_to_num(tmp, posinf=0, neginf=0, nan=0)
+        # NOTE: this makes all values 0 at the last time in the dataset
+
+    ds.close()
+
+    return 0
+
+
+def parse_args(argv=None):
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Make the NEXUS output pretty",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument(
+        "-s",
+        "--src",
+        type=Path,
+        help="input ('ugly') NEXUS file path",
+        required=True,
+    )
+    parser.add_argument(
+        "-g",
+        "--grid",
+        type=Path,
+        default=DEFAULT_GRID_FILE_PATH,
+        help="grid file path",
+    )
+    parser.add_argument(
+        "-t",
+        "--hemco-time",
+        type=Path,
+        default=DEFAULT_TIME_FILE_PATH,
+        help="HEMCO time file path",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=Path,
+        help="output file path",
+        required=True,
+    )
+
+    args = parser.parse_args(argv)
+
+    return {
+        "s_fp": args.src,
+        "g_fp": args.grid,
+        "t_fp": args.hemco_time,
+        "o_fp": args.output,
+    }
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(**parse_args()))
