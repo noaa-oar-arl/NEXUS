@@ -132,7 +132,7 @@ Cap time shift              : true
     --> +LinStratChem+    :       false
     --> CEDS              :  on   true
     --> OMI_HTAP_SO2      :  on   true
-    --> Yuan_XLAI         :  on   true
+    --> Yuan_XLAI         :  off  false
     --> MODIS_XLAI        :       false
 # -----------------------------------------------------------------------------
 100     Custom            : off   - 
@@ -154,7 +154,7 @@ Cap time shift              : true
     --> SALC upper radius :       8.0
     --> Emit Br2          :       true  
     --> Br2 scaling       :       1.0 
-108     MEGAN             : on   ISOP/ACET/PRPE/C2H4/ALD2/EOH/MOH/MTPA/MTPO/LIMO/SESQ
+108     MEGAN             : off    ISOP/ACET/PRPE/C2H4/ALD2/EOH/MOH/MTPA/MTPO/LIMO/SESQ
     --> Isoprene scaling  :       1.0
     --> CO2 inhibition    :       true
     --> CO2 conc (ppmv)   :       411.0
