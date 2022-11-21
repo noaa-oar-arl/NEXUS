@@ -20,7 +20,11 @@ def main(ifp, ofp, *, compress=True):
         dsets.append(xr.open_dataset(fi))
     ds = xr.concat(dsets, dim='time')
     
-    ds.to_netcdf(ofp)
+    if compress:
+        encoding = {vn: {"zlib": True, "complevel": 1} for vn in ds.data_vars}
+    else:
+        encoding = None
+    ds.to_netcdf(ofp, encoding=encoding)
 
     return 0
 
