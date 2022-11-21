@@ -37,7 +37,7 @@ def parse_args(argv=None):
     parser = argparse.ArgumentParser(
         description="Combine outputs from NEXUS split jobs."
     )
-    parser.add_argument("INPUT", type=str, help="Input file path.")
+    parser.add_argument("INPUT", type=str, help="Input directory.")
     parser.add_argument("OUTPUT", type=str, help="Output file path.")
     parser.add_argument("--compress", action="store_true", help="Whether to apply compression for the variables.")
     parser.add_argument("--no-compress", action="store_false", dest="compress")
