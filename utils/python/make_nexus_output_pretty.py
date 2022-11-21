@@ -22,8 +22,12 @@ def get_hemco_dates(time_file='HEMCO_sa_Time.rc'):
             end = dt.datetime.strptime(L, 'END:     %Y-%m-%d %H:00:00\n')
         if L.startswith('TS_EMIS'):
             ts_emis = float(L.split()[1].strip('\n'))
+    print(start, start_base)
     dates_offset = (start - start_base).total_seconds() / 3600
-    dates = [start + dt.timedelta(hours=h) + dt.timedelta(hours=dates_offset) for h in range(int((end - start).total_seconds() / 3600) + 1 )]
+    print(dates_offset)
+    print(start_base + dt.timedelta(hours=dates_offset))
+    dates = [start + dt.timedelta(hours=h) for h in range(int((end - start).total_seconds() / 3600) + 1 )]
+    print(dates)
     return dates,start_base
 
 def create_ds_dict(dset):
