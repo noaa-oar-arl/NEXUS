@@ -31,7 +31,7 @@ def parse_args(argv=None):
     from glob import glob
 
     parser = argparse.ArgumentParser(
-        description="Combine/reassign NEXUS emissions outputs for CMAQ."
+        description="Combine outputs from NEXUS split jobs."
     )
     parser.add_argument("INPUT", type=str, help="Input file path.")
     parser.add_argument("OUTPUT", type=str, help="Output file path.")
