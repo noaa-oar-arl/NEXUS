@@ -132,7 +132,7 @@ Cap time shift              : true
     --> +LinStratChem+    :       false
     --> CEDS              :  on   true
     --> OMI_HTAP_SO2      :  on   true
-    --> Yuan_XLAI         :  off  false
+    --> Yuan_XLAI         :  on  false
     --> MODIS_XLAI        :       false
 # -----------------------------------------------------------------------------
 100     Custom            : off   - 
