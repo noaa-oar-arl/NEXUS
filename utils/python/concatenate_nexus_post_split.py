@@ -9,24 +9,34 @@ def main(ifp, ofp, *, compress=True):
     ifp, ofp : Path
         Input and output file path.
     """
-    import xarray as xr
+#    import xarray as xr
+    import netCDF4 as nc4
     from glob import glob
     files = glob(ifp)
     files.sort()
     print(files)
 
-    dsets = []
-    for fi in files:
-        dsets.append(xr.open_dataset(fi))
-    ds = xr.concat(dsets, dim='time')
-    
-    if compress:
-        encoding = {vn: {"zlib": True, "complevel": 1} for vn in ds.data_vars}
-    else:
-        encoding = None
-    ds.to_netcdf(ofp, encoding=encoding)
+    #open all files
+    src = nc4.MFDataset(files, aggdim='time')
 
+    # now make new netcdf file
+    dst = nc4.Dataset(ofp,'w',format="NETCDF4")
+
+    #first create dimensions
+    for name, dimension in src.dimensions.items():
+        dst.createDimension(name, (len(dimension) if not dimension.isunlimited() else None))
+
+    # now copy variables
+    for name, variable in src.variables.items():
+        x = dst.createVariable(name, variable.dtype, variable.dimensions)
+        dst[name][:] = src[name][:]
+
+    dst.close()
+    src.close()
+        
     return 0
+
+
 
 
 def parse_args(argv=None):
