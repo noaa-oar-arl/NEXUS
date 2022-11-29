@@ -1,54 +1,55 @@
 #!/usr/bin/env python
 """
-Concatenate all species from nexus split jobs 
+Combine output files from NEXUS split jobs into single netCDF file.
 """
-def main(ifp, ofp, *, compress=True):
+
+
+def main(ifp, ofp):
     """
     Parameters
     ----------
-    ifp, ofp : Path
+    ifp, ofp
         Input and output file path.
     """
-    import xarray as xr
+    import netCDF4 as nc4
     from glob import glob
+
     files = glob(ifp)
     files.sort()
     print(files)
 
-    dsets = []
-    for fi in files:
-        dsets.append(xr.open_dataset(fi))
-    ds = xr.concat(dsets, dim='time')
-    
-    if compress:
-        encoding = {vn: {"zlib": True, "complevel": 1} for vn in ds.data_vars}
-    else:
-        encoding = None
-    ds.to_netcdf(ofp, encoding=encoding)
+    # Open all files
+    src = nc4.MFDataset(files, aggdim="time")
+
+    # Now make new netcdf file
+    dst = nc4.Dataset(ofp, "w", format="NETCDF4")
+
+    # First create dimensions
+    for name, dimension in src.dimensions.items():
+        dst.createDimension(name, len(dimension) if not dimension.isunlimited() else None)
+
+    # Now copy variables
+    for name, variable in src.variables.items():
+        dst.createVariable(name, variable.dtype, variable.dimensions)
+        dst[name][:] = src[name][:]
+
+    dst.close()
+    src.close()
 
     return 0
 
 
 def parse_args(argv=None):
     import argparse
-    from pathlib import Path
-    from glob import glob
 
-    parser = argparse.ArgumentParser(
-        description="Combine outputs from NEXUS split jobs."
-    )
+    parser = argparse.ArgumentParser(description="Combine outputs from NEXUS split jobs.")
     parser.add_argument("INPUT", type=str, help="Input directory.")
     parser.add_argument("OUTPUT", type=str, help="Output file path.")
-    parser.add_argument("--compress", action="store_true", help="Whether to apply compression for the variables.")
-    parser.add_argument("--no-compress", action="store_false", dest="compress")
-    parser.set_defaults(compress=True)
 
-    
     args = parser.parse_args(argv)
     return {
         "ifp": args.INPUT,
         "ofp": args.OUTPUT,
-        "compress": args.compress,
     }
 
 
