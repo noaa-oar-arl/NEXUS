@@ -133,7 +133,8 @@ for fp in sorted(DIR.glob("gfs.t00z.sfcf???.nc")):
 
     ds = nc.Dataset(fp, "r")
 
-    t = nc.num2date(ds["time"][:], units=ds["time"].units, calendar=ds["time"].calendar)
+    assert ds.dimensions["time"].size == 1
+    t = nc.num2date(ds["time"][0], units=ds["time"].units, calendar=ds["time"].calendar)
     print(t)
 
     lat_gfs_deg = ds["grid_yt"][:]
@@ -143,7 +144,7 @@ for fp in sorted(DIR.glob("gfs.t00z.sfcf???.nc")):
     colat_gfs_deg = 90 - lat_gfs_deg
     colat_gfs = np.deg2rad(colat_gfs_deg)
     assert (np.diff(colat_gfs) > 0).all()
-    assert colat_gfs_deg.min() > 0 and colat_gfs_deg.max() < np.pi
+    assert colat_gfs.min() > 0 and colat_gfs.max() < np.pi
 
     # note that grid_xt is [0, 360)
     lon_gfs = np.deg2rad(lon_gfs)
