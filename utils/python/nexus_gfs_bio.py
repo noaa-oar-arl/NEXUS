@@ -2,6 +2,9 @@
 Extract variables from GFS output and format for HEMCO
 (i.e., as if MERRA-2)
 """
+from pathlib import Path
+
+HERE = Path(__file__).parent
 
 m2_ds_attrs = {
     "Title": "MERRA2 1-hour time-averaged parameters (A1), processed for GEOS-Chem input",
@@ -82,12 +85,70 @@ m2_PARDR_attrs = {
 #   * time      (time) datetime64[ns] 2019-01-01T00:30:00 ... 2019-01-01T23:30:00
 #   * lat       (lat) float32 -90.0 -89.5 -89.0 -88.5 ... 88.5 89.0 89.5 90.0
 #   * lon       (lon) float32 -180.0 -179.4 -178.8 -178.1 ... 178.1 178.8 179.4
+# ...
 
 import netCDF4 as nc
 import numpy as np
+from scipy.interpolate import RectSphereBivariateSpline
 
 # MERRA-2 grid
 # lat and lon are float32
 # They are 1-D coord vars
 lat = np.arange(-90, 90 + 0.5, 0.5, dtype=np.float32)
 lon = np.arange(-180, 180, 0.625, dtype=np.float32)
+
+# The GFS files are 3-hourly and look like this
+# netcdf gfs.t00z.sfcf030 {
+# dimensions:
+#         grid_xt = 3072 ;
+#         grid_yt = 1536 ;
+#         time = 1 ;
+# variables:
+#         double grid_xt(grid_xt) ;
+#                 grid_xt:cartesian_axis = "X" ;
+#                 grid_xt:long_name = "T-cell longitude" ;
+#                 grid_xt:units = "degrees_E" ;
+#         double lon(grid_yt, grid_xt) ;
+#                 lon:long_name = "T-cell longitude" ;
+#                 lon:units = "degrees_E" ;
+#         double grid_yt(grid_yt) ;
+#                 grid_yt:cartesian_axis = "Y" ;
+#                 grid_yt:long_name = "T-cell latiitude" ;
+#                 grid_yt:units = "degrees_N" ;
+#         double lat(grid_yt, grid_xt) ;
+#                 lat:long_name = "T-cell latitude" ;
+#                 lat:units = "degrees_N" ;
+#         double time(time) ;
+#                 time:long_name = "time" ;
+#                 time:units = "hours since 2022-11-30 00:00:00" ;
+#                 time:cartesian_axis = "T" ;
+#                 time:calendar_type = "JULIAN" ;
+#                 time:calendar = "JULIAN" ;
+# ...
+
+DIR = Path("/scratch1/RDARCH/rda-arl-gpu/Barry.Baker/tmp")
+
+for fp in sorted(DIR.glob("gfs.t00z.sfcf???.nc")):
+    print(fp)
+
+    ds = nc.Dataset(fp, "r")
+
+    t = nc.num2date(ds["time"][:], units=ds["time"].units, calendar=ds["time"].calendar)
+    print(t)
+
+    lat_gfs_deg = ds["grid_yt"][:]
+    lon_gfs_deg = ds["grid_xt"][:]
+
+    # grid_yt starts at N pole so we are already ascending once convert
+    colat_gfs_deg = 90 - lat_gfs_deg
+    colat_gfs = np.deg2rad(colat_gfs_deg)
+    assert (np.diff(colat_gfs) > 0).all()
+    assert colat_gfs_deg.min() > 0 and colat_gfs_deg.max() < np.pi
+
+    # note that grid_xt is [0, 360)
+    lon_gfs = np.deg2rad(lon_gfs)
+    assert np.pi <= lon_gfs[0] < np.pi and lon_gfs[-1] <= lon_gfs[0] + 2*np.pi
+
+    data = ds["tmp2m"].values[:]
+
+    f = RectSphereBivariateSpline(u=colat_gfs, v=lon_gfs, r=data)
