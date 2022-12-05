@@ -150,6 +150,6 @@ for fp in sorted(DIR.glob("gfs.t00z.sfcf???.nc")):
     lon_gfs = np.deg2rad(lon_gfs_deg)
     assert -np.pi <= lon_gfs[0] < np.pi and lon_gfs[-1] <= lon_gfs[0] + 2*np.pi
 
-    data = ds["tmp2m"].values[:]
+    data = ds["tmp2m"][:]
 
     f = RectSphereBivariateSpline(u=colat_gfs, v=lon_gfs, r=data)
