@@ -148,7 +148,7 @@ for fp in sorted(DIR.glob("gfs.t00z.sfcf???.nc")):
 
     # note that grid_xt is [0, 360)
     lon_gfs = np.deg2rad(lon_gfs_deg)
-    assert np.pi <= lon_gfs[0] < np.pi and lon_gfs[-1] <= lon_gfs[0] + 2*np.pi
+    assert -np.pi <= lon_gfs[0] < np.pi and lon_gfs[-1] <= lon_gfs[0] + 2*np.pi
 
     data = ds["tmp2m"].values[:]
 
