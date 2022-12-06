@@ -145,7 +145,12 @@ colat_m2 = np.deg2rad(colat_m2_deg, dtype=np.float64)
 lat_m2 = np.deg2rad(lat_m2_deg)
 lon_m2 = np.deg2rad(lon_m2_deg)
 assert (np.diff(colat_m2) < 0).all(), "not ascending"
-lon_m2_mesh, colat_m2_mesh = np.meshgrid(lon_m2, colat_m2[::-1])
+lon_m2_mesh, colat_m2_mesh = np.meshgrid(lon_m2, colat_m2)
+
+# For the lon mesh, [-180, 180) -> [0, 2pi)
+# Otherwise we don't get W hemi properly
+lon_m2_mesh[lon_m2_mesh < 0] += 2 * np.pi
+assert (lon_m2_mesh >= 0).all() and (lon_m2_mesh < 2 * np.pi).all()
 
 # The GFS files are 3-hourly and look like this:
 # netcdf gfs.t00z.sfcf030 {
@@ -179,7 +184,7 @@ lon_m2_mesh, colat_m2_mesh = np.meshgrid(lon_m2, colat_m2[::-1])
 DIR = Path("/scratch1/RDARCH/rda-arl-gpu/Barry.Baker/tmp")
 
 o_fp = Path("./t.nc")
-files = sorted(DIR.glob("gfs.t00z.sfcf???.nc"))
+files = sorted(DIR.glob("gfs.t00z.sfcf???.nc"))[:1]  # TESTING
 assert len(files) >= 1
 
 #
@@ -207,10 +212,10 @@ for k, v in m2_lon_attrs.items():
     setattr(lon, k, v)
 
 for vn, d in m2_data_var_info.items():
-    ds_new.createVariable(vn, np.float32, ("time", "lat", "lon"))
-    ds_new[:] = 0
+    var = ds_new.createVariable(vn, np.float32, ("time", "lat", "lon"))
+    var[:] = 0
     for k, v in d["attrs"].items():
-        setattr(ds_new[vn], k, v)
+        setattr(var, k, v)
 
 #
 # Get old grid info from first GFS file
@@ -221,13 +226,13 @@ ds = nc.Dataset(files[0], "r")
 lat_gfs_deg = ds["grid_yt"][:]
 lon_gfs_deg = ds["grid_xt"][:]
 
-# grid_yt starts at N pole so we are already ascending once convert
+# grid_yt starts at N pole, so we are already ascending once convert to colat
 colat_gfs_deg = 90 - lat_gfs_deg
 colat_gfs = np.deg2rad(colat_gfs_deg)
 assert (np.diff(colat_gfs) > 0).all(), "already ascending"
 assert colat_gfs.min() > 0 and colat_gfs.max() < np.pi
 
-# note that grid_xt is [0, 360)
+# grid_xt is [0, 360), so we already meet the conditions
 lon_gfs = np.deg2rad(lon_gfs_deg)
 assert -np.pi <= lon_gfs[0] < np.pi and lon_gfs[-1] <= lon_gfs[0] + 2 * np.pi
 
@@ -238,16 +243,16 @@ ds.close()
 #
 
 for i, fp in enumerate(files):
-    print(fp)
 
     ds = nc.Dataset(fp, "r")
 
     # Get time
     assert ds.dimensions["time"].size == 1
     t = nc.num2date(ds["time"][0], units=ds["time"].units, calendar=ds["time"].calendar)
-    print(t)
+    print(f"{fp.as_posix()} ({t})")
 
     for vn_old, vn_new in m2_data_var_old_to_new.items():
+        print(f"{vn_old} -> {vn_new}")
         data = ds[vn_old][:].squeeze()  # squeeze singleton time
         # TODO: deal with `.missing_value`/`_FillValue`? (both are set)
 
@@ -263,3 +268,10 @@ for i, fp in enumerate(files):
         ds_new[vn_new][i, :, :] = data_new
 
 ds_new.close()
+
+# For testing only
+import matplotlib.pyplot as plt, xarray as xr
+ds = xr.open_dataset(o_fp, mask_and_scale=False)
+ds.T2M.isel(time=0).plot()
+plt.show()
+
