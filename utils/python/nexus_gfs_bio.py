@@ -125,6 +125,7 @@ m2_data_var_info = {
 
 m2_data_var_old_to_new = {d["gfs_name"]: k for k, d in m2_data_var_info.items()}
 
+import datetime
 
 import netCDF4 as nc
 import numpy as np
@@ -159,8 +160,8 @@ assert (lon_m2_mesh >= 0).all() and (lon_m2_mesh < 2 * np.pi).all()
 DIR = Path("/scratch1/RDARCH/rda-arl-gpu/Barry.Baker/tmp")
 
 o_fp = Path("./t.nc")
-files = sorted(DIR.glob("gfs.t00z.sfcf???.nc"))[:1]  # TESTING
-assert len(files) >= 1
+files = sorted(DIR.glob("gfs.t00z.sfcf???.nc"))[:2]  # TESTING
+assert len(files) >= 2
 
 #
 # Create and initialize new dataset
@@ -273,13 +274,29 @@ for i, fp in enumerate(files):
 
         ds_new[vn_new][i, :, :] = data_new
 
-# Set time values
-t0 = gfs_times[0]
+#
+# Set time values and attrs
+#
+
+gfs_times = np.array(gfs_times)
+gfs_times_dt = gfs_times.astype(datetime.datetime)
+t0 = gfs_times_dt[0]
+t0_floored = t0.replace(hour=0, minute=0, second=0, microsecond=0)
 calendar = "gregorian"
-units = f"minutes since {t0}"
+units = f"minutes since {t0_floored}.0"
+delta_t = gfs_times_dt[1] - gfs_times_dt[0]
+assert (np.diff(gfs_times_dt) == delta_t).all()
+assert delta_t.days == 0
+delta_t_h, rem = divmod(delta_t, 3600)
+delta_t_m, delta_t_s = divmod(rem, 60)
+
 time[:] = nc.date2num(gfs_times, calendar=calendar, units=units)
 time.calendar = calendar
 time.units = units
+time.delta_t = str(delta_t)
+time.begin_date = t0_floored.strftime(r"%Y%m%d")
+time.begin_time = t0_floored.strftime(r"%H%M%S")
+time.time_increment = f"{delta_t_h:02d}{delta_t_m:02d}{delta_t_s:02d}"
 
 ds_new.close()
 
