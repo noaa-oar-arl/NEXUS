@@ -41,24 +41,24 @@ HERE = Path(__file__).parent
 # ...
 
 m2_ds_attrs = {
-    "Title": "MERRA2 1-hour time-averaged parameters (A1), processed for GEOS-Chem input",
-    "Contact": "GEOS-Chem Support Team (geos-chem-support@as.harvard.edu)",
-    "References": "www.geos-chem.org; wiki.geos-chem.org",
-    "Filename": "MERRA2_Glob",
-    "History": "File generated on: 2019/03/02 17:56:33 GMT-0400",
-    "ProductionDateTime": "File generated on: 2019/03/02 17:56:33 GMT-0400",
-    "ModificationDateTime": "File generated on: 2019/03/02 17:56:33 GMT-0400",
+    # "Title": "MERRA2 1-hour time-averaged parameters (A1), processed for GEOS-Chem input",
+    # "Contact": "GEOS-Chem Support Team (geos-chem-support@as.harvard.edu)",
+    # "References": "www.geos-chem.org; wiki.geos-chem.org",
+    # "Filename": "MERRA2_Glob",
+    # "History": "File generated on: 2019/03/02 17:56:33 GMT-0400",
+    # "ProductionDateTime": "File generated on: 2019/03/02 17:56:33 GMT-0400",
+    # "ModificationDateTime": "File generated on: 2019/03/02 17:56:33 GMT-0400",
     "Format": "NetCDF-4",
     "SpatialCoverage": "global",
     "Conventions": "COARDS",
-    "Version": "MERRA2",
-    "VersionID": "5.12.4",
-    "Nlayers": "72",
-    "Start_Date": "20190101",
-    "Start_Time": "00:00:00.0",
-    "End_Date": "20190101",
-    "End_Time": "23:59:59.99999",
-    "Delta_Time": "010000",
+    # "Version": "MERRA2",
+    # "VersionID": "5.12.4",
+    # "Nlayers": "72",
+    # "Start_Date": "20190101",
+    # "Start_Time": "00:00:00.0",
+    # "End_Date": "20190101",
+    # "End_Time": "23:59:59.99999",
+    # "Delta_Time": "010000",
     "Delta_Lon": "0.625",
     "Delta_Lat": "0.5",
 }
@@ -167,8 +167,10 @@ assert len(files) >= 2
 # Create and initialize new dataset
 #
 
-ds_new = nc.Dataset(o_fp, "w")
+ds_new = nc.Dataset(o_fp, "w", format="NETCDF4")
 ds_new.title = "Biogenic inputs from GFS for NEXUS/HEMCO"
+for k, v in m2_ds_attrs.items():
+    ds_new.setncattr(k, v)
 
 time_dim = ds_new.createDimension("time", len(files))
 time = ds_new.createVariable("time", np.int32, ("time",))
