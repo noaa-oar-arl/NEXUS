@@ -161,7 +161,7 @@ DIR = Path("/scratch1/RDARCH/rda-arl-gpu/Barry.Baker/tmp")
 
 o_fp = Path("./t.nc")
 files = sorted(DIR.glob("gfs.t00z.sfcf???.nc"))[:2]  # TESTING
-assert len(files) >= 2
+assert len(files) >= 2, "need at least 2 for time interp and time calcs"
 
 #
 # Create and initialize new dataset
@@ -302,7 +302,7 @@ assert delta_t.days == 0
 delta_t_h, rem = divmod(delta_t.seconds, 3600)
 delta_t_m, delta_t_s = divmod(rem, 60)
 
-# Assign times and attributes
+# Assign time values and attributes
 time[:] = nc.date2num(m2_times, calendar=calendar, units=units)
 time.calendar = calendar
 time.units = units
@@ -312,7 +312,7 @@ time.begin_time = t0_floored.strftime(r"%H%M%S")
 time.time_increment = f"{delta_t_h:02d}{delta_t_m:02d}{delta_t_s:02d}"
 
 #
-# Time interpolation of data
+# Time interpolation of data vars
 #
 
 x = gfs_times.astype(float)
