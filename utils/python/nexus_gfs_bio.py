@@ -287,13 +287,13 @@ units = f"minutes since {t0_floored}.0"
 delta_t = gfs_times_dt[1] - gfs_times_dt[0]
 assert (np.diff(gfs_times_dt) == delta_t).all()
 assert delta_t.days == 0
-delta_t_h, rem = divmod(delta_t, 3600)
+delta_t_h, rem = divmod(delta_t.seconds, 3600)
 delta_t_m, delta_t_s = divmod(rem, 60)
 
 time[:] = nc.date2num(gfs_times, calendar=calendar, units=units)
 time.calendar = calendar
 time.units = units
-time.delta_t = str(delta_t)
+time.delta_t = f"0000-00-00 {delta_t_h:02d}:{delta_t_m:02d}:{delta_t_s:02d}"
 time.begin_date = t0_floored.strftime(r"%Y%m%d")
 time.begin_time = t0_floored.strftime(r"%H%M%S")
 time.time_increment = f"{delta_t_h:02d}{delta_t_m:02d}{delta_t_s:02d}"
