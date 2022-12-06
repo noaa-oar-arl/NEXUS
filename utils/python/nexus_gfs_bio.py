@@ -129,7 +129,7 @@ import datetime
 
 import netCDF4 as nc
 import numpy as np
-from scipy.interpolate import RectSphereBivariateSpline
+from scipy.interpolate import RectSphereBivariateSpline, interp1d
 
 #
 # Define the new grid (MERRA-2)
@@ -172,7 +172,9 @@ ds_new.title = "Biogenic inputs from GFS for NEXUS/HEMCO"
 for k, v in m2_ds_attrs.items():
     ds_new.setncattr(k, v)
 
-time_dim = ds_new.createDimension("time", len(files))
+ntime_gfs = len(files)  # e.g. 25 (0:3:72)
+ntime_m2 = (ntime_gfs - 1) * 3  # e.g. 72 (0.5:1:71.5)
+time_dim = ds_new.createDimension("time", ntime_m2)
 time = ds_new.createVariable("time", np.int32, ("time",))
 for k, v in m2_time_attrs.items():
     setattr(time, k, v)
@@ -281,24 +283,47 @@ for i, fp in enumerate(files):
 #
 
 gfs_times = np.array(gfs_times)
-gfs_times_dt = gfs_times.astype(datetime.datetime)
-t0 = gfs_times_dt[0]
+
+# Define output time based on the GFS times
+hh = np.timedelta64(30, "m")
+h = np.timedelta64(1, "h")
+m2_times = np.arange(gfs_times[0] + hh, gfs_times[-1], h)
+assert m2_times.size == ntime_m2
+
+# Intermediate calculations for the time attributes
+m2_times_dt = m2_times.astype(datetime.datetime)
+t0 = m2_times_dt[0]
 t0_floored = t0.replace(hour=0, minute=0, second=0, microsecond=0)
 calendar = "gregorian"
 units = f"minutes since {t0_floored}.0"
-delta_t = gfs_times_dt[1] - gfs_times_dt[0]
-assert (np.diff(gfs_times_dt) == delta_t).all()
+delta_t = m2_times_dt[1] - m2_times_dt[0]
+assert (np.diff(m2_times_dt) == delta_t).all()
 assert delta_t.days == 0
 delta_t_h, rem = divmod(delta_t.seconds, 3600)
 delta_t_m, delta_t_s = divmod(rem, 60)
 
-time[:] = nc.date2num(gfs_times, calendar=calendar, units=units)
+# Assign times and attributes
+time[:] = nc.date2num(m2_times, calendar=calendar, units=units)
 time.calendar = calendar
 time.units = units
 time.delta_t = f"0000-00-00 {delta_t_h:02d}:{delta_t_m:02d}:{delta_t_s:02d}"
 time.begin_date = t0_floored.strftime(r"%Y%m%d")
 time.begin_time = t0_floored.strftime(r"%H%M%S")
 time.time_increment = f"{delta_t_h:02d}{delta_t_m:02d}{delta_t_s:02d}"
+
+#
+# Time interpolation of data
+#
+
+x = gfs_times.astype(float)
+x_new = m2_times.astype(float)
+assert x[0] < x_new[0] < x_new[-1] < x[-1], "fully contains"
+
+for vn in m2_data_var_info:
+    f = interp1d(x, ds_new[vn][:ntime_gfs], axis=0, copy=False)
+    tmp = f(x_new)
+    ds_new[vn][:] = tmp
+
 
 ds_new.close()
 
