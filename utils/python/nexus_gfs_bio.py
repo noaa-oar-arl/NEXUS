@@ -6,6 +6,40 @@ from pathlib import Path
 
 HERE = Path(__file__).parent
 
+# MERRA-2 data looks like this:
+# netcdf MERRA2.20190101.A1.05x0625 {
+# dimensions:
+#         time = 24 ;
+#         lat = 361 ;
+#         lon = 576 ;
+# variables:
+#         int time(time) ;
+#                 time:calendar = "gregorian" ;
+#                 time:long_name = "time" ;
+#                 time:standard_name = "time" ;
+#                 time:units = "minutes since 2019-01-01 00:00:00.0" ;
+#                 time:delta_t = "0000-00-00 01:00:00" ;
+#                 time:begin_date = "20190101" ;
+#                 time:begin_time = "000000" ;
+#                 time:time_increment = "010000" ;
+#         float lat(lat) ;
+#                 lat:long_name = "latitude" ;
+#                 lat:standard_name = "latitude" ;
+#                 lat:units = "degrees_north" ;
+#         float lon(lon) ;
+#                 lon:long_name = "longitude" ;
+#                 lon:standard_name = "longitude" ;
+#                 lon:units = "degrees_east" ;
+#
+# In xarray:
+# <xarray.Dataset>
+# Dimensions:   (time: 24, lat: 361, lon: 576)
+# Coordinates:
+#   * time      (time) datetime64[ns] 2019-01-01T00:30:00 ... 2019-01-01T23:30:00
+#   * lat       (lat) float32 -90.0 -89.5 -89.0 -88.5 ... 88.5 89.0 89.5 90.0
+#   * lon       (lon) float32 -180.0 -179.4 -178.8 -178.1 ... 178.1 178.8 179.4
+# ...
+
 m2_ds_attrs = {
     "Title": "MERRA2 1-hour time-averaged parameters (A1), processed for GEOS-Chem input",
     "Contact": "GEOS-Chem Support Team (geos-chem-support@as.harvard.edu)",
@@ -32,10 +66,10 @@ m2_ds_attrs = {
 m2_time_attrs = {
     "long_name": "time",
     "standard_name": "time",
-    "delta_t": "0000-00-00 01:00:00",
-    "begin_date": "20190101",
-    "begin_time": "000000",
-    "time_increment": "010000",
+    # "delta_t": "0000-00-00 01:00:00",
+    # "begin_date": "20190101",
+    # "begin_time": "000000",
+    # "time_increment": "010000",
 }
 
 m2_lat_attrs = {
@@ -50,42 +84,47 @@ m2_lon_attrs = {
     "units": "degrees_east",
 }
 
-m2_T2M_attrs = {
-    "long_name": "2-meter_air_temperature",
-    "standard_name": "2-meter_air_temperature",
-    "units": "K",
-    "gamap_category": "GMAO-2D",
+m2_data_var_info = {
+    "T2M": {
+        "gfs_name": "tmp2m",
+        "attrs": {
+            "long_name": "2-meter_air_temperature",
+            "standard_name": "2-meter_air_temperature",
+            "units": "K",
+            "gamap_category": "GMAO-2D",
+        },
+    },
+    "GWETROOT": {
+        "gfs_name": "soilw4",
+        "attrs": {
+            "long_name": "root_zone_soil_wetness",
+            "standard_name": "root_zone_soil_wetness",
+            "units": "1",
+            "gamap_category": "GMAO-2D",
+        },
+    },
+    "PARDF": {
+        "gfs_name": "vddsf_ave",
+        "attrs": {
+            "long_name": "surface_downwelling_par_diffuse_flux",
+            "standard_name": "surface_downwelling_par_diffuse_flux",
+            "units": "W m-2",
+            "gamap_category": "GMAO-2D",
+        },
+    },
+    "PARDR": {
+        "gfs_name": "vbdsf_ave",
+        "attrs": {
+            "long_name": "surface_downwelling_par_beam_flux",
+            "standard_name": "surface_downwelling_par_beam_flux",
+            "units": "W m-2",
+            "gamap_category": "GMAO-2D",
+        },
+    },
 }
 
-m2_GWETROOT_attrs = {
-    "long_name": "root_zone_soil_wetness",
-    "standard_name": "root_zone_soil_wetness",
-    "units": "1",
-    "gamap_category": "GMAO-2D",
-}
+m2_data_var_old_to_new = {d["gfs_name"]: k for k, d in m2_data_var_info.items()}
 
-m2_PARDF_attrs = {
-    "long_name": "surface_downwelling_par_diffuse_flux",
-    "standard_name": "surface_downwelling_par_diffuse_flux",
-    "units": "W m-2",
-    "gamap_category": "GMAO-2D",
-}
-
-m2_PARDR_attrs = {
-    "long_name": "surface_downwelling_par_beam_flux",
-    "standard_name": "surface_downwelling_par_beam_flux",
-    "units": "W m-2",
-    "gamap_category": "GMAO-2D",
-}
-
-# MERRA-2 data looks like this
-# <xarray.Dataset>
-# Dimensions:   (time: 24, lat: 361, lon: 576)
-# Coordinates:
-#   * time      (time) datetime64[ns] 2019-01-01T00:30:00 ... 2019-01-01T23:30:00
-#   * lat       (lat) float32 -90.0 -89.5 -89.0 -88.5 ... 88.5 89.0 89.5 90.0
-#   * lon       (lon) float32 -180.0 -179.4 -178.8 -178.1 ... 178.1 178.8 179.4
-# ...
 
 import netCDF4 as nc
 import numpy as np
@@ -105,10 +144,10 @@ colat_m2 = np.deg2rad(colat_m2_deg, dtype=np.float64)
 
 lat_m2 = np.deg2rad(lat_m2_deg)
 lon_m2 = np.deg2rad(lon_m2_deg)
-assert (np.diff(colat_m2) < 0).all()
+assert (np.diff(colat_m2) < 0).all(), "not ascending"
 lon_m2_mesh, colat_m2_mesh = np.meshgrid(lon_m2, colat_m2[::-1])
 
-# The GFS files are 3-hourly and look like this
+# The GFS files are 3-hourly and look like this:
 # netcdf gfs.t00z.sfcf030 {
 # dimensions:
 #         grid_xt = 3072 ;
@@ -139,36 +178,88 @@ lon_m2_mesh, colat_m2_mesh = np.meshgrid(lon_m2, colat_m2[::-1])
 
 DIR = Path("/scratch1/RDARCH/rda-arl-gpu/Barry.Baker/tmp")
 
+o_fp = Path("./t.nc")
 files = sorted(DIR.glob("gfs.t00z.sfcf???.nc"))
+assert len(files) >= 1
 
-for fp in files:
+#
+# Create new dataset
+#
+
+ds_new = nc.Dataset(o_fp, "w")
+ds_new.title = "Biogenic inputs from GFS for NEXUS/HEMCO"
+
+time_dim = ds_new.createDimension("time", len(files))
+time = ds_new.createVariable("time", np.int32, ("time",))
+for k, v in m2_time_attrs.items():
+    setattr(time, k, v)
+
+lat_dim = ds_new.createDimension("lat", lat_m2_deg.size)
+lat = ds_new.createVariable("lat", np.float32, ("lat",))
+lat[:] = lat_m2_deg
+for k, v in m2_lat_attrs.items():
+    setattr(lat, k, v)
+
+lon_dim = ds_new.createDimension("lon", lon_m2_deg.size)
+lon = ds_new.createVariable("lon", np.float32, ("lon",))
+lon[:] = lon_m2_deg
+for k, v in m2_lon_attrs.items():
+    setattr(lon, k, v)
+
+for vn, d in m2_data_var_info.items():
+    ds_new.createVariable(vn, np.float32, ("time", "lat", "lon"))
+    ds_new[:] = 0
+    for k, v in d["attrs"].items():
+        setattr(ds_new[vn], k, v)
+
+#
+# Get old grid info from first GFS file
+#
+
+ds = nc.Dataset(files[0], "r")
+
+lat_gfs_deg = ds["grid_yt"][:]
+lon_gfs_deg = ds["grid_xt"][:]
+
+# grid_yt starts at N pole so we are already ascending once convert
+colat_gfs_deg = 90 - lat_gfs_deg
+colat_gfs = np.deg2rad(colat_gfs_deg)
+assert (np.diff(colat_gfs) > 0).all(), "already ascending"
+assert colat_gfs.min() > 0 and colat_gfs.max() < np.pi
+
+# note that grid_xt is [0, 360)
+lon_gfs = np.deg2rad(lon_gfs_deg)
+assert -np.pi <= lon_gfs[0] < np.pi and lon_gfs[-1] <= lon_gfs[0] + 2 * np.pi
+
+ds.close()
+
+#
+# Interpolate to new grid
+#
+
+for i, fp in enumerate(files):
     print(fp)
 
     ds = nc.Dataset(fp, "r")
 
+    # Get time
     assert ds.dimensions["time"].size == 1
     t = nc.num2date(ds["time"][0], units=ds["time"].units, calendar=ds["time"].calendar)
     print(t)
 
-    lat_gfs_deg = ds["grid_yt"][:]
-    lon_gfs_deg = ds["grid_xt"][:]
+    for vn_old, vn_new in m2_data_var_old_to_new.items():
+        data = ds[vn_old][:].squeeze()  # squeeze singleton time
+        # TODO: deal with `.missing_value`/`_FillValue`? (both are set)
 
-    # grid_yt starts at N pole so we are already ascending once convert
-    colat_gfs_deg = 90 - lat_gfs_deg
-    colat_gfs = np.deg2rad(colat_gfs_deg)
-    assert (np.diff(colat_gfs) > 0).all()
-    assert colat_gfs.min() > 0 and colat_gfs.max() < np.pi
+        f = RectSphereBivariateSpline(u=colat_gfs, v=lon_gfs, r=data)
 
-    # note that grid_xt is [0, 360)
-    lon_gfs = np.deg2rad(lon_gfs_deg)
-    assert -np.pi <= lon_gfs[0] < np.pi and lon_gfs[-1] <= lon_gfs[0] + 2*np.pi
+        # NOTE: we get `ValueError: requested theta out of bounds.` here
+        # for the S pole (colat 180) unless we convert it to float64
+        # (I guess there is a bounds check against float64 pi)
+        data_new = f.ev(colat_m2_mesh.ravel(), lon_m2_mesh.ravel()).reshape(
+            (lon_m2.size, lat_m2.size)
+        )
 
-    data = ds["tmp2m"][:].squeeze()
+        ds_new[vn_new][i, :, :] = data_new
 
-    f = RectSphereBivariateSpline(u=colat_gfs, v=lon_gfs, r=data)
-
-    # note: we get `ValueError: requested theta out of bounds.`
-    # for the S pole (colat 180) unless we convert it to float64
-    # (I guess there is a bounds check against float64 pi)
-    data_new = f.ev(colat_m2_mesh.ravel(), lon_m2_mesh.ravel()).reshape((lon_m2.size, lat_m2.size))
-
+ds_new.close()
