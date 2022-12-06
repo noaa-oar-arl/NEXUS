@@ -320,7 +320,7 @@ x_new = m2_times.astype(float)
 assert x[0] < x_new[0] < x_new[-1] < x[-1], "fully contains"
 
 for vn in m2_data_var_info:
-    f = interp1d(x, ds_new[vn][:ntime_gfs], axis=0, copy=False)
+    f = interp1d(x, ds_new[vn][:ntime_gfs], kind="linear", axis=0, copy=False, assume_sorted=True)
     tmp = f(x_new)
     ds_new[vn][:] = tmp
 
