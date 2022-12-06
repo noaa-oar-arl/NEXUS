@@ -94,8 +94,19 @@ from scipy.interpolate import RectSphereBivariateSpline
 # MERRA-2 grid
 # lat and lon are float32
 # They are 1-D coord vars
-lat = np.arange(-90, 90 + 0.5, 0.5, dtype=np.float32)
-lon = np.arange(-180, 180, 0.625, dtype=np.float32)
+lat_m2_deg = np.arange(-90, 90 + 0.5, 0.5, dtype=np.float32)
+lon_m2_deg = np.arange(-180, 180, 0.625, dtype=np.float32)
+
+lat_m2 = np.deg2rad(lat_m2_deg)
+lon_m2 = np.deg2rad(lon_m2_deg)
+
+colat_m2_deg = 90 - lat_m2_deg
+colat_m2 = np.deg2rad(colat_m2_deg, dtype=np.float64)
+
+lat_m2 = np.deg2rad(lat_m2_deg)
+lon_m2 = np.deg2rad(lon_m2_deg)
+assert (np.diff(colat_m2) < 0).all()
+lon_m2_mesh, colat_m2_mesh = np.meshgrid(lon_m2, colat_m2[::-1])
 
 # The GFS files are 3-hourly and look like this
 # netcdf gfs.t00z.sfcf030 {
@@ -128,7 +139,9 @@ lon = np.arange(-180, 180, 0.625, dtype=np.float32)
 
 DIR = Path("/scratch1/RDARCH/rda-arl-gpu/Barry.Baker/tmp")
 
-for fp in sorted(DIR.glob("gfs.t00z.sfcf???.nc")):
+files = sorted(DIR.glob("gfs.t00z.sfcf???.nc"))
+
+for fp in files:
     print(fp)
 
     ds = nc.Dataset(fp, "r")
@@ -150,6 +163,12 @@ for fp in sorted(DIR.glob("gfs.t00z.sfcf???.nc")):
     lon_gfs = np.deg2rad(lon_gfs_deg)
     assert -np.pi <= lon_gfs[0] < np.pi and lon_gfs[-1] <= lon_gfs[0] + 2*np.pi
 
-    data = ds["tmp2m"][:]
+    data = ds["tmp2m"][:].squeeze()
 
     f = RectSphereBivariateSpline(u=colat_gfs, v=lon_gfs, r=data)
+
+    # note: we get `ValueError: requested theta out of bounds.`
+    # for the S pole (colat 180) unless we convert it to float64
+    # (I guess there is a bounds check against float64 pi)
+    data_new = f.ev(colat_m2_mesh.ravel(), lon_m2_mesh.ravel()).reshape((lon_m2.size, lat_m2.size))
+
