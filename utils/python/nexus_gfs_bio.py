@@ -130,8 +130,11 @@ import netCDF4 as nc
 import numpy as np
 from scipy.interpolate import RectSphereBivariateSpline
 
-# MERRA-2 grid
-# lat and lon are float32
+#
+# Define the new grid (MERRA-2)
+#
+
+# lat and lon are float32 in the MERRA-2 files
 # They are 1-D coord vars
 lat_m2_deg = np.arange(-90, 90 + 0.5, 0.5, dtype=np.float32)
 lon_m2_deg = np.arange(-180, 180, 0.625, dtype=np.float32)
@@ -152,34 +155,6 @@ lon_m2_mesh, colat_m2_mesh = np.meshgrid(lon_m2, colat_m2)
 lon_m2_mesh[lon_m2_mesh < 0] += 2 * np.pi
 assert (lon_m2_mesh >= 0).all() and (lon_m2_mesh < 2 * np.pi).all()
 
-# The GFS files are 3-hourly and look like this:
-# netcdf gfs.t00z.sfcf030 {
-# dimensions:
-#         grid_xt = 3072 ;
-#         grid_yt = 1536 ;
-#         time = 1 ;
-# variables:
-#         double grid_xt(grid_xt) ;
-#                 grid_xt:cartesian_axis = "X" ;
-#                 grid_xt:long_name = "T-cell longitude" ;
-#                 grid_xt:units = "degrees_E" ;
-#         double lon(grid_yt, grid_xt) ;
-#                 lon:long_name = "T-cell longitude" ;
-#                 lon:units = "degrees_E" ;
-#         double grid_yt(grid_yt) ;
-#                 grid_yt:cartesian_axis = "Y" ;
-#                 grid_yt:long_name = "T-cell latiitude" ;
-#                 grid_yt:units = "degrees_N" ;
-#         double lat(grid_yt, grid_xt) ;
-#                 lat:long_name = "T-cell latitude" ;
-#                 lat:units = "degrees_N" ;
-#         double time(time) ;
-#                 time:long_name = "time" ;
-#                 time:units = "hours since 2022-11-30 00:00:00" ;
-#                 time:cartesian_axis = "T" ;
-#                 time:calendar_type = "JULIAN" ;
-#                 time:calendar = "JULIAN" ;
-# ...
 
 DIR = Path("/scratch1/RDARCH/rda-arl-gpu/Barry.Baker/tmp")
 
@@ -188,7 +163,7 @@ files = sorted(DIR.glob("gfs.t00z.sfcf???.nc"))[:1]  # TESTING
 assert len(files) >= 1
 
 #
-# Create new dataset
+# Create and initialize new dataset
 #
 
 ds_new = nc.Dataset(o_fp, "w")
@@ -221,6 +196,35 @@ for vn, d in m2_data_var_info.items():
 # Get old grid info from first GFS file
 #
 
+# The GFS files are 3-hourly and look like this:
+# netcdf gfs.t00z.sfcf030 {
+# dimensions:
+#         grid_xt = 3072 ;
+#         grid_yt = 1536 ;
+#         time = 1 ;
+# variables:
+#         double grid_xt(grid_xt) ;
+#                 grid_xt:cartesian_axis = "X" ;
+#                 grid_xt:long_name = "T-cell longitude" ;
+#                 grid_xt:units = "degrees_E" ;
+#         double lon(grid_yt, grid_xt) ;
+#                 lon:long_name = "T-cell longitude" ;
+#                 lon:units = "degrees_E" ;
+#         double grid_yt(grid_yt) ;
+#                 grid_yt:cartesian_axis = "Y" ;
+#                 grid_yt:long_name = "T-cell latiitude" ;
+#                 grid_yt:units = "degrees_N" ;
+#         double lat(grid_yt, grid_xt) ;
+#                 lat:long_name = "T-cell latitude" ;
+#                 lat:units = "degrees_N" ;
+#         double time(time) ;
+#                 time:long_name = "time" ;
+#                 time:units = "hours since 2022-11-30 00:00:00" ;
+#                 time:cartesian_axis = "T" ;
+#                 time:calendar_type = "JULIAN" ;
+#                 time:calendar = "JULIAN" ;
+# ...
+
 ds = nc.Dataset(files[0], "r")
 
 lat_gfs_deg = ds["grid_yt"][:]
@@ -242,6 +246,7 @@ ds.close()
 # Interpolate to new grid
 #
 
+gfs_times = []
 for i, fp in enumerate(files):
 
     ds = nc.Dataset(fp, "r")
@@ -250,6 +255,7 @@ for i, fp in enumerate(files):
     assert ds.dimensions["time"].size == 1
     t = nc.num2date(ds["time"][0], units=ds["time"].units, calendar=ds["time"].calendar)
     print(f"{fp.as_posix()} ({t})")
+    gfs_times.append(t)
 
     for vn_old, vn_new in m2_data_var_old_to_new.items():
         print(f"{vn_old} -> {vn_new}")
@@ -267,11 +273,19 @@ for i, fp in enumerate(files):
 
         ds_new[vn_new][i, :, :] = data_new
 
+# Set time values
+t0 = gfs_times[0]
+calendar = "gregorian"
+units = f"minutes since {t0}"
+time[:] = nc.date2num(gfs_times, calendar=calendar, units=units)
+time.calendar = calendar
+time.units = units
+
 ds_new.close()
 
-# For testing only
+# TESTING
 import matplotlib.pyplot as plt, xarray as xr
+
 ds = xr.open_dataset(o_fp, mask_and_scale=False)
 ds.T2M.isel(time=0).plot()
 plt.show()
-
