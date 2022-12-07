@@ -251,6 +251,7 @@ ds.close()
 # Interpolate to new grid
 #
 
+print("Spatial interp")
 gfs_times = []
 for i, fp in enumerate(files):
 
@@ -282,7 +283,7 @@ for i, fp in enumerate(files):
 # Set time values and attrs
 #
 
-gfs_times = np.array(gfs_times)
+gfs_times = np.array(gfs_times, dtype="datetime64[us]")
 
 # Define output time based on the GFS times
 hh = np.timedelta64(30, "m")
@@ -303,7 +304,7 @@ delta_t_h, rem = divmod(delta_t.seconds, 3600)
 delta_t_m, delta_t_s = divmod(rem, 60)
 
 # Assign time values and attributes
-time[:] = nc.date2num(m2_times, calendar=calendar, units=units)
+time[:] = nc.date2num(m2_times_dt, calendar=calendar, units=units)
 time.calendar = calendar
 time.units = units
 time.delta_t = f"0000-00-00 {delta_t_h:02d}:{delta_t_m:02d}:{delta_t_s:02d}"
@@ -319,13 +320,17 @@ x = gfs_times.astype(float)
 x_new = m2_times.astype(float)
 assert x[0] < x_new[0] < x_new[-1] < x[-1], "fully contains"
 
+print("Time interp")
 for vn in m2_data_var_info:
+    print(vn)
     f = interp1d(x, ds_new[vn][:ntime_gfs], kind="linear", axis=0, copy=False, assume_sorted=True)
     tmp = f(x_new)
     ds_new[vn][:] = tmp
 
 
+print(f"Writing out new dataset to {o_fp.as_posix()}")
 ds_new.close()
+print("Done")
 
 # TESTING
 import matplotlib.pyplot as plt, xarray as xr
