@@ -125,6 +125,26 @@ m2_data_var_info = {
 
 m2_data_var_old_to_new = {d["gfs_name"]: k for k, d in m2_data_var_info.items()}
 
+# https://github.com/NCAR/ccpp-physics/blob/c348f3e363f066c2c513b0449690859d3104bac8/physics/set_soilveg.f#L258
+DRYSMC = [
+    None,  # for vtype 0
+    0.010, 0.025, 0.010, 0.010, 0.010, 0.010,
+    0.010, 0.010, 0.010, 0.010, 0.010, 0.010,
+    0.010, 0.010, 0.010, 0.010, 0.010, 0.010,
+    0.010, 0.000, 0.000, 0.000, 0.000, 0.000,
+    0.000, 0.000, 0.000, 0.000, 0.000, 0.000,
+]
+
+# https://github.com/NCAR/ccpp-physics/blob/c348f3e363f066c2c513b0449690859d3104bac8/physics/set_soilveg.f#L270
+MAXSMC = [
+    None,  # for vtype 0
+    0.395, 0.421, 0.434, 0.476, 0.476, 0.439,
+    0.404, 0.464, 0.465, 0.406, 0.468, 0.457,
+    0.464, 0.421, 0.200, 0.421, 0.457, 0.200,
+    0.395, 0.000, 0.000, 0.000, 0.000, 0.000,
+    0.000, 0.000, 0.000, 0.000, 0.000, 0.000,
+]
+
 import datetime
 
 import netCDF4 as nc
@@ -248,6 +268,10 @@ assert -np.pi <= lon_gfs[0] < np.pi and lon_gfs[-1] <= lon_gfs[0] + 2 * np.pi
 # Soil type (so we can set non-soil points to 0 instead of 1)
 sotyp = ds["sotyp"][:].squeeze()
 
+# Veg type (needed for normalizing the soil water wrt. min/max)
+vtype = ds["vtype"][:].squeeze().astype(int)
+unique_vtypes = sorted(np.unique(vtype))
+
 ds.close()
 
 #
@@ -276,6 +300,16 @@ for i, fp in enumerate(files):
             # 0: Water
             # 16: Antarctica
             data[(sotyp == 0) | (sotyp == 16)] = 0
+
+            # Normalize soil moisture based on min/max by vtype data
+            for vt in unique_vtypes:
+                if vt == 0:
+                    continue
+                max_vt = MAXSMC[vt]
+                min_vt = DRYSMC[vt]
+                assert 0 < min_vt < max_vt < 1
+                is_vt = vtype == vt
+                data[is_vt] = (data[is_vt] - min_vt) / (max_vt - min_vt)
 
         f = RectSphereBivariateSpline(u=colat_gfs, v=lon_gfs, r=data)
 
