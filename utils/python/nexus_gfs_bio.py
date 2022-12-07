@@ -303,11 +303,11 @@ for i, fp in enumerate(files):
 
             # Normalize soil moisture based on min/max by vtype data
             for vt in unique_vtypes:
-                if vt == 0:
+                if vt == 0 or vt > 19:
                     continue
                 max_vt = MAXSMC[vt]
                 min_vt = DRYSMC[vt]
-                assert 0 < min_vt < max_vt < 1
+                assert 0 < min_vt < max_vt < 1, f"{vt} ({min_vt}, {max_vt})"
                 is_vt = vtype == vt
                 data[is_vt] = (data[is_vt] - min_vt) / (max_vt - min_vt)
 
