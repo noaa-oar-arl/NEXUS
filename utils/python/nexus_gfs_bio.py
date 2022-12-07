@@ -245,6 +245,9 @@ assert colat_gfs.min() > 0 and colat_gfs.max() < np.pi
 lon_gfs = np.deg2rad(lon_gfs_deg)
 assert -np.pi <= lon_gfs[0] < np.pi and lon_gfs[-1] <= lon_gfs[0] + 2 * np.pi
 
+# Soil type (so we can set non-soil points to 0 instead of 1)
+sotyp = ds["sotyp"][:].squeeze()
+
 ds.close()
 
 #
@@ -268,6 +271,12 @@ for i, fp in enumerate(files):
         data = ds[vn_old][:].squeeze()  # squeeze singleton time
         # TODO: deal with `.missing_value`/`_FillValue`? (both are set)
 
+        if vn_old == "soilw4":
+            # Set non-soil to 0 (from 1)
+            # 0: Water
+            # 16: Antarctica
+            data[(sotyp == 0) | (sotyp == 16)] = 0
+
         f = RectSphereBivariateSpline(u=colat_gfs, v=lon_gfs, r=data)
 
         # NOTE: we get `ValueError: requested theta out of bounds.` here
@@ -276,6 +285,9 @@ for i, fp in enumerate(files):
         data_new = f.ev(colat_m2_mesh.ravel(), lon_m2_mesh.ravel()).reshape(
             (lon_m2.size, lat_m2.size)
         )
+
+        if vn_old == "soilw4":
+            data_new = np.clip(data_new, 0, 1)
 
         ds_new[vn_new][i, :, :] = data_new
 
