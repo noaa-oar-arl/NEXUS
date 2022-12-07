@@ -332,9 +332,3 @@ print(f"Writing out new dataset to {o_fp.as_posix()}")
 ds_new.close()
 print("Done")
 
-# TESTING
-import matplotlib.pyplot as plt, xarray as xr
-
-ds = xr.open_dataset(o_fp, mask_and_scale=False)
-ds.T2M.isel(time=0).plot()
-plt.show()
