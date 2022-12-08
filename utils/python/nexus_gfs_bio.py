@@ -185,7 +185,7 @@ def main(i_dp, o_fp):
     assert (lon_m2_mesh >= 0).all() and (lon_m2_mesh < 2 * np.pi).all()
 
     o_fp = Path("./t.nc")
-    files = sorted(i_dp.glob("gfs.t00z.sfcf???.nc"))[:2]  # TESTING
+    files = sorted(i_dp.glob("gfs.t00z.sfcf???.nc"))
     assert len(files) >= 2, "need at least 2 for time interp and time calcs"
 
     #
