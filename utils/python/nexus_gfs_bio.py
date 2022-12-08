@@ -144,12 +144,12 @@ MAXSMC = [
 ]
 
 
-def main(i_dp, o_fp):
+def main(i_fps, o_fp):
     """
     Parameters
     ----------
-    i_dp : Path
-        Input directory where the GFS files to be loaded are located.
+    i_fps : list of Path
+        GFS files to be loaded. Can be a single path with a glob expression.
     o_fp : Path
         Desired path of output file.
     """
@@ -158,6 +158,18 @@ def main(i_dp, o_fp):
     import netCDF4 as nc
     import numpy as np
     from scipy.interpolate import RectSphereBivariateSpline, interp1d
+
+    if len(i_fps) == 1:
+        maybe_glob = i_fps[0]
+        if "?" in maybe_glob.name or "*" in maybe_glob.name:
+            # Expand
+            files = sorted(maybe_glob.parent.glob(maybe_glob.name))
+        else:
+            # Not glob, single file
+            files = [maybe_glob]
+    else:
+        files = sorted(i_fps)
+    assert len(files) >= 2, "need at least 2 for time interp and time calcs"
 
     #
     # Define the new grid (MERRA-2)
@@ -183,10 +195,6 @@ def main(i_dp, o_fp):
     # Otherwise we don't get W hemi properly
     lon_m2_mesh[lon_m2_mesh < 0] += 2 * np.pi
     assert (lon_m2_mesh >= 0).all() and (lon_m2_mesh < 2 * np.pi).all()
-
-    o_fp = Path(o_fp)
-    files = sorted(i_dp.glob("gfs.t00z.sfcf???.nc"))
-    assert len(files) >= 2, "need at least 2 for time interp and time calcs"
 
     #
     # Create and initialize new dataset
@@ -398,7 +406,8 @@ def parse_args(argv=None):
         "-i",
         "--input",
         type=Path,
-        help="input directory (location of GFS files)",
+        nargs="+",
+        help="paths to the GFS files to be loaded. Can be an expanded or unexpanded glob expression.",
         required=True,
     )
     parser.add_argument(
@@ -412,7 +421,7 @@ def parse_args(argv=None):
     args = parser.parse_args(argv)
 
     return {
-        "i_dp": args.input,
+        "i_fps": args.input,
         "o_fp": args.output,
     }
 
