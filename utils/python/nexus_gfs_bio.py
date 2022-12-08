@@ -391,7 +391,7 @@ def parse_args(argv=None):
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Extra and format bio inputs for NEXUS from GFS data",
+        description="Extract and format bio inputs for NEXUS from GFS data",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
