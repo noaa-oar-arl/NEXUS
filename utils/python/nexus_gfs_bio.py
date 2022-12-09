@@ -149,7 +149,7 @@ def main(i_fps, o_fp):
     Parameters
     ----------
     i_fps : list of Path
-        GFS files to be loaded. Can be a single path with a glob expression.
+        GFS files to be loaded. Can be a single path with a glob expression file name.
     o_fp : Path, optional
         Desired path of output file.
     """
@@ -412,7 +412,11 @@ def parse_args(argv=None):
         "--input",
         type=Path,
         nargs="+",
-        help="paths to the GFS files to be loaded. Can be an expanded or unexpanded glob expression.",
+        help=(
+            "paths to the GFS files to be loaded. "
+            "Can be an expanded or unexpanded glob expression. "
+            "If unexpanded, the wildcards must be in the file name part of the path."
+        ),
         required=True,
     )
     parser.add_argument(
