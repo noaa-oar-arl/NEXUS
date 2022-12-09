@@ -150,7 +150,7 @@ def main(i_fps, o_fp):
     ----------
     i_fps : list of Path
         GFS files to be loaded. Can be a single path with a glob expression.
-    o_fp : Path
+    o_fp : Path, optional
         Desired path of output file.
     """
     import datetime
@@ -170,65 +170,6 @@ def main(i_fps, o_fp):
     else:
         files = sorted(i_fps)
     assert len(files) >= 2, "need at least 2 for time interp and time calcs"
-
-    #
-    # Define the new grid (MERRA-2)
-    #
-
-    # lat and lon are float32 in the MERRA-2 files
-    # They are 1-D coord vars
-    lat_m2_deg = np.arange(-90, 90 + 0.5, 0.5, dtype=np.float32)
-    lon_m2_deg = np.arange(-180, 180, 0.625, dtype=np.float32)
-
-    lat_m2 = np.deg2rad(lat_m2_deg)
-    lon_m2 = np.deg2rad(lon_m2_deg)
-
-    colat_m2_deg = 90 - lat_m2_deg
-    colat_m2 = np.deg2rad(colat_m2_deg, dtype=np.float64)
-
-    lat_m2 = np.deg2rad(lat_m2_deg)
-    lon_m2 = np.deg2rad(lon_m2_deg)
-    assert (np.diff(colat_m2) < 0).all(), "not ascending"
-    lon_m2_mesh, colat_m2_mesh = np.meshgrid(lon_m2, colat_m2)
-
-    # For the lon mesh, [-180, 180) -> [0, 2pi)
-    # Otherwise we don't get W hemi properly
-    lon_m2_mesh[lon_m2_mesh < 0] += 2 * np.pi
-    assert (lon_m2_mesh >= 0).all() and (lon_m2_mesh < 2 * np.pi).all()
-
-    #
-    # Create and initialize new dataset
-    #
-
-    ds_new = nc.Dataset(o_fp, "w", format="NETCDF4")
-    ds_new.title = "Biogenic inputs from GFS for NEXUS/HEMCO"
-    for k, v in M2_DS_ATTRS.items():
-        ds_new.setncattr(k, v)
-
-    ntime_gfs = len(files)  # e.g. 25 (0:3:72)
-    ntime_m2 = (ntime_gfs - 1) * 3  # e.g. 72 (0.5:1:71.5)
-    time_dim = ds_new.createDimension("time", ntime_m2)
-    time = ds_new.createVariable("time", np.int32, ("time",))
-    for k, v in M2_TIME_ATTRS.items():
-        setattr(time, k, v)
-
-    lat_dim = ds_new.createDimension("lat", lat_m2_deg.size)
-    lat = ds_new.createVariable("lat", np.float32, ("lat",))
-    lat[:] = lat_m2_deg
-    for k, v in M2_LAT_ATTRS.items():
-        setattr(lat, k, v)
-
-    lon_dim = ds_new.createDimension("lon", lon_m2_deg.size)
-    lon = ds_new.createVariable("lon", np.float32, ("lon",))
-    lon[:] = lon_m2_deg
-    for k, v in M2_LON_ATTRS.items():
-        setattr(lon, k, v)
-
-    for vn, d in M2_DATA_VAR_INFO.items():
-        var = ds_new.createVariable(vn, np.float32, ("time", "lat", "lon"))
-        var[:] = 0
-        for k, v in d["attrs"].items():
-            setattr(var, k, v)
 
     #
     # Get old grid info from first GFS file
@@ -286,7 +227,71 @@ def main(i_fps, o_fp):
     vtype = ds["vtype"][:].squeeze().astype(int)
     unique_vtypes = sorted(np.unique(vtype))
 
+    # t0
+    t0 = nc.num2date(ds["time"][0], units=ds["time"].units, calendar=ds["time"].calendar)
+
     ds.close()
+
+    #
+    # Define the new grid (MERRA-2)
+    #
+
+    # lat and lon are float32 in the MERRA-2 files
+    # They are 1-D coord vars
+    lat_m2_deg = np.arange(-90, 90 + 0.5, 0.5, dtype=np.float32)
+    lon_m2_deg = np.arange(-180, 180, 0.625, dtype=np.float32)
+
+    lat_m2 = np.deg2rad(lat_m2_deg)
+    lon_m2 = np.deg2rad(lon_m2_deg)
+
+    colat_m2_deg = 90 - lat_m2_deg
+    colat_m2 = np.deg2rad(colat_m2_deg, dtype=np.float64)
+
+    lat_m2 = np.deg2rad(lat_m2_deg)
+    lon_m2 = np.deg2rad(lon_m2_deg)
+    assert (np.diff(colat_m2) < 0).all(), "not ascending"
+    lon_m2_mesh, colat_m2_mesh = np.meshgrid(lon_m2, colat_m2)
+
+    # For the lon mesh, [-180, 180) -> [0, 2pi)
+    # Otherwise we don't get W hemi properly
+    lon_m2_mesh[lon_m2_mesh < 0] += 2 * np.pi
+    assert (lon_m2_mesh >= 0).all() and (lon_m2_mesh < 2 * np.pi).all()
+
+    #
+    # Create and initialize new dataset
+    #
+
+    if o_fp is None:
+        o_fp = Path.cwd() / t0.strftime(r"gfs-bio_%Y%m%d.nc")
+    ds_new = nc.Dataset(o_fp, "w", format="NETCDF4")
+    ds_new.title = "Biogenic inputs from GFS for NEXUS/HEMCO"
+    for k, v in M2_DS_ATTRS.items():
+        ds_new.setncattr(k, v)
+
+    ntime_gfs = len(files)  # e.g. 25 (0:3:72)
+    ntime_m2 = (ntime_gfs - 1) * 3  # e.g. 72 (0.5:1:71.5)
+    time_dim = ds_new.createDimension("time", ntime_m2)
+    time = ds_new.createVariable("time", np.int32, ("time",))
+    for k, v in M2_TIME_ATTRS.items():
+        setattr(time, k, v)
+
+    lat_dim = ds_new.createDimension("lat", lat_m2_deg.size)
+    lat = ds_new.createVariable("lat", np.float32, ("lat",))
+    lat[:] = lat_m2_deg
+    for k, v in M2_LAT_ATTRS.items():
+        setattr(lat, k, v)
+
+    lon_dim = ds_new.createDimension("lon", lon_m2_deg.size)
+    lon = ds_new.createVariable("lon", np.float32, ("lon",))
+    lon[:] = lon_m2_deg
+    for k, v in M2_LON_ATTRS.items():
+        setattr(lon, k, v)
+
+    for vn, d in M2_DATA_VAR_INFO.items():
+        var = ds_new.createVariable(vn, np.float32, ("time", "lat", "lon"))
+        var[:] = 0
+        for k, v in d["attrs"].items():
+            setattr(var, k, v)
 
     #
     # Interpolate to new grid
@@ -414,8 +419,8 @@ def parse_args(argv=None):
         "-o",
         "--output",
         type=Path,
-        help="output file path",
-        required=True,
+        help="output file path. Defaults to gfs-bio_YYYYMMDD.nc if not specified.",
+        required=False,
     )
 
     args = parser.parse_args(argv)
