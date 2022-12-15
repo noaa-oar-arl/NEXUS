@@ -25,7 +25,13 @@ def get_date_yyyymmdd(date=None):
 def get_nei2016_files(src_dir=None, current_month='08', sector='airport', version='v2020-07'):
     month = int(current_month)
     files = []
-    for m in [-1, 0, +1]:
+    if current_month == '12':
+        month_range = [-1, 0, -11]
+    elif current_month == '01':
+        month_range = [+11 ,0 ,+1]
+    else:
+        month_range = [-1, 0, +1]
+    for m in month_range:
         files.extend(glob("{}/NEI2016v1/{}/{}/NEI2016v1_0.1x0.1_????????_{}.nc".format(src_dir, version, "%2.2i" % (month + m), sector)))
         print("{}/NEI2016v1/{}/{}/NEI2016v1_0.1x0.1_????????_{}.nc".format(src_dir, version, "%2.2i" % (month + m), sector))
     return sorted(files)
