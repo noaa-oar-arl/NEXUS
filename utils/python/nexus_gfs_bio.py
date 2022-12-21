@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Extract variables from GFS output and format for HEMCO
 (i.e., as if MERRA-2)
