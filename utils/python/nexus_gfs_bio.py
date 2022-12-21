@@ -341,6 +341,8 @@ def main(i_fps, o_fp):
 
             if vn_old == "soilw4":
                 data_new = np.clip(data_new, 0, 1)
+            else:
+                data_new = np.clip(data_new, 0, None)  # no negatives
 
             ds_new[vn_new][i, :, :] = data_new
 
