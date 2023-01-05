@@ -27,7 +27,7 @@ def get_start_time(fname):
 if __name__ == '__main__':
 
     parser = ArgumentParser(description='Modify the start and end date of the NEXUS config script', formatter_class=ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-f', '--files', help='input NEXUS_Config.rc file name', type=str, default='NEXUS_Config.rc', required=True)
+    parser.add_argument('-f', '--files', help='input NEXUS_Config.rc file name', type=str, default='NEXUS_Config.rc', required=False)
     parser.add_argument('-t', '--time_file', help='HEMCO Time File: HEMCO_sa_Time.rc', default='HEMCO_sa_Time.rc', required=False)
     
     args = parser.parse_args()
