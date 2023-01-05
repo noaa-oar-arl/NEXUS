@@ -15,17 +15,26 @@ import subprocess
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from datetime import datetime
 
+def get_start_time(fname):
+    """ Function to read the start date from the HEMCO_sa_Time.rc """ 
+    with open(fname) as f:
+        lines = f.readlines()
+    for line in lines: 
+        if 'START' in line:
+            date = datetime.strptime(line,'START:   %Y-%m-%d %H:00:00\n')
+    return date
 
 if __name__ == '__main__':
 
     parser = ArgumentParser(description='Modify the start and end date of the NEXUS config script', formatter_class=ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-f', '--files', help='input nemsio file name', type=str, required=True)
-    parser.add_argument('-d', '--date', help='Date of model run. Format: %Y%m%d     example: 20190810', default='./', required=True)
+    parser.add_argument('-f', '--files', help='input NEXUS_Config.rc file name', type=str, default='NEXUS_Config.rc', required=False)
+    parser.add_argument('-t', '--time_file', help='HEMCO Time File: HEMCO_sa_Time.rc', default='HEMCO_sa_Time.rc', required=False)
     
     args = parser.parse_args()
 
+    # get input NEXUS_Config.rc
     finput = args.files
-    d = datetime.strptime(args.date,'%Y%m%d')
+    d = get_start_time(args.time_file) 
 
     with open(finput,'r') as f:
         lines = f.readlines()
