@@ -77,3 +77,8 @@ Build:
 cmake --build build
 ```
 If successful, the executable will be at `build/bin/nexus`.
+
+To clean up, remove the build directory or use
+```
+cmake --build build --target clean
+```
