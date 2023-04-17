@@ -27,12 +27,18 @@ module load hera.intel
 
 #### GMU Hopper
 
-...
+##### hpc-stack feat. GCC v10 ([somewhat WIP](https://github.com/noaa-oar-arl/ufs-srweather-app/pull/6))
+
+```
+module reset
+module load hpc-stack/1.2.0
+module load netcdf-fortran/4.5.3-4p
+```
 
 #### Ubuntu
 
 Tested with Ubuntu 22.04.
-Using GNU Fortran v12 available via `apt`.
+Using GCC v12 available via `apt`.
 
 Dependencies:
 ```bash
