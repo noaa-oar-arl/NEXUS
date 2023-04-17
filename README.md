@@ -61,6 +61,7 @@ tar xzvf v${v}.tar.gz --directory=/tmp && mv /tmp/esmf-${v}/* $ESMF_DIR
 export ESMF_LAPACK=netlib
 export ESMF_COMPILER=gfortran
 export ESMF_COMM=mpiuni  # MPI bypass
+export ESMF_NETCDF=nc-config
 
 export ESMF_F90COMPILER=/usr/bin/gfortran-${gcc}
 export ESMF_CCOMPILER=/usr/bin/gcc-${gcc}
