@@ -63,10 +63,10 @@ Build minimal ESMF:
 ```bash
 v="8.3.1"  # ESMF
 gcc="12"
-ESMF_BASE=$HOME/esmf
+esmf_base=$HOME/esmf
 
-export ESMF_DIR=${ESMF_BASE}/${v}-gcc-${gcc}
-cd $ESMF_BASE
+export ESMF_DIR=${esmf_base}/${v}-gcc-${gcc}
+cd $esmf_base
 mkdir -p $ESMF_DIR
 wget https://github.com/esmf-org/esmf/archive/refs/tags/v${v}.tar.gz
 tar xzvf v${v}.tar.gz --directory=/tmp && mv /tmp/esmf-${v}/* $ESMF_DIR
@@ -84,7 +84,7 @@ export ESMF_CLINKER=/usr/bin/ld
 export ESMF_CXXLINKER=/usr/bin/ld
 
 cd $ESMF_DIR
-make
+make lib
 
 # Location of `esmf.mk` is needed for CMake to find the lib later
 ESMFMKFILE=${ESMF_DIR}/lib/libO/Linux.gfortran.64.mpiuni.default/esmf.mk
