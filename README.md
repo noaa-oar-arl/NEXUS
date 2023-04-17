@@ -15,15 +15,21 @@ git clone -b develop --recurse-submodules git@github.com:noaa-oar-arl/NEXUS.git
 (Replace `noaa-oar-arl` with your fork if desired.)
 
 
-### NOAA Hera
+### Setup
+
+#### NOAA Hera
+
+Use the official setup.
+```
+module use ./modulefiles
+module load hera.intel
+```
+
+#### GMU Hopper
 
 ...
 
-### GMU Hopper
-
-...
-
-### Ubuntu
+#### Ubuntu
 
 Tested with Ubuntu 22.04.
 Using GNU Fortran v12 available via `apt`.
@@ -69,10 +75,12 @@ Configure:
 export CMAKE_Fortran_COMPILER=/usr/bin/gfortran-12
 # TODO: allow `FC`
 ```
+
+### Build
+
 ```
 cmake -S . -B build
 ```
-Build:
 ```
 cmake --build build
 ```
