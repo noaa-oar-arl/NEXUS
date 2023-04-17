@@ -25,6 +25,14 @@ module use ./modulefiles
 module load hera.intel
 ```
 
+Input data:
+```
+/scratch1/NCEPDEV/rstprod/nexus_emissions
+```
+```
+/scratch1/RDARCH/rda-arl-gpu/Barry.Baker/emissions/nexus
+```
+
 #### GMU Hopper
 
 ##### hpc-stack feat. GCC v10 ([somewhat WIP](https://github.com/noaa-oar-arl/ufs-srweather-app/pull/6))
@@ -33,6 +41,11 @@ module load hera.intel
 module reset
 module load hpc-stack/1.2.0
 module load netcdf-fortran/4.5.3-4p
+```
+
+Input data:
+```
+/groups/ESS3/ytang/RRFS-input/nexus_emissions
 ```
 
 #### Ubuntu
