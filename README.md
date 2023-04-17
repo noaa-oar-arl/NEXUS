@@ -59,7 +59,7 @@ sudo apt install build-essential gfortran-12 libnetcdf-dev libnetcdff-dev liblap
 # TODO: allow building NEXUS without MPI?
 ```
 
-Build minimal ESMF:
+Build ESMF and prepare for NEXUS build:
 ```bash
 v="8.3.1"  # ESMF
 gcc="12"
@@ -71,14 +71,18 @@ mkdir -p $ESMF_DIR
 wget https://github.com/esmf-org/esmf/archive/refs/tags/v${v}.tar.gz
 tar xzvf v${v}.tar.gz --directory=/tmp && mv /tmp/esmf-${v}/* $ESMF_DIR
 
-export ESMF_LAPACK=netlib
 export ESMF_COMPILER=gfortran
-export ESMF_COMM=mpiuni  # MPI bypass
+export ESMF_LAPACK=netlib
+export ESMF_COMM=mpi
+export ESMF_PIO=internal
 export ESMF_NETCDF=nc-config
 
-export ESMF_F90COMPILER=/usr/bin/gfortran-${gcc}
-export ESMF_CCOMPILER=/usr/bin/gcc-${gcc}
-export ESMF_CXXCOMPILER=/usr/bin/g++-${gcc}
+export OMPI_FC=gfortran-${gcc}
+export OMPI_CC=gcc-${gcc}
+export OMPI_CXX=g++-${gcc}
+export ESMF_F90COMPILER=mpifort
+export ESMF_CCOMPILER=mpicc
+export ESMF_CXXCOMPILER=mpic++
 export ESMF_F90LINKER=/usr/bin/ld
 export ESMF_CLINKER=/usr/bin/ld
 export ESMF_CXXLINKER=/usr/bin/ld
@@ -87,14 +91,17 @@ cd $ESMF_DIR
 make lib
 
 # Location of `esmf.mk` is needed for CMake to find the lib later
-ESMFMKFILE=${ESMF_DIR}/lib/libO/Linux.gfortran.64.mpiuni.default/esmf.mk
+ESMFMKFILE=${ESMF_DIR}/lib/libO/Linux.gfortran.64.mpi.default/esmf.mk
+
+# For NEXUS
+export CMAKE_Fortran_COMPILER=$ESMF_F90COMPILER
+# TODO: allow setting with `FC`
 ```
 
-Configure:
-```bash
-export CMAKE_Fortran_COMPILER=/usr/bin/gfortran-12
-# TODO: allow `FC`
-```
+To build NEXUS, at least these env vars should be set:
+- `ESMFMKFILE`
+- `OMPI_FC`
+- `CMAKE_Fortran_COMPILER`
 
 ### Build
 
