@@ -90,7 +90,9 @@ export ESMF_CXXLINKER=/usr/bin/ld
 cd $ESMF_DIR
 make lib
 
-# Location of `esmf.mk` is needed for CMake to find the lib later
+# Location of the corresponding `esmf.mk` is needed for CMake to find the lib later
+# You can find these with, e.g., `find . -name 'esmf.mk' -exec realpath {} \;`,
+# but it should be the following:
 ESMFMKFILE=${ESMF_DIR}/lib/libO/Linux.gfortran.64.mpi.default/esmf.mk
 
 # For NEXUS
