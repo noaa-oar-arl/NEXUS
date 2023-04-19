@@ -56,7 +56,6 @@ Using GCC v12 available via `apt`.
 Dependencies:
 ```bash
 sudo apt install build-essential gfortran-12 libnetcdf-dev libnetcdff-dev liblapack-dev libopenblas-dev mpi-default-dev mpi-default-bin
-# TODO: allow building NEXUS without MPI?
 ```
 
 Build ESMF and prepare for NEXUS build:
@@ -97,7 +96,6 @@ ESMFMKFILE=${ESMF_DIR}/lib/libO/Linux.gfortran.64.mpi.default/esmf.mk
 
 # For NEXUS
 export CMAKE_Fortran_COMPILER=$ESMF_F90COMPILER
-# TODO: allow setting with `FC`
 ```
 
 To build NEXUS, at least these env vars should be set:
