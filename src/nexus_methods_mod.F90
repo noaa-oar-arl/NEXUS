@@ -2094,8 +2094,12 @@ contains
     PEDGE    => NULL()
 
     ! Enter
-    call HCO_ENTER( HcoState%Config%Err, ThisLoc, RC )
-    if ( RC /= HCO_SUCCESS ) return
+    call HCO_Enter( HcoState%Config%Err, ThisLoc, RC )
+    if ( RC /= HCO_SUCCESS ) then
+      ErrMsg = 'Error encountered in "HCO_Enter"!'
+      call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+      return
+    end if
 
     ! First call?
     FIRST = HcoClock_First ( HcoState%Clock, .FALSE. )
