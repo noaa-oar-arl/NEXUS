@@ -2094,8 +2094,12 @@ contains
     PEDGE    => NULL()
 
     ! Enter
-    call HCO_ENTER( HcoState%Config%Err, ThisLoc, RC )
-    if ( RC /= HCO_SUCCESS ) return
+    call HCO_Enter( HcoState%Config%Err, ThisLoc, RC )
+    if ( RC /= HCO_SUCCESS ) then
+      ErrMsg = 'Error encountered in "HCO_Enter"!'
+      call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+      return
+    end if
 
     ! First call?
     FIRST = HcoClock_First ( HcoState%Clock, .FALSE. )
@@ -2138,20 +2142,6 @@ contains
     if ( ExtState%ALBD%DoUse ) then
        Name = 'ALBEDO'
        call ExtDat_Set( HcoState,     ExtState%ALBD,                         &
-                        trim( Name ), RC,       FIRST=FIRST                 )
-       if ( RC /= HCO_SUCCESS ) then
-          ErrMsg = 'Could not find quantity "' // trim( Name )            // &
-                   '" for the HEMCO standalone simulation!'
-          call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
-          call HCO_Leave( HcoState%Config%Err, RC )
-          return
-       end if
-    end if
-
-    !%%%%% Land-water-ice flags  %%%%%
-    if ( ExtState%WLI%DoUse ) then
-       Name = 'LWI'
-       call ExtDat_Set( HcoState,     ExtState%WLI,                          &
                         trim( Name ), RC,       FIRST=FIRST                 )
        if ( RC /= HCO_SUCCESS ) then
           ErrMsg = 'Could not find quantity "' // trim( Name )            // &
