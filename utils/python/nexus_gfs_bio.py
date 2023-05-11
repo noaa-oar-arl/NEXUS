@@ -303,11 +303,14 @@ def main(i_fps, o_fp):
     for k, v in M2_LON_ATTRS.items():
         setattr(lon, k, v)
 
+    ds_new_pre = {}
     for vn, d in M2_DATA_VAR_INFO.items():
         var = ds_new.createVariable(vn, np.float32, ("time", "lat", "lon"))
         var[:] = 0
         for k, v in d["attrs"].items():
             setattr(var, k, v)
+
+        ds_new_pre[vn] = np.empty((ntime_gfs, lat_dim.size, lon_dim.size), dtype=np.float32)
 
     #
     # Interpolate to new grid
@@ -355,7 +358,7 @@ def main(i_fps, o_fp):
             else:
                 data_new = np.clip(data_new, 0, None)  # no negatives
 
-            ds_new[vn_new][i, :, :] = data_new
+            ds_new_pre[vn_new][i, :, :] = data_new
 
     #
     # Set time values and attrs
@@ -401,7 +404,7 @@ def main(i_fps, o_fp):
     print("Time interp")
     for vn in M2_DATA_VAR_INFO:
         print(vn)
-        f = interp1d(x, ds_new[vn][:ntime_gfs], kind="linear", axis=0, copy=False, assume_sorted=True)
+        f = interp1d(x, ds_new_pre[vn], kind="linear", axis=0, copy=False, assume_sorted=True)
         tmp = f(x_new)
         ds_new[vn][:] = tmp
 
