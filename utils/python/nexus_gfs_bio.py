@@ -350,8 +350,7 @@ def main(i_fps, o_fp):
             # for the S pole (colat 180) unless we convert it to float64
             # (I guess there is a bounds check against float64 pi)
             data_new = f.ev(colat_m2_mesh.ravel(), lon_m2_mesh.ravel()).reshape(
-                #(lon_m2.size, lat_m2.size)
-                (lat_m2.size, lon_m2.size)
+                colat_m2_mesh.shape
             )
 
             if vn_old == "soilw4":
@@ -359,16 +358,7 @@ def main(i_fps, o_fp):
             else:
                 data_new = np.clip(data_new, 0, None)  # no negatives
 
-            print(ds_new[vn_new].shape)
-            print(ds_new[vn_new][:].shape)
-            ds_new[vn_new][i, :, :] = data_new
-            print(ds_new_pre[vn_new].shape)
             ds_new_pre[vn_new][i, :, :] = data_new
-
-            print(ds_new[vn_new][i, :, :])
-            print(ds_new[vn_new][i, :, :].mean())
-            print(ds_new_pre[vn_new][i, :, :])
-            print(ds_new_pre[vn_new][i, :, :].mean())
 
     #
     # Set time values and attrs
