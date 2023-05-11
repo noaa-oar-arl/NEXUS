@@ -234,6 +234,21 @@ def main(i_fps, o_fp):
     ds.close()
 
     #
+    # Get GFS file times
+    #
+
+    gfs_times = []
+    for i, fp in enumerate(files):
+        ds = nc.Dataset(fp, "r")
+
+        # Get time
+        assert ds.dimensions["time"].size == 1
+        t = nc.num2date(ds["time"][0], units=ds["time"].units, calendar=ds["time"].calendar)
+        gfs_times.append(t)
+
+        ds.close()
+
+    #
     # Define the new grid (MERRA-2)
     #
 
@@ -270,7 +285,7 @@ def main(i_fps, o_fp):
         ds_new.setncattr(k, v)
 
     ntime_gfs = len(files)  # e.g. 25 (0:3:72)
-    ntime_m2 = (ntime_gfs - 1) * 3  # e.g. 72 (0.5:1:71.5)
+    ntime_m2 = int((gfs_times[-1] - gfs_times[0]).total_seconds() / 3600)  # e.g. 72 (0.5:1:71.5)
     time_dim = ds_new.createDimension("time", ntime_m2)
     time = ds_new.createVariable("time", np.int32, ("time",))
     for k, v in M2_TIME_ATTRS.items():
@@ -299,16 +314,11 @@ def main(i_fps, o_fp):
     #
 
     print("Spatial interp")
-    gfs_times = []
-    for i, fp in enumerate(files):
+    for i, (fp, t) in enumerate(zip(files, gfs_times)):
+
+        print(f"{fp.as_posix()} ({t})")
 
         ds = nc.Dataset(fp, "r")
-
-        # Get time
-        assert ds.dimensions["time"].size == 1
-        t = nc.num2date(ds["time"][0], units=ds["time"].units, calendar=ds["time"].calendar)
-        print(f"{fp.as_posix()} ({t})")
-        gfs_times.append(t)
 
         for vn_old, vn_new in M2_DATA_VAR_OLD_TO_NEW.items():
             print(f"{vn_old} -> {vn_new}")
