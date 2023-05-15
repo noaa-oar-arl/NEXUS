@@ -1,7 +1,7 @@
 program app
 
   !-----------------------------------------------------------------------------
-  ! Generic ESMF Main
+  ! Command-line interface for the NEXUS NUOPC Single-Model Driver
   !-----------------------------------------------------------------------------
 
   use ESMF
@@ -35,7 +35,7 @@ program app
   character(ESMF_MAXSTR) :: optarg
   character(ESMF_MAXSTR) :: sbuf(3)
   type(ESMF_VM) :: vm
-  type(ESMF_GridComp)           :: drvComp
+  type(ESMF_GridComp) :: drvComp
 
 
   ! Initialize ESMF
