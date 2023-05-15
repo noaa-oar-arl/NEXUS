@@ -5,6 +5,7 @@ add_executable(nexus2
 add_library(NEXUS_Shared2 STATIC EXCLUDE_FROM_ALL
   cap.F90
   driver.F90
+  ../nexus_error_mod.F90
 )
 
 target_include_directories(NEXUS_Shared2

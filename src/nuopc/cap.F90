@@ -8,11 +8,16 @@ module nexus_cap
   use NUOPC
   use NUOPC_Model, modelSS => SetServices
 
+  use HCO_TYPES_MOD, only : ConfigObj
+
   implicit none
+
+  ! HEMCO config object
+  type(ConfigObj), pointer :: HcoConfig => NULL()
 
   private
 
-  public SetServices
+  public SetServices, init
 
   !-----------------------------------------------------------------------------
 contains
@@ -95,6 +100,8 @@ contains
     type(ESMF_Grid)         :: gridOut
 
     rc = ESMF_SUCCESS
+
+    print *, HcoConfig%ConfigFileName
 
     ! query for importState and exportState
     call NUOPC_ModelGet(model, importState=importState, &
@@ -190,5 +197,47 @@ contains
   end subroutine
 
   !-----------------------------------------------------------------------------
+
+  subroutine init(ConfigFile, rc)
+    use HCO_Config_Mod, only: Config_ReadFile
+    use NEXUS_Error_Mod, only: NEXUS_Error_Log
+    
+    character(len=*),  intent(in)  :: ConfigFile
+    integer, optional, intent(out) :: rc
+
+    integer, parameter :: rootpet = 0
+    integer :: localrc
+    integer :: localPet
+    logical :: am_I_Root
+    type(ESMF_VM) :: vm
+
+    ! -- determine whether I am root
+    call ESMF_VMGetCurrent(vm, rc=localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return
+
+    call ESMF_VMGet(vm, localPet=localPet, rc=localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return
+
+    am_I_Root = (localPet == rootPet)
+
+    !=======================================================================
+    ! Read HEMCO configuration file and save into buffer. This also
+    ! sets the HEMCO error properties (verbose mode? log file name,
+    ! etc.) based upon the specifications in the configuration file.
+    !=======================================================================
+    call Config_ReadFile( am_I_Root, HcoConfig, ConfigFile,       &
+                          0,         localrc,   IsDryRun=.false. )
+    if (NEXUS_Error_Log(localrc, msg='Error encountered in routine "Config_Readfile!"', &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
+  end subroutine init
 
 end module nexus_cap

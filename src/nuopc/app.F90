@@ -6,6 +6,7 @@ program app
 
   use ESMF
 
+  use nexus_cap, only: init_cap => init
   use nexus_driver, only: driverSS => SetServices
 
   implicit none
@@ -136,6 +137,8 @@ program app
   OutputFile = sbuf(3)
 
   !-----------------------------------------------------------------------------
+
+  call init_cap(ConfigFile)
 
   ! -> CREATE THE DRIVER
   drvComp = ESMF_GridCompCreate(name="driver", rc=rc)
