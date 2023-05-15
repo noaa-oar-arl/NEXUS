@@ -7,7 +7,6 @@ module nexus_cap
   use ESMF
   use NUOPC
   use NUOPC_Model, modelSS => SetServices
-  use my_model, only: my_read_config => read_config, my_calc => calc, my_config_type => config_type
 
   implicit none
 
@@ -142,11 +141,6 @@ module nexus_cap
     type(ESMF_Clock)            :: clock
     type(ESMF_State)            :: importState, exportState
     character(len=160)          :: msgString
-    type(ESMF_Field)            :: field
-    real(ESMF_KIND_R8), pointer :: fp2d(:,:)
-    integer                     :: i, j
-    integer, dimension(2)       :: ftlb, ftub, ftc  ! TODO: how to know/get rank to use (can't be `:`)?
-    type(my_config_type) :: my_config
     integer(ESMF_KIND_I8)       :: advanceCount
 
     rc = ESMF_SUCCESS
@@ -161,32 +155,8 @@ module nexus_cap
 
     ! HERE THE MODEL ADVANCES: currTime -> currTime + timeStep
 
-    ! TODO: attach this somewhere on init so doesn't happen every step?
-    call my_read_config(my_config)
-
     ! Get some Clock info
     call ESMF_ClockGet(clock, advanceCount=advanceCount)
-
-    ! Update our variable
-    call ESMF_StateGet(exportState, "best", field, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
-    ! TODO: Really first should check status
-    call ESMF_FieldGet(field, farrayPtr=fp2d, &
-      totalLBound=ftlb, totalUBound=ftub, totalCount=ftc, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
-    ! Update values using the pointer
-    do i = ftlb(1), ftub(1)
-      ! TODO: get `x` from Grid intead of using integers?
-      fp2d(i, :) = my_calc([(real(j, kind=ESMF_KIND_R8), j = ftlb(2), ftub(2))], my_config) &
-        + advanceCount * 10
-    enddo
-    print *, fp2d(1, 1:5)  ! TODO: get this in the log?
 
     ! Because of the way that the internal Clock was set by default,
     ! its timeStep is equal to the parent timeStep. As a consequence the

@@ -29,3 +29,4 @@ set(GCCLASSIC_WRAPPER TRUE)
 # add project's subdirectories
 add_subdirectory(HEMCO)
 add_subdirectory(src)
+add_subdirectory(src/nuopc)
