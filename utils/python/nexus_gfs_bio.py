@@ -158,7 +158,7 @@ def main(i_fps, o_fp):
 
     import netCDF4 as nc
     import numpy as np
-    from scipy.interpolate import RectSphereBivariateSpline, interp1d
+    from scipy.interpolate import interp1d
 
     if len(i_fps) == 1:
         maybe_glob = i_fps[0]
@@ -234,7 +234,7 @@ def main(i_fps, o_fp):
     ds.close()
 
     #
-    # Get GFS file times
+    # Get GFS file times and grid
     #
 
     gfs_times = []
@@ -246,32 +246,14 @@ def main(i_fps, o_fp):
         t = nc.num2date(ds["time"][0], units=ds["time"].units, calendar=ds["time"].calendar)
         gfs_times.append(t)
 
+        # Get grid
+        gfs_lon_1d = ds["grid_xt"][:]
+        gfs_lat_1d = ds["grid_yt"][:]
+
         ds.close()
 
-    #
-    # Define the new grid (MERRA-2)
-    #
-
-    # lat and lon are float32 in the MERRA-2 files
-    # They are 1-D coord vars
-    lat_m2_deg = np.arange(-90, 90 + 0.5, 0.5, dtype=np.float32)
-    lon_m2_deg = np.arange(-180, 180, 0.625, dtype=np.float32)
-
-    lat_m2 = np.deg2rad(lat_m2_deg)
-    lon_m2 = np.deg2rad(lon_m2_deg)
-
-    colat_m2_deg = 90 - lat_m2_deg
-    colat_m2 = np.deg2rad(colat_m2_deg, dtype=np.float64)
-
-    lat_m2 = np.deg2rad(lat_m2_deg)
-    lon_m2 = np.deg2rad(lon_m2_deg)
-    assert (np.diff(colat_m2) < 0).all(), "not ascending"
-    lon_m2_mesh, colat_m2_mesh = np.meshgrid(lon_m2, colat_m2)
-
-    # For the lon mesh, [-180, 180) -> [0, 2pi)
-    # Otherwise we don't get W hemi properly
-    lon_m2_mesh[lon_m2_mesh < 0] += 2 * np.pi
-    assert (lon_m2_mesh >= 0).all() and (lon_m2_mesh < 2 * np.pi).all()
+    assert (np.diff(gfs_lon_1d) > 0).all(), "already ascending"
+    lat_needs_flip = gfs_lat_1d[0] > gfs_lat_1d[-1]
 
     #
     # Create and initialize new dataset
@@ -286,20 +268,20 @@ def main(i_fps, o_fp):
 
     ntime_gfs = len(files)  # e.g. 25 (0:3:72)
     ntime_m2 = int((gfs_times[-1] - gfs_times[0]).total_seconds() / 3600)  # e.g. 72 (0.5:1:71.5)
-    time_dim = ds_new.createDimension("time", ntime_m2)
+    ds_new.createDimension("time", ntime_m2)
     time = ds_new.createVariable("time", np.int32, ("time",))
     for k, v in M2_TIME_ATTRS.items():
         setattr(time, k, v)
 
-    lat_dim = ds_new.createDimension("lat", lat_m2_deg.size)
+    lat_dim = ds_new.createDimension("lat", gfs_lat_1d.size)
     lat = ds_new.createVariable("lat", np.float32, ("lat",))
-    lat[:] = lat_m2_deg
+    lat[:] = gfs_lat_1d[::-1] if lat_needs_flip else gfs_lat_1d
     for k, v in M2_LAT_ATTRS.items():
         setattr(lat, k, v)
 
-    lon_dim = ds_new.createDimension("lon", lon_m2_deg.size)
+    lon_dim = ds_new.createDimension("lon", gfs_lon_1d.size)
     lon = ds_new.createVariable("lon", np.float32, ("lon",))
-    lon[:] = lon_m2_deg
+    lon[:] = gfs_lon_1d
     for k, v in M2_LON_ATTRS.items():
         setattr(lon, k, v)
 
@@ -313,10 +295,10 @@ def main(i_fps, o_fp):
         ds_new_pre[vn] = np.empty((ntime_gfs, lat_dim.size, lon_dim.size), dtype=np.float32)
 
     #
-    # Interpolate to new grid
+    # Load variables
     #
 
-    print("Spatial interp")
+    print("Loading variables")
     for i, (fp, t) in enumerate(zip(files, gfs_times)):
 
         print(f"{fp.as_posix()} ({t})")
@@ -344,21 +326,12 @@ def main(i_fps, o_fp):
                     is_vt = vtype == vt
                     data[is_vt] = (data[is_vt] - min_vt) / (max_vt - min_vt)
 
-            f = RectSphereBivariateSpline(u=colat_gfs, v=lon_gfs, r=data)
-
-            # NOTE: we get `ValueError: requested theta out of bounds.` here
-            # for the S pole (colat 180) unless we convert it to float64
-            # (I guess there is a bounds check against float64 pi)
-            data_new = f.ev(colat_m2_mesh.ravel(), lon_m2_mesh.ravel()).reshape(
-                colat_m2_mesh.shape
-            )
-
             if vn_old == "soilw4":
-                data_new = np.clip(data_new, 0, 1)
+                data_new = np.clip(data, 0, 1)
             else:
-                data_new = np.clip(data_new, 0, None)  # no negatives
+                data_new = np.clip(data, 0, None)  # no negatives
 
-            ds_new_pre[vn_new][i, :, :] = data_new
+            ds_new_pre[vn_new][i, :, :] = data_new[::-1, :] if lat_needs_flip else data_new
 
     #
     # Set time values and attrs
