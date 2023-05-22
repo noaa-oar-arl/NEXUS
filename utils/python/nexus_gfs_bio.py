@@ -357,7 +357,7 @@ def main(i_fps, o_fp):
     t0_floored = t0.replace(hour=0, minute=0, second=0, microsecond=0)
     calendar = "gregorian"
     units = f"minutes since {t0_floored}.0"
-    delta_t = m2_times_dt[1] - m2_times_dt[0]
+    delta_t = m2_times_dt[1] - m2_times_dt[0] if ntime_m2 > 1 else t0 - t0_floored
     assert (np.diff(m2_times_dt) == delta_t).all()
     assert delta_t.days == 0
     delta_t_h, rem = divmod(delta_t.seconds, 3600)
@@ -378,7 +378,7 @@ def main(i_fps, o_fp):
 
     x = gfs_times.astype(float)
     x_new = m2_times.astype(float)
-    assert x[0] < x_new[0] < x_new[-1] < x[-1], "fully contains"
+    assert x[0] < x_new[0] <= x_new[-1] < x[-1], "fully contains"
 
     print("Time interp")
     for vn in M2_DATA_VAR_INFO:
