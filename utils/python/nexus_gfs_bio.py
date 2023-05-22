@@ -383,8 +383,9 @@ def main(i_fps, o_fp):
     print("Time interp")
     for vn in M2_DATA_VAR_INFO:
         print(vn)
-        f = interp1d(x, ds_new_pre[vn], kind="linear", axis=0, copy=False, assume_sorted=True)
-        tmp = f(x_new)
+        # f = interp1d(x, ds_new_pre[vn], kind="linear", axis=0, copy=False, assume_sorted=True)
+        # tmp = f(x_new)
+        tmp = ds_new_pre[vn][:ntime_m2]
         ds_new[vn][:] = tmp
 
 
