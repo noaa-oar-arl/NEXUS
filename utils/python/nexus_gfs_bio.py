@@ -254,6 +254,8 @@ def main(i_fps, o_fp):
 
     assert (np.diff(gfs_lon_1d) > 0).all(), "already ascending"
     lat_needs_flip = gfs_lat_1d[0] > gfs_lat_1d[-1]
+    if lat_needs_flip:
+        print("Will flip lat")
 
     #
     # Create and initialize new dataset
