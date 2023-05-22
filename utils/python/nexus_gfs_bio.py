@@ -263,6 +263,7 @@ def main(i_fps, o_fp):
         o_fp = Path.cwd() / t0.strftime(r"gfs-bio_%Y%m%d.nc")
     ds_new = nc.Dataset(o_fp, "w", format="NETCDF4")
     ds_new.title = "Biogenic inputs from GFS for NEXUS/HEMCO"
+    ds_new.history = "NOAA GFS data reformatted to fit the COARDS conventions and be used in NEXUS/HEMCO"
     for k, v in M2_DS_ATTRS.items():
         ds_new.setncattr(k, v)
 
@@ -272,18 +273,21 @@ def main(i_fps, o_fp):
     time = ds_new.createVariable("time", np.int32, ("time",))
     for k, v in M2_TIME_ATTRS.items():
         setattr(time, k, v)
+    time.axis = "T"
 
     lat_dim = ds_new.createDimension("lat", gfs_lat_1d.size)
     lat = ds_new.createVariable("lat", np.float32, ("lat",))
     lat[:] = gfs_lat_1d[::-1] if lat_needs_flip else gfs_lat_1d
     for k, v in M2_LAT_ATTRS.items():
         setattr(lat, k, v)
+    lat.axis = "Y"
 
     lon_dim = ds_new.createDimension("lon", gfs_lon_1d.size)
     lon = ds_new.createVariable("lon", np.float32, ("lon",))
     lon[:] = gfs_lon_1d
     for k, v in M2_LON_ATTRS.items():
         setattr(lon, k, v)
+    lon.axis = "X"
 
     ds_new_pre = {}
     for vn, d in M2_DATA_VAR_INFO.items():
