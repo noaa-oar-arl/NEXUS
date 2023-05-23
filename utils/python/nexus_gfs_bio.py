@@ -403,14 +403,22 @@ def main(i_fps, o_fp):
     # x_new = m2_times #.astype(float)
     # assert x[0] < x_new[0] <= x_new[-1] < x[-1], "fully contains"
 
+    gfs_times = np.array(gfs_times, dtype=gfs_time_dtype)
+    assert (np.floor(gfs_times) == gfs_times).all(), "hourly on the hour"
+    assert gfs_time_units.startswith("hours since ")
+    x = gfs_times
+    x_new = (x[:-1] + x[1:]) / 2  # midpoints (on the half-hour)
+
     print("Time interp")
     for vn in M2_DATA_VAR_INFO:
         print(vn)
-        # f = interp1d(x, ds_new_pre[vn], kind="linear", axis=0, copy=False, assume_sorted=True)
-        # tmp = f(x_new)
+        f = interp1d(x, ds_new_pre[vn], kind="linear", axis=0, copy=False, assume_sorted=True)
+        tmp = f(x_new)
         # tmp = ds_new_pre[vn][:ntime_m2]
-        tmp = ds_new_pre[vn]
-        ds_new[vn][:] = tmp
+        # tmp = ds_new_pre[vn]
+        # ds_new[vn][:] = tmp
+        ds_new[vn][:-1] = tmp
+        ds_new[vn][-1] = tmp[-1]
 
 
     print(f"Writing out new dataset to {o_fp.as_posix()}")
