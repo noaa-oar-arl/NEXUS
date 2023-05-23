@@ -249,6 +249,8 @@ def main(i_fps, o_fp):
         # Get grid
         gfs_lon_1d = ds["grid_xt"][:]
         gfs_lat_1d = ds["grid_yt"][:]
+        gfs_time_units = ds["time"].units
+        gfs_time_calendar = ds["time"].calendar
 
         ds.close()
 
@@ -272,7 +274,7 @@ def main(i_fps, o_fp):
     ntime_gfs = len(files)  # e.g. 25 (0:3:72)
     ntime_m2 = int((gfs_times[-1] - gfs_times[0]).total_seconds() / 3600)  # e.g. 72 (0.5:1:71.5)
     ds_new.createDimension("time", ntime_m2)
-    time = ds_new.createVariable("time", np.int32, ("time",))
+    time = ds_new.createVariable("time", np.float64, ("time",))
     for k, v in M2_TIME_ATTRS.items():
         setattr(time, k, v)
     time.axis = "T"
@@ -363,14 +365,17 @@ def main(i_fps, o_fp):
     delta_t_h, rem = divmod(delta_t.seconds, 3600)
     delta_t_m, delta_t_s = divmod(rem, 60)
 
-    # Assign time values and attributes
-    time[:] = nc.date2num(m2_times_dt, calendar=calendar, units=units)
-    time.calendar = calendar
-    time.units = units
-    time.delta_t = f"0000-00-00 {delta_t_h:02d}:{delta_t_m:02d}:{delta_t_s:02d}"
-    time.begin_date = t0_floored.strftime(r"%Y%m%d")
-    time.begin_time = t0_floored.strftime(r"%H%M%S")
-    time.time_increment = f"{delta_t_h:02d}{delta_t_m:02d}{delta_t_s:02d}"
+    # # Assign time values and attributes
+    # time[:] = nc.date2num(m2_times_dt, calendar=calendar, units=units)
+    # time.calendar = calendar
+    # time.units = units
+    # time.delta_t = f"0000-00-00 {delta_t_h:02d}:{delta_t_m:02d}:{delta_t_s:02d}"
+    # time.begin_date = t0_floored.strftime(r"%Y%m%d")
+    # time.begin_time = t0_floored.strftime(r"%H%M%S")
+    # time.time_increment = f"{delta_t_h:02d}{delta_t_m:02d}{delta_t_s:02d}"
+    time[:] = nc.date2num(m2_times_dt, calendar=gfs_time_calendar, units=gfs_time_units)
+    time.calendar = gfs_time_calendar
+    time.units = gfs_time_units
 
     #
     # Time interpolation of data vars
