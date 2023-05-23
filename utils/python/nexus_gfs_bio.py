@@ -243,14 +243,19 @@ def main(i_fps, o_fp):
 
         # Get time
         assert ds.dimensions["time"].size == 1
-        t = nc.num2date(ds["time"][0], units=ds["time"].units, calendar=ds["time"].calendar)
-        gfs_times.append(t)
+        t_num = ds["time"][0]
+        t = nc.num2date(t_num, units=ds["time"].units, calendar=ds["time"].calendar)
+        gfs_times.append(t_num)
+        print(t_num, t, fp)
 
         # Get grid
-        gfs_lon_1d = ds["grid_xt"][:]
-        gfs_lat_1d = ds["grid_yt"][:]
-        gfs_time_units = ds["time"].units
-        gfs_time_calendar = ds["time"].calendar
+        if i == 0:
+            # TODO: should move this up and here check that these are same for all files
+            gfs_lon_1d = ds["grid_xt"][:]
+            gfs_lat_1d = ds["grid_yt"][:]
+            gfs_time_units = ds["time"].units
+            gfs_time_calendar = ds["time"].calendar
+            gfs_time_dtype = ds["time"].dtype
 
         ds.close()
 
@@ -272,9 +277,10 @@ def main(i_fps, o_fp):
         ds_new.setncattr(k, v)
 
     ntime_gfs = len(files)  # e.g. 25 (0:3:72)
-    ntime_m2 = int((gfs_times[-1] - gfs_times[0]).total_seconds() / 3600)  # e.g. 72 (0.5:1:71.5)
+    # ntime_m2 = int((gfs_times[-1] - gfs_times[0]).total_seconds() / 3600)  # e.g. 72 (0.5:1:71.5)
+    ntime_m2 = int(gfs_times[-1] - gfs_times[0])
     ds_new.createDimension("time", ntime_m2)
-    time = ds_new.createVariable("time", np.float64, ("time",))
+    time = ds_new.createVariable("time", gfs_time_dtype, ("time",))
     for k, v in M2_TIME_ATTRS.items():
         setattr(time, k, v)
     time.axis = "T"
@@ -345,25 +351,25 @@ def main(i_fps, o_fp):
     # Set time values and attrs
     #
 
-    gfs_times = np.array(gfs_times, dtype="datetime64[us]")
+    # gfs_times = np.array(gfs_times, dtype="datetime64[us]")
 
-    # Define output time based on the GFS times
-    hh = np.timedelta64(30, "m")
-    h = np.timedelta64(1, "h")
-    m2_times = np.arange(gfs_times[0] + hh, gfs_times[-1], h)
-    assert m2_times.size == ntime_m2
+    # # Define output time based on the GFS times
+    # hh = np.timedelta64(30, "m")
+    # h = np.timedelta64(1, "h")
+    # m2_times = np.arange(gfs_times[0] + hh, gfs_times[-1], h)
+    # assert m2_times.size == ntime_m2
 
-    # Intermediate calculations for the time attributes
-    m2_times_dt = m2_times.astype(datetime.datetime)
-    t0 = m2_times_dt[0]
-    t0_floored = t0.replace(hour=0, minute=0, second=0, microsecond=0)
-    calendar = "gregorian"
-    units = f"minutes since {t0_floored}.0"
-    delta_t = m2_times_dt[1] - m2_times_dt[0] if ntime_m2 > 1 else t0 - t0_floored
-    assert (np.diff(m2_times_dt) == delta_t).all()
-    assert delta_t.days == 0
-    delta_t_h, rem = divmod(delta_t.seconds, 3600)
-    delta_t_m, delta_t_s = divmod(rem, 60)
+    # # Intermediate calculations for the time attributes
+    # m2_times_dt = m2_times.astype(datetime.datetime)
+    # t0 = m2_times_dt[0]
+    # t0_floored = t0.replace(hour=0, minute=0, second=0, microsecond=0)
+    # calendar = "gregorian"
+    # units = f"minutes since {t0_floored}.0"
+    # delta_t = m2_times_dt[1] - m2_times_dt[0] if ntime_m2 > 1 else t0 - t0_floored
+    # assert (np.diff(m2_times_dt) == delta_t).all()
+    # assert delta_t.days == 0
+    # delta_t_h, rem = divmod(delta_t.seconds, 3600)
+    # delta_t_m, delta_t_s = divmod(rem, 60)
 
     # # Assign time values and attributes
     # time[:] = nc.date2num(m2_times_dt, calendar=calendar, units=units)
@@ -373,7 +379,17 @@ def main(i_fps, o_fp):
     # time.begin_date = t0_floored.strftime(r"%Y%m%d")
     # time.begin_time = t0_floored.strftime(r"%H%M%S")
     # time.time_increment = f"{delta_t_h:02d}{delta_t_m:02d}{delta_t_s:02d}"
-    time[:] = nc.date2num(m2_times_dt, calendar=gfs_time_calendar, units=gfs_time_units)
+
+    gfs_times = np.array(gfs_times, dtype=gfs_time_dtype)
+    assert (np.floor(gfs_times) == gfs_times).all(), "hourly on the hour"
+    assert gfs_time_units.startswith("hours since ")
+    h = 1
+    hh = 0.5
+    m2_times = np.arange(gfs_times[0] + hh, gfs_times[-1], h)
+    assert m2_times.size == ntime_m2
+
+    # time[:] = nc.date2num(m2_times_dt, calendar=gfs_time_calendar, units=gfs_time_units)
+    time[:] = m2_times
     time.calendar = gfs_time_calendar
     time.units = gfs_time_units
 
@@ -381,8 +397,8 @@ def main(i_fps, o_fp):
     # Time interpolation of data vars
     #
 
-    x = gfs_times.astype(float)
-    x_new = m2_times.astype(float)
+    x = gfs_times #.astype(float)
+    x_new = m2_times #.astype(float)
     assert x[0] < x_new[0] <= x_new[-1] < x[-1], "fully contains"
 
     print("Time interp")
