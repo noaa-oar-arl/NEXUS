@@ -278,7 +278,8 @@ def main(i_fps, o_fp):
 
     ntime_gfs = len(files)  # e.g. 25 (0:3:72)
     # ntime_m2 = int((gfs_times[-1] - gfs_times[0]).total_seconds() / 3600)  # e.g. 72 (0.5:1:71.5)
-    ntime_m2 = int(gfs_times[-1] - gfs_times[0])
+    # ntime_m2 = int(gfs_times[-1] - gfs_times[0])
+    ntime_m2 = len(gfs_times)
     ds_new.createDimension("time", ntime_m2)
     time = ds_new.createVariable("time", gfs_time_dtype, ("time",))
     for k, v in M2_TIME_ATTRS.items():
@@ -380,16 +381,17 @@ def main(i_fps, o_fp):
     # time.begin_time = t0_floored.strftime(r"%H%M%S")
     # time.time_increment = f"{delta_t_h:02d}{delta_t_m:02d}{delta_t_s:02d}"
 
-    gfs_times = np.array(gfs_times, dtype=gfs_time_dtype)
-    assert (np.floor(gfs_times) == gfs_times).all(), "hourly on the hour"
-    assert gfs_time_units.startswith("hours since ")
-    h = 1
-    hh = 0.5
-    m2_times = np.arange(gfs_times[0] + hh, gfs_times[-1], h)
-    assert m2_times.size == ntime_m2
+    # gfs_times = np.array(gfs_times, dtype=gfs_time_dtype)
+    # assert (np.floor(gfs_times) == gfs_times).all(), "hourly on the hour"
+    # assert gfs_time_units.startswith("hours since ")
+    # h = 1
+    # hh = 0.5
+    # m2_times = np.arange(gfs_times[0] + hh, gfs_times[-1], h)
+    # assert m2_times.size == ntime_m2
 
     # time[:] = nc.date2num(m2_times_dt, calendar=gfs_time_calendar, units=gfs_time_units)
-    time[:] = m2_times
+    # time[:] = m2_times
+    time[:] = gfs_times
     time.calendar = gfs_time_calendar
     time.units = gfs_time_units
 
@@ -397,16 +399,17 @@ def main(i_fps, o_fp):
     # Time interpolation of data vars
     #
 
-    x = gfs_times #.astype(float)
-    x_new = m2_times #.astype(float)
-    assert x[0] < x_new[0] <= x_new[-1] < x[-1], "fully contains"
+    # x = gfs_times #.astype(float)
+    # x_new = m2_times #.astype(float)
+    # assert x[0] < x_new[0] <= x_new[-1] < x[-1], "fully contains"
 
     print("Time interp")
     for vn in M2_DATA_VAR_INFO:
         print(vn)
         # f = interp1d(x, ds_new_pre[vn], kind="linear", axis=0, copy=False, assume_sorted=True)
         # tmp = f(x_new)
-        tmp = ds_new_pre[vn][:ntime_m2]
+        # tmp = ds_new_pre[vn][:ntime_m2]
+        tmp = ds_new_pre[vn]
         ds_new[vn][:] = tmp
 
 
