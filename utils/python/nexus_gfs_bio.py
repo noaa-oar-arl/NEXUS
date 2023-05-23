@@ -429,7 +429,7 @@ def main(i_fps, o_fp):
             tmp = ds_new_pre[vn]
         else:
             f = interp1d(x, ds_new_pre[vn], kind="linear", axis=0, copy=False, assume_sorted=True)
-            tmp = f(x_new)
+            tmp = np.clip(f(x_new), 0, None)
         # tmp = ds_new_pre[vn][:ntime_m2]
         # tmp = ds_new_pre[vn]
         ds_new[vn][:] = tmp
