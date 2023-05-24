@@ -95,16 +95,46 @@ def main(ifp, ofp):
     # Add the actual data from the split files
     #
 
-    print("Adding data from split files")
+    # Combine locs into slices
+    last_f = None
+    slices = []
     for i, (t, (f, i_f)) in enumerate(sorted(time2files_unique.items())):
-        print(f"{i+1}/{ntime} {t:%Y-%m-%d %H:%M}")
-        if f not in ifp2ds:
-            ifp2ds[f] = nc4.Dataset(f)
+        if i == 0:
+            # Start first slice
+            a = i
+            a_f = i_f
+
+        if last_f is not None and f != last_f:
+            # New file, end slice
+            s = slice(a, i)
+            slices.append((s, (last_f, slice(a_f, a_f + s.stop - s.start))))
+            # Start next slice
+            a = i
+            a_f = i_f
+
+        last_f = f
+
+    # End last slice
+    s = slice(a, i + 1)
+    slices.append((s, (last_f, slice(a_f, a_f + s.stop - s.start))))
+
+    # print("Adding data from split files")
+    # for i, (t, (f, i_f)) in enumerate(sorted(time2files_unique.items())):
+    #     print(f"{i+1}/{ntime} {t:%Y-%m-%d %H:%M}")
+    #     src = ifp2ds[f]
+    #     for name in src.variables:
+    #         if name in ["time", "latitude", "longitude"]:
+    #             continue
+    #         dst[name][i] = src[name][i_f]
+
+    print("Adding data from split files")
+    for s_dst, (f, s_src) in slices:
+        print(f"time slice {s_src.start}:{s_src.stop} in {f} -> {s_dst.start}:{s_dst.stop} in dst")
         src = ifp2ds[f]
         for name in src.variables:
             if name in ["time", "latitude", "longitude"]:
                 continue
-            dst[name][i] = src[name][i_f]
+            dst[name][s_dst] = src[name][s_src]
 
     for src in ifp2ds.values():
         src.close()
