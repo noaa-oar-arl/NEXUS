@@ -28,6 +28,7 @@ def main(ifp, ofp):
     # There may be duplicate times in the splits, let's figure out what they are.
     #
 
+    ifp2ds = {}
     time2files = defaultdict(list)
     for f in files:
         print(f)
@@ -42,7 +43,7 @@ def main(ifp, ofp):
         for i, t in enumerate(times_dt):
             time2files[t].append((f, i))
 
-        ds.close()
+        ifp2ds[f] = ds
 
     time = []  # times for new file
     time2files_unique = {}
@@ -59,7 +60,7 @@ def main(ifp, ofp):
     #
 
     print("Creating new file skeleton based on first src file")
-    src0 = nc4.Dataset(files[0])
+    src0 = ifp2ds[files[0]]
 
     time = np.array(time)
     ntime = time.size
@@ -95,7 +96,6 @@ def main(ifp, ofp):
     #
 
     print("Adding data from split files")
-    ifp2ds = {files[0]: src0}
     for i, (t, (f, i_f)) in enumerate(sorted(time2files_unique.items())):
         print(f"{i+1}/{ntime} {t:%Y-%m-%d %H:%M}")
         if f not in ifp2ds:
