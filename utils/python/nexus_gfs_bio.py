@@ -154,8 +154,6 @@ def main(i_fps, o_fp):
     o_fp : Path, optional
         Desired path of output file.
     """
-    import datetime
-
     import netCDF4 as nc
     import numpy as np
     from scipy.interpolate import interp1d
@@ -272,15 +270,16 @@ def main(i_fps, o_fp):
         o_fp = Path.cwd() / t0.strftime(r"gfs-bio_%Y%m%d.nc")
     ds_new = nc.Dataset(o_fp, "w", format="NETCDF4")
     ds_new.title = "Biogenic inputs from GFS for NEXUS/HEMCO"
-    ds_new.history = "NOAA GFS data reformatted to fit the COARDS conventions and be used in NEXUS/HEMCO"
+    ds_new.history = (
+        "NOAA GFS data reformatted to fit the COARDS conventions "
+        "and be used in NEXUS/HEMCO"
+    )
     for k, v in M2_DS_ATTRS.items():
         ds_new.setncattr(k, v)
 
     ntime_gfs = len(files)  # e.g. 25 (0:3:72)
-    # ntime_m2 = int((gfs_times[-1] - gfs_times[0]).total_seconds() / 3600)  # e.g. 72 (0.5:1:71.5)
-    # ntime_m2 = int(gfs_times[-1] - gfs_times[0])
-    # ntime_m2 = len(gfs_times)
-    ntime_m2 = int(gfs_times[-1] - gfs_times[0] + 1)
+    ntime_m2 = int(gfs_times[-1] - gfs_times[0] + 1)  # e.g. 73 (0:1:72)
+    # NOTE: ^ assumes GFS times are on the hour
     ds_new.createDimension("time", ntime_m2)
     time = ds_new.createVariable("time", gfs_time_dtype, ("time",))
     for k, v in M2_TIME_ATTRS.items():
@@ -316,7 +315,6 @@ def main(i_fps, o_fp):
 
     print("Loading variables")
     for i, (fp, t) in enumerate(zip(files, gfs_times)):
-
         print(f"{fp.as_posix()} ({t})")
 
         ds = nc.Dataset(fp, "r")
@@ -350,59 +348,8 @@ def main(i_fps, o_fp):
             ds_new_pre[vn_new][i, :, :] = data_new[::-1, :] if lat_needs_flip else data_new
 
     #
-    # Set time values and attrs
+    # Time interpolation of data vars and set times
     #
-
-    # gfs_times = np.array(gfs_times, dtype="datetime64[us]")
-
-    # # Define output time based on the GFS times
-    # hh = np.timedelta64(30, "m")
-    # h = np.timedelta64(1, "h")
-    # m2_times = np.arange(gfs_times[0] + hh, gfs_times[-1], h)
-    # assert m2_times.size == ntime_m2
-
-    # # Intermediate calculations for the time attributes
-    # m2_times_dt = m2_times.astype(datetime.datetime)
-    # t0 = m2_times_dt[0]
-    # t0_floored = t0.replace(hour=0, minute=0, second=0, microsecond=0)
-    # calendar = "gregorian"
-    # units = f"minutes since {t0_floored}.0"
-    # delta_t = m2_times_dt[1] - m2_times_dt[0] if ntime_m2 > 1 else t0 - t0_floored
-    # assert (np.diff(m2_times_dt) == delta_t).all()
-    # assert delta_t.days == 0
-    # delta_t_h, rem = divmod(delta_t.seconds, 3600)
-    # delta_t_m, delta_t_s = divmod(rem, 60)
-
-    # # Assign time values and attributes
-    # time[:] = nc.date2num(m2_times_dt, calendar=calendar, units=units)
-    # time.calendar = calendar
-    # time.units = units
-    # time.delta_t = f"0000-00-00 {delta_t_h:02d}:{delta_t_m:02d}:{delta_t_s:02d}"
-    # time.begin_date = t0_floored.strftime(r"%Y%m%d")
-    # time.begin_time = t0_floored.strftime(r"%H%M%S")
-    # time.time_increment = f"{delta_t_h:02d}{delta_t_m:02d}{delta_t_s:02d}"
-
-    # gfs_times = np.array(gfs_times, dtype=gfs_time_dtype)
-    # assert (np.floor(gfs_times) == gfs_times).all(), "hourly on the hour"
-    # assert gfs_time_units.startswith("hours since ")
-    # h = 1
-    # hh = 0.5
-    # m2_times = np.arange(gfs_times[0] + hh, gfs_times[-1], h)
-    # assert m2_times.size == ntime_m2
-
-    # time[:] = nc.date2num(m2_times_dt, calendar=gfs_time_calendar, units=gfs_time_units)
-    # time[:] = m2_times
-    # time[:] = gfs_times
-    # time.calendar = gfs_time_calendar
-    # time.units = gfs_time_units
-
-    #
-    # Time interpolation of data vars
-    #
-
-    # x = gfs_times #.astype(float)
-    # x_new = m2_times #.astype(float)
-    # assert x[0] < x_new[0] <= x_new[-1] < x[-1], "fully contains"
 
     gfs_times = np.array(gfs_times, dtype=gfs_time_dtype)
     gfs_is_hourly = (np.diff(gfs_times) == 1).all()
@@ -422,7 +369,10 @@ def main(i_fps, o_fp):
     print("Time interp")
     if gfs_is_hourly:
         assert (gfs_times == m2_times).all()
-        print("(but the GFS input is already hourly, so we won't actually do time interp, just load variables)")
+        print(
+            "(but the GFS input is already hourly, so we won't actually do time interp, "
+            "just load variables)"
+        )
     for vn in M2_DATA_VAR_INFO:
         print(vn)
         if gfs_is_hourly:
@@ -430,12 +380,7 @@ def main(i_fps, o_fp):
         else:
             f = interp1d(x, ds_new_pre[vn], kind="linear", axis=0, copy=False, assume_sorted=True)
             tmp = np.clip(f(x_new), 0, None)
-        # tmp = ds_new_pre[vn][:ntime_m2]
-        # tmp = ds_new_pre[vn]
         ds_new[vn][:] = tmp
-        # ds_new[vn][:-1] = tmp
-        # ds_new[vn][-1] = tmp[-1]
-
 
     print(f"Writing out new dataset to {o_fp.as_posix()}")
     ds_new.close()
