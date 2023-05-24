@@ -13,16 +13,20 @@ def main(ifp, ofp):
         Input and output file path.
     """
     from collections import defaultdict
+    from glob import glob
 
     import netCDF4 as nc4
-    from glob import glob
+    import numpy as np
 
     files = glob(ifp)
     files.sort()
     print(files)
 
-    # We can't use nc.MFDataset since the files are NETCDF4 non-classic
+    # NOTE: We can't use nc.MFDataset since the files are NETCDF4 non-classic
+
+    #
     # There may be duplicate times in the splits, let's figure out what they are.
+    #
 
     time2files = defaultdict(list)
     for f in files:
@@ -31,37 +35,80 @@ def main(ifp, ofp):
         times_num = ds["time"][:]
         times_dt = nc4.num2date(times_num, units=ds["time"].units)
         # ^ by default these are `cftime.DatetimeGregorian`s
-        print(times_num)
-        print(times_dt)
+        #   the pretty files currently don't have calendar set
+        print(len(times_dt), "times")
+        print(f"first: {times_dt[0]:%Y-%m-%d %H:%M}, last: {times_dt[-1]:%Y-%m-%d %H:%M}")
 
         for i, t in enumerate(times_dt):
             time2files[t].append((f, i))
 
         ds.close()
 
-    for t, files in time2files.items():
-        if len(files) > 1:
+    time = []  # times for new file
+    time2files_unique = {}
+    for t, locs in sorted(time2files.items()):
+        if len(locs) > 1:
             print(f"{t:%Y-%m-%d %H:%M} appears more than once")
-            for f, i in files:
+            for f, i in locs:
                 print(f"- {f} time {i}")
+        time2files_unique[t] = locs[-1]  # take last one (later simulation)
+        time.append(t)
 
-    # # Open all files
-    # src = nc4.MFDataset(files, aggdim="time")
+    #
+    # Create new file skeleton based on first src file
+    #
 
-    # # Now make new netcdf file
-    # dst = nc4.Dataset(ofp, "w", format="NETCDF4")
+    print("Creating new file skeleton based on first src file")
+    src0 = nc4.Dataset(files[0])
 
-    # # First create dimensions
-    # for name, dimension in src.dimensions.items():
-    #     dst.createDimension(name, len(dimension) if not dimension.isunlimited() else None)
+    time = np.array(time)
+    ntime = time.size
 
-    # # Now copy variables
-    # for name, variable in src.variables.items():
-    #     dst.createVariable(name, variable.dtype, variable.dimensions)
-    #     dst[name][:] = src[name][:]
+    dst = nc4.Dataset(ofp, "w", format="NETCDF4")
+    dst.title = "NEXUS output for AQM"
+    dst.history = f"Combined results from {len(files)} splits."
 
-    # dst.close()
-    # src.close()
+    # dims
+    for name, dimension in src0.dimensions.items():
+        dst.createDimension(name, len(dimension) if not dimension.isunlimited() else None)
+    assert dst.dimensions["time"].isunlimited()
+
+    # coords
+    for name in ["time", "latitude", "longitude"]:
+        dst.createVariable(name, src0[name].dtype, src0[name].dimensions)
+        dst[name].setncatts({key: getattr(src0[name], key) for key in src0[name].ncattrs()})
+        if name == "time":
+            dst[name][:] = nc4.date2num(time, units=dst[name].units)
+        else:
+            dst[name][:] = src0[name][:]
+    assert dst.variables["time"].size == ntime
+
+    # variables
+    for name, variable in src0.variables.items():
+        if name in ["time", "latitude", "longitude"]:
+            continue
+        dst.createVariable(name, variable.dtype, variable.dimensions)
+        dst[name].setncatts({key: getattr(variable, key) for key in variable.ncattrs()})
+
+    #
+    # Add the actual data from the split files
+    #
+
+    print("Adding data from split files")
+    ifp2ds = {files[0]: src0}
+    for i, (t, (f, i_f)) in enumerate(sorted(time2files_unique.items())):
+        print(f"{i+1}/{ntime} {t:%Y-%m-%d %H:%M}")
+        if f not in ifp2ds:
+            ifp2ds[f] = nc4.Dataset(f)
+        src = ifp2ds[f]
+        for name in src.variables:
+            if name in ["time", "latitude", "longitude"]:
+                continue
+            dst[name][i] = src[name][i_f]
+
+    for src in ifp2ds.values():
+        src.close()
+    dst.close()
 
     return 0
 
