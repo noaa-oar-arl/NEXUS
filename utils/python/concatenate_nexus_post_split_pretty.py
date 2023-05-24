@@ -85,7 +85,8 @@ def main(ifp, ofp):
     assert dst.dimensions["time"].isunlimited()
 
     # coords
-    for name in ["time", "latitude", "longitude"]:
+    coord_names = ["time", "latitude", "longitude"]
+    for name in coord_names:
         dst.createVariable(name, src0[name].dtype, src0[name].dimensions)
         dst[name].setncatts({key: getattr(src0[name], key) for key in src0[name].ncattrs()})
         if name == "time":
@@ -96,7 +97,7 @@ def main(ifp, ofp):
 
     # variables
     for name, variable in src0.variables.items():
-        if name in ["time", "latitude", "longitude"]:
+        if name in coord_names:
             continue
         dst.createVariable(name, variable.dtype, variable.dimensions)
         dst[name].setncatts({key: getattr(variable, key) for key in variable.ncattrs()})
@@ -133,7 +134,7 @@ def main(ifp, ofp):
         print(f"time slice {s_src.start}:{s_src.stop} in {f} -> {s_dst.start}:{s_dst.stop} in dst")
         src = ifp2ds[f]
         for name in src.variables:
-            if name in ["time", "latitude", "longitude"]:
+            if name in coord_names:
                 continue
             dst[name][s_dst] = src[name][s_src]
 
@@ -147,9 +148,19 @@ def main(ifp, ofp):
 def parse_args(argv=None):
     import argparse
 
-    parser = argparse.ArgumentParser(description="Combine outputs from NEXUS split jobs which have had make-pretty applied.")
-    parser.add_argument("INPUT", type=str, help="Input directory.")
-    parser.add_argument("OUTPUT", type=str, help="Output file path.")
+    parser = argparse.ArgumentParser(
+        description="Combine outputs from NEXUS split jobs which have had make-pretty applied.",
+    )
+    parser.add_argument(
+        "INPUT",
+        type=str,
+        help="Quoted input file path glob for multiple files OR single file path.",
+    )
+    parser.add_argument(
+        "OUTPUT",
+        type=str,
+        help="Output file path.",
+    )
 
     args = parser.parse_args(argv)
     return {
