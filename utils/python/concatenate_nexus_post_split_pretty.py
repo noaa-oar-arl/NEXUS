@@ -20,7 +20,6 @@ def main(ifp, ofp):
 
     files = glob(ifp)
     files.sort()
-    print(files)
 
     # NOTE: We can't use nc.MFDataset since the files are NETCDF4 non-classic
 
@@ -117,15 +116,6 @@ def main(ifp, ofp):
     # End last slice
     s = slice(a, i + 1)
     slices.append((s, (last_f, slice(a_f, a_f + s.stop - s.start))))
-
-    # print("Adding data from split files")
-    # for i, (t, (f, i_f)) in enumerate(sorted(time2files_unique.items())):
-    #     print(f"{i+1}/{ntime} {t:%Y-%m-%d %H:%M}")
-    #     src = ifp2ds[f]
-    #     for name in src.variables:
-    #         if name in ["time", "latitude", "longitude"]:
-    #             continue
-    #         dst[name][i] = src[name][i_f]
 
     print("Adding data from split files")
     for s_dst, (f, s_src) in slices:
