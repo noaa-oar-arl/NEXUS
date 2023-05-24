@@ -64,6 +64,17 @@ def main(ifp, ofp):
     time = np.array(time)
     ntime = time.size
 
+    dt = np.diff(time)
+    dt_min = dt.min()
+    if not (dt == dt_min).all():
+        print(f"WARNING: there are one or more time gaps (min dt is {dt_min})")
+        inds = np.where(dt != dt_min)[0]
+        for i in inds:
+            print(
+                f"- time {i} ({time[i]:%Y-%m-%d %H:%M}) to {i+1} ({time[i+1]:%Y-%m-%d %H:%M})"
+                f" has dt {dt[i]}"
+            )
+
     dst = nc4.Dataset(ofp, "w", format="NETCDF4")
     dst.title = "NEXUS output for AQM"
     dst.history = f"Combined results from {len(files)} splits."
