@@ -12,6 +12,8 @@ def main(ifp, ofp):
     ifp, ofp
         Input and output file path.
     """
+    from collections import defaultdict
+
     import netCDF4 as nc4
     from glob import glob
 
@@ -20,17 +22,28 @@ def main(ifp, ofp):
     print(files)
 
     # We can't use nc.MFDataset since the files are NETCDF4 non-classic
-    # There may be duplicate times in the splits, let's figure out what they are.\
+    # There may be duplicate times in the splits, let's figure out what they are.
 
+    time2files = defaultdict(list)
     for f in files:
         print(f)
         ds = nc4.Dataset(f)
         times_num = ds["time"][:]
         times_dt = nc4.num2date(times_num, units=ds["time"].units)
+        # ^ by default these are `cftime.DatetimeGregorian`s
         print(times_num)
         print(times_dt)
 
+        for i, t in enumerate(times_dt):
+            time2files[t].append((f, i))
+
         ds.close()
+
+    for t, files in time2files.items():
+        if len(files) > 1:
+            print(f"{t:%Y-%m-%d %H:%M} appears more than once")
+            for f, i in files:
+                print(f"- {f} time {i}")
 
     # # Open all files
     # src = nc4.MFDataset(files, aggdim="time")
