@@ -154,11 +154,9 @@ def main(i_fps, o_fp):
     o_fp : Path, optional
         Desired path of output file.
     """
-    import datetime
-
     import netCDF4 as nc
     import numpy as np
-    from scipy.interpolate import RectSphereBivariateSpline, interp1d
+    from scipy.interpolate import interp1d
 
     if len(i_fps) == 1:
         maybe_glob = i_fps[0]
@@ -234,29 +232,35 @@ def main(i_fps, o_fp):
     ds.close()
 
     #
-    # Define the new grid (MERRA-2)
+    # Get GFS file times and grid
     #
 
-    # lat and lon are float32 in the MERRA-2 files
-    # They are 1-D coord vars
-    lat_m2_deg = np.arange(-90, 90 + 0.5, 0.5, dtype=np.float32)
-    lon_m2_deg = np.arange(-180, 180, 0.625, dtype=np.float32)
+    gfs_times = []
+    for i, fp in enumerate(files):
+        ds = nc.Dataset(fp, "r")
 
-    lat_m2 = np.deg2rad(lat_m2_deg)
-    lon_m2 = np.deg2rad(lon_m2_deg)
+        # Get time
+        assert ds.dimensions["time"].size == 1
+        t_num = ds["time"][0]
+        t = nc.num2date(t_num, units=ds["time"].units, calendar=ds["time"].calendar)
+        gfs_times.append(t_num)
+        print(t_num, t, fp)
 
-    colat_m2_deg = 90 - lat_m2_deg
-    colat_m2 = np.deg2rad(colat_m2_deg, dtype=np.float64)
+        # Get grid
+        if i == 0:
+            # TODO: should move this up and here check that these are same for all files
+            gfs_lon_1d = ds["grid_xt"][:]
+            gfs_lat_1d = ds["grid_yt"][:]
+            gfs_time_units = ds["time"].units
+            gfs_time_calendar = ds["time"].calendar
+            gfs_time_dtype = ds["time"].dtype
 
-    lat_m2 = np.deg2rad(lat_m2_deg)
-    lon_m2 = np.deg2rad(lon_m2_deg)
-    assert (np.diff(colat_m2) < 0).all(), "not ascending"
-    lon_m2_mesh, colat_m2_mesh = np.meshgrid(lon_m2, colat_m2)
+        ds.close()
 
-    # For the lon mesh, [-180, 180) -> [0, 2pi)
-    # Otherwise we don't get W hemi properly
-    lon_m2_mesh[lon_m2_mesh < 0] += 2 * np.pi
-    assert (lon_m2_mesh >= 0).all() and (lon_m2_mesh < 2 * np.pi).all()
+    assert (np.diff(gfs_lon_1d) > 0).all(), "already ascending"
+    lat_needs_flip = gfs_lat_1d[0] > gfs_lat_1d[-1]
+    if lat_needs_flip:
+        print("Will flip lat")
 
     #
     # Create and initialize new dataset
@@ -266,49 +270,54 @@ def main(i_fps, o_fp):
         o_fp = Path.cwd() / t0.strftime(r"gfs-bio_%Y%m%d.nc")
     ds_new = nc.Dataset(o_fp, "w", format="NETCDF4")
     ds_new.title = "Biogenic inputs from GFS for NEXUS/HEMCO"
+    ds_new.history = (
+        "NOAA GFS data reformatted to fit the COARDS conventions "
+        "and be used in NEXUS/HEMCO"
+    )
     for k, v in M2_DS_ATTRS.items():
         ds_new.setncattr(k, v)
 
     ntime_gfs = len(files)  # e.g. 25 (0:3:72)
-    ntime_m2 = (ntime_gfs - 1) * 3  # e.g. 72 (0.5:1:71.5)
-    time_dim = ds_new.createDimension("time", ntime_m2)
-    time = ds_new.createVariable("time", np.int32, ("time",))
+    ntime_m2 = int(gfs_times[-1] - gfs_times[0] + 1)  # e.g. 73 (0:1:72)
+    # NOTE: ^ assumes GFS times are on the hour
+    ds_new.createDimension("time", ntime_m2)
+    time = ds_new.createVariable("time", gfs_time_dtype, ("time",))
     for k, v in M2_TIME_ATTRS.items():
         setattr(time, k, v)
+    time.axis = "T"
 
-    lat_dim = ds_new.createDimension("lat", lat_m2_deg.size)
-    lat = ds_new.createVariable("lat", np.float32, ("lat",))
-    lat[:] = lat_m2_deg
+    lat_dim = ds_new.createDimension("lat", gfs_lat_1d.size)
+    lat = ds_new.createVariable("lat", gfs_lat_1d.dtype, ("lat",))
+    lat[:] = gfs_lat_1d[::-1] if lat_needs_flip else gfs_lat_1d
     for k, v in M2_LAT_ATTRS.items():
         setattr(lat, k, v)
+    lat.axis = "Y"
 
-    lon_dim = ds_new.createDimension("lon", lon_m2_deg.size)
-    lon = ds_new.createVariable("lon", np.float32, ("lon",))
-    lon[:] = lon_m2_deg
+    lon_dim = ds_new.createDimension("lon", gfs_lon_1d.size)
+    lon = ds_new.createVariable("lon", gfs_lon_1d.dtype, ("lon",))
+    lon[:] = gfs_lon_1d
     for k, v in M2_LON_ATTRS.items():
         setattr(lon, k, v)
+    lon.axis = "X"
 
+    ds_new_pre = {}
     for vn, d in M2_DATA_VAR_INFO.items():
         var = ds_new.createVariable(vn, np.float32, ("time", "lat", "lon"))
         var[:] = 0
         for k, v in d["attrs"].items():
             setattr(var, k, v)
 
+        ds_new_pre[vn] = np.empty((ntime_gfs, lat_dim.size, lon_dim.size), dtype=np.float32)
+
     #
-    # Interpolate to new grid
+    # Load variables
     #
 
-    print("Spatial interp")
-    gfs_times = []
-    for i, fp in enumerate(files):
+    print("Loading variables")
+    for i, (fp, t) in enumerate(zip(files, gfs_times)):
+        print(f"{fp.as_posix()} ({t})")
 
         ds = nc.Dataset(fp, "r")
-
-        # Get time
-        assert ds.dimensions["time"].size == 1
-        t = nc.num2date(ds["time"][0], units=ds["time"].units, calendar=ds["time"].calendar)
-        print(f"{fp.as_posix()} ({t})")
-        gfs_times.append(t)
 
         for vn_old, vn_new in M2_DATA_VAR_OLD_TO_NEW.items():
             print(f"{vn_old} -> {vn_new}")
@@ -331,70 +340,47 @@ def main(i_fps, o_fp):
                     is_vt = vtype == vt
                     data[is_vt] = (data[is_vt] - min_vt) / (max_vt - min_vt)
 
-            f = RectSphereBivariateSpline(u=colat_gfs, v=lon_gfs, r=data)
-
-            # NOTE: we get `ValueError: requested theta out of bounds.` here
-            # for the S pole (colat 180) unless we convert it to float64
-            # (I guess there is a bounds check against float64 pi)
-            data_new = f.ev(colat_m2_mesh.ravel(), lon_m2_mesh.ravel()).reshape(
-                (lon_m2.size, lat_m2.size)
-            )
-
             if vn_old == "soilw4":
-                data_new = np.clip(data_new, 0, 1)
+                data_new = np.clip(data, 0, 1)
             else:
-                data_new = np.clip(data_new, 0, None)  # no negatives
+                data_new = np.clip(data, 0, None)  # no negatives
 
-            ds_new[vn_new][i, :, :] = data_new
+            ds_new_pre[vn_new][i, :, :] = data_new[::-1, :] if lat_needs_flip else data_new
 
     #
-    # Set time values and attrs
+    # Time interpolation of data vars and set times
     #
 
-    gfs_times = np.array(gfs_times, dtype="datetime64[us]")
+    gfs_times = np.array(gfs_times, dtype=gfs_time_dtype)
+    gfs_is_hourly = (np.diff(gfs_times) == 1).all()
+    assert (np.floor(gfs_times) == gfs_times).all(), "on the hour"
+    assert gfs_time_units.startswith("hours since ")
 
-    # Define output time based on the GFS times
-    hh = np.timedelta64(30, "m")
-    h = np.timedelta64(1, "h")
-    m2_times = np.arange(gfs_times[0] + hh, gfs_times[-1], h)
+    m2_times = np.arange(gfs_times[0], gfs_times[-1] + 1, 1, dtype=gfs_time_dtype)
     assert m2_times.size == ntime_m2
 
-    # Intermediate calculations for the time attributes
-    m2_times_dt = m2_times.astype(datetime.datetime)
-    t0 = m2_times_dt[0]
-    t0_floored = t0.replace(hour=0, minute=0, second=0, microsecond=0)
-    calendar = "gregorian"
-    units = f"minutes since {t0_floored}.0"
-    delta_t = m2_times_dt[1] - m2_times_dt[0]
-    assert (np.diff(m2_times_dt) == delta_t).all()
-    assert delta_t.days == 0
-    delta_t_h, rem = divmod(delta_t.seconds, 3600)
-    delta_t_m, delta_t_s = divmod(rem, 60)
+    time[:] = m2_times
+    time.calendar = gfs_time_calendar
+    time.units = gfs_time_units
 
-    # Assign time values and attributes
-    time[:] = nc.date2num(m2_times_dt, calendar=calendar, units=units)
-    time.calendar = calendar
-    time.units = units
-    time.delta_t = f"0000-00-00 {delta_t_h:02d}:{delta_t_m:02d}:{delta_t_s:02d}"
-    time.begin_date = t0_floored.strftime(r"%Y%m%d")
-    time.begin_time = t0_floored.strftime(r"%H%M%S")
-    time.time_increment = f"{delta_t_h:02d}{delta_t_m:02d}{delta_t_s:02d}"
-
-    #
-    # Time interpolation of data vars
-    #
-
-    x = gfs_times.astype(float)
-    x_new = m2_times.astype(float)
-    assert x[0] < x_new[0] < x_new[-1] < x[-1], "fully contains"
+    x = gfs_times
+    x_new = m2_times
 
     print("Time interp")
+    if gfs_is_hourly:
+        assert (gfs_times == m2_times).all()
+        print(
+            "(but the GFS input is already hourly, so we won't actually do time interp, "
+            "just load variables)"
+        )
     for vn in M2_DATA_VAR_INFO:
         print(vn)
-        f = interp1d(x, ds_new[vn][:ntime_gfs], kind="linear", axis=0, copy=False, assume_sorted=True)
-        tmp = f(x_new)
+        if gfs_is_hourly:
+            tmp = ds_new_pre[vn]
+        else:
+            f = interp1d(x, ds_new_pre[vn], kind="linear", axis=0, copy=False, assume_sorted=True)
+            tmp = np.clip(f(x_new), 0, None)
         ds_new[vn][:] = tmp
-
 
     print(f"Writing out new dataset to {o_fp.as_posix()}")
     ds_new.close()
