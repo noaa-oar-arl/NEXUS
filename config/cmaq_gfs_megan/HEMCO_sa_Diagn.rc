@@ -62,6 +62,7 @@ UNR_ant          UNR            0    -1  -1   2   kg/m2/s
 UNK_ant          UNK            0    -1  -1   2   kg/m2/s
 CH4_INV_ant      CH4_INV        0    -1  -1   2   kg/m2/s
 CO2_INV_ant      CO2_INV        0    -1  -1   2   kg/m2/s
+SOILNOX_NO       NOT            0     2  -1   2   kg/m2/s
 ISOP_bio         ISOP         108    -1  -1   2   kg/m2/s ISOP_emission_flux_from_biogenic_sources
 ACET_bio         ACET         108    -1  -1   2   kg/m2/s ACET_emission_flux_from_biogenic_sources
 ALD2_bio         ALD2         108    -1  -1   2   kg/m2/s ALD2_emission_flux_from_biogenic_sources
