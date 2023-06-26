@@ -138,7 +138,7 @@ program app
 
   !-----------------------------------------------------------------------------
 
-  call init_cap(ConfigFile)
+  call init_cap(ConfigFile, ReGridFile, OutputFile, debugLevel, rc=rc)
 
   ! -> CREATE THE DRIVER
   drvComp = ESMF_GridCompCreate(name="driver", rc=rc)

@@ -19,6 +19,7 @@ find_package(NetCDF REQUIRED COMPONENTS Fortran)
 
 target_link_libraries(NEXUS_Shared2
   PUBLIC HCOI_Shared
+  PUBLIC HCOI_Standalone
   PUBLIC esmf
 )
 
