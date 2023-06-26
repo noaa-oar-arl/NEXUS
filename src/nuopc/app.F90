@@ -11,7 +11,7 @@ program app
 
   implicit none
 
-  character(len=*), parameter :: NEXUS_options(9,2) = reshape( &
+  character(len=*), parameter :: NEXUS_options(11,2) = reshape( &
     (/ &
     "-c           ", "c:           ", &
     "--config     ", "c:           ", &
@@ -21,8 +21,15 @@ program app
     "-d           ", "d            ", &
     "--debug      ", "d            ", &
     "-o           ", "o:           ", &
-    "--output     ", "o:           "  &
-    /), (/ 9, 2 /), order=(/ 2, 1 /))
+    "--output     ", "o:           ", &
+    "-h           ", "h            ", &
+    "--help       ", "h            " &
+    /), (/ 11, 2 /), order=(/ 2, 1 /))
+
+  character(len=*), parameter :: usage = &
+    "Usage: nexus &
+    [-c|--config-file <file>] [-r|--regrid-to <file>] [-o|--output <file>] &
+    [-d|--debug] [-h|--help]"
 
   integer :: rc, localrc, userRc
   integer, parameter :: rootPet = 0
@@ -99,6 +106,8 @@ program app
          case ("d")
           debugLevel = 1
          case ("h")
+          print "(a)", usage
+          return
          case default
         end select
       end if
