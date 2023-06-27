@@ -5,6 +5,16 @@ after make-pretty has been run on each split job output file.
 """
 
 
+def dt_fmt(dt):
+    """Convert (cftime) datetime to string."""
+    Y = dt.year
+    m = dt.month
+    d = dt.day
+    H = dt.hour
+    M = dt.minute
+    return f"{Y:04d}-{m:02d}-{d:02d} {H:02d}:{M:02d}"
+
+
 def main(ifp, ofp):
     """
     Parameters
@@ -37,7 +47,7 @@ def main(ifp, ofp):
         # ^ by default these are `cftime.DatetimeGregorian`s
         #   the pretty files currently don't have calendar set
         print(len(times_dt), "times")
-        print(f"first: {times_dt[0]:%Y-%m-%d %H:%M}, last: {times_dt[-1]:%Y-%m-%d %H:%M}")
+        print(f"first: {dt_fmt(times_dt[0])}, last: {dt_fmt(times_dt[-1])}")
 
         for i, t in enumerate(times_dt):
             time2files[t].append((f, i))
@@ -48,7 +58,7 @@ def main(ifp, ofp):
     time2files_unique = {}
     for t, locs in sorted(time2files.items()):
         if len(locs) > 1:
-            print(f"{t:%Y-%m-%d %H:%M} appears more than once")
+            print(f"{dt_fmt(t)} appears more than once")
             for f, i in locs:
                 print(f"- {f} time {i}")
         time2files_unique[t] = locs[-1]  # take last one (later simulation)
@@ -71,7 +81,7 @@ def main(ifp, ofp):
         inds = np.where(dt != dt_min)[0]
         for i in inds:
             print(
-                f"- time {i} ({time[i]:%Y-%m-%d %H:%M}) to {i+1} ({time[i+1]:%Y-%m-%d %H:%M})"
+                f"- time {i} ({dt_fmt(time[i])}) to {i+1} ({dt_fmt(time[i+1])})"
                 f" has dt {dt[i]}"
             )
 
