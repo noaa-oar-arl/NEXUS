@@ -157,8 +157,6 @@ def main(ifp, ofp, *, compress=True):
                 ds[f"{spc}_ant"][:]
                 + (ds["MTPA_bio"][:] + ds["MTPO_bio"][:] + ds["LIMO_bio"][:]) * 0.4666
             )
-        # elif spc == "NO":
-        #     ds_new[spc][:] = ds[f"{spc}_ant"][:] + ds["SOIL_NOx"][:]
         elif spc == "SOILNOX_NO":
             ds_new["NO"][:] = ds["SOILNOX_NO"][:] + ds["NO_ant"][:]
         # 4. The remainder of species are just anthropogenic from HEMCO
