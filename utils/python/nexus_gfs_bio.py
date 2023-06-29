@@ -274,15 +274,12 @@ def main(i_fps, o_fp):
         "NOAA GFS data reformatted to fit the COARDS conventions "
         "and be used in NEXUS/HEMCO"
     )
-
     for k, v in M2_DS_ATTRS.items():
         ds_new.setncattr(k, v)
 
     ntime_gfs = len(files)  # e.g. 25 (0:3:72)
-
     ntime_m2 = int(gfs_times[-1] - gfs_times[0] + 1)  # e.g. 73 (0:1:72)
     # NOTE: ^ assumes GFS times are on the hour
-
     ds_new.createDimension("time", ntime_m2)
     time = ds_new.createVariable("time", gfs_time_dtype, ("time",))
     for k, v in M2_TIME_ATTRS.items():
@@ -376,7 +373,6 @@ def main(i_fps, o_fp):
             "(but the GFS input is already hourly, so we won't actually do time interp, "
             "just load variables)"
         )
-
     for vn in M2_DATA_VAR_INFO:
         print(vn)
         if gfs_is_hourly:
@@ -384,10 +380,7 @@ def main(i_fps, o_fp):
         else:
             f = interp1d(x, ds_new_pre[vn], kind="linear", axis=0, copy=False, assume_sorted=True)
             tmp = np.clip(f(x_new), 0, None)
-
         ds_new[vn][:] = tmp
-        # ds_new[vn][:-1] = tmp
-        # ds_new[vn][-1] = tmp[-1]
 
     print(f"Writing out new dataset to {o_fp.as_posix()}")
     ds_new.close()

@@ -4,15 +4,6 @@ Combine output files from NEXUS split jobs into single netCDF file
 after make-pretty has been run on each split job output file.
 """
 
-def dt_fmt(dt):
-     """Convert (cftime) datetime to string."""
-     Y = dt.year
-     m = dt.month
-     d = dt.day
-     H = dt.hour
-     M = dt.minute
-     return f"{Y:04d}-{m:02d}-{d:02d} {H:02d}:{M:02d}"
-
 
 def dt_fmt(dt):
     """Convert (cftime) datetime to string."""
@@ -94,7 +85,6 @@ def main(ifp, ofp):
                 f" has dt {dt[i]}"
             )
 
-
     dst = nc4.Dataset(ofp, "w", format="NETCDF4")
     dst.title = "NEXUS output for AQM"
     dst.history = f"Combined results from {len(files)} splits."
@@ -105,7 +95,6 @@ def main(ifp, ofp):
     assert dst.dimensions["time"].isunlimited()
 
     # coords
-
     coord_names = ["time", "latitude", "longitude"]
     for name in coord_names:
         dst.createVariable(name, src0[name].dtype, src0[name].dimensions)
