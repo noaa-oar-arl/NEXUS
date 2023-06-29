@@ -14,6 +14,16 @@ def dt_fmt(dt):
      return f"{Y:04d}-{m:02d}-{d:02d} {H:02d}:{M:02d}"
 
 
+def dt_fmt(dt):
+    """Convert (cftime) datetime to string."""
+    Y = dt.year
+    m = dt.month
+    d = dt.day
+    H = dt.hour
+    M = dt.minute
+    return f"{Y:04d}-{m:02d}-{d:02d} {H:02d}:{M:02d}"
+
+
 def main(ifp, ofp):
     """
     Parameters
@@ -80,9 +90,15 @@ def main(ifp, ofp):
         inds = np.where(dt != dt_min)[0]
         for i in inds:
             print(
+<<<<<<< HEAD
                  f"- time {i} ({dt_fmt(time[i])}) to {i+1} ({dt_fmt(time[i+1])})"
                  f" has dt {dt[i]}"
              )
+=======
+                f"- time {i} ({dt_fmt(time[i])}) to {i+1} ({dt_fmt(time[i+1])})"
+                f" has dt {dt[i]}"
+            )
+>>>>>>> develop
 
     dst = nc4.Dataset(ofp, "w", format="NETCDF4")
     dst.title = "NEXUS output for AQM"
@@ -94,7 +110,12 @@ def main(ifp, ofp):
     assert dst.dimensions["time"].isunlimited()
 
     # coords
+<<<<<<< HEAD
     for name in ["time", "latitude", "longitude"]:
+=======
+    coord_names = ["time", "latitude", "longitude"]
+    for name in coord_names:
+>>>>>>> develop
         dst.createVariable(name, src0[name].dtype, src0[name].dimensions)
         dst[name].setncatts({key: getattr(src0[name], key) for key in src0[name].ncattrs()})
         if name == "time":
@@ -105,7 +126,11 @@ def main(ifp, ofp):
 
     # variables
     for name, variable in src0.variables.items():
+<<<<<<< HEAD
         if name in ["time", "latitude", "longitude"]:
+=======
+        if name in coord_names:
+>>>>>>> develop
             continue
         dst.createVariable(name, variable.dtype, variable.dimensions)
         dst[name].setncatts({key: getattr(variable, key) for key in variable.ncattrs()})
@@ -142,7 +167,11 @@ def main(ifp, ofp):
         print(f"time slice {s_src.start}:{s_src.stop} in {f} -> {s_dst.start}:{s_dst.stop} in dst")
         src = ifp2ds[f]
         for name in src.variables:
+<<<<<<< HEAD
             if name in ["time", "latitude", "longitude"]:
+=======
+            if name in coord_names:
+>>>>>>> develop
                 continue
             dst[name][s_dst] = src[name][s_src]
 
@@ -156,9 +185,25 @@ def main(ifp, ofp):
 def parse_args(argv=None):
     import argparse
 
+<<<<<<< HEAD
     parser = argparse.ArgumentParser(description="Combine outputs from NEXUS split jobs which have had make-pretty applied.")
     parser.add_argument("INPUT", type=str, help="Input directory.")
     parser.add_argument("OUTPUT", type=str, help="Output file path.")
+=======
+    parser = argparse.ArgumentParser(
+        description="Combine outputs from NEXUS split jobs which have had make-pretty applied.",
+    )
+    parser.add_argument(
+        "INPUT",
+        type=str,
+        help="Quoted input file path glob for multiple files OR single file path.",
+    )
+    parser.add_argument(
+        "OUTPUT",
+        type=str,
+        help="Output file path.",
+    )
+>>>>>>> develop
 
     args = parser.parse_args(argv)
     return {
