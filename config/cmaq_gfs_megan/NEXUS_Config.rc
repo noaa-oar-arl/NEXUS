@@ -134,6 +134,7 @@ Cap time shift              : true
     --> OMI_HTAP_SO2      :  on   true
     --> Yuan_XLAI         :  on  false
     --> MODIS_XLAI        :       false
+    --> OFFLINE_SOILNOX   :  on   true
 # -----------------------------------------------------------------------------
 100     Custom            : off   - 
 101     SeaFlux           : off   DMS/ACET
@@ -185,6 +186,14 @@ Cap time shift              : true
 
 # ExtNr	Name sourceFile	sourceVar sourceTime C/R/E SrcDim SrcUnit Species ScalIDs Cat Hier
 0 UNIFORM 1.0 - * C xy kg/m2/s NO - 1 5
+
+
+#=============================================================================
+# --- Offline SOILNOX ---
+#=============================================================================
+(((OFFLINE_SOILNOX
+0 SOILNOX_NO  $ROOT/OFFLINE_SOILNOX/v2021-12/0.25x0.3125/spring_only/2021/$MM/soilnox_025.2021$MM$DD.nc SOIL_NOx 1980-2021/1-12/1-31/$HH C xy kg/m2/s NOT - 2 1
+)))OFFLINE_SOILNOX
 
 #==============================================================================
 # --- NOAA GMD monthly mean surface CH4 ---
@@ -1666,7 +1675,7 @@ Cap time shift              : true
 #==============================================================================
 # --- Time zones (offset to UTC) ---
 #==============================================================================
-* TIMEZONES $ROOT/TIMEZONES/v2015-02/timezones_1x1.nc UTC_OFFSET 2000/1/1/0 C xy count * - 1 1
+* TIMEZONES $ROOT/TIMEZONES/v2015-02/timezones_voronoi_1x1.nc UTC_OFFSET 2000/1/1/0 C xy count * - 1 1
 
 ### END SECTION BASE EMISSIONS ###
 

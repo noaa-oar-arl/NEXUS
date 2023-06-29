@@ -69,6 +69,7 @@ SPECIES = [
     "UNR",
     "VOC_INV",
     "XYLMN",
+    "SOILNOX_NO",
 ]
 
 
@@ -82,6 +83,11 @@ def main(ifp, ofp, *, compress=True):
     import numpy as np
     from netCDF4 import Dataset
 
+
+    print(" ------------------------------------- ")
+    print(" PROGRAM: combine_ant_bio.py")
+    print(" Starting...")
+    print(" ------------------------------------- ")
     ds = Dataset(ifp, "r")
     ds_new = Dataset(ofp, "w")
 
@@ -98,7 +104,7 @@ def main(ifp, ofp, *, compress=True):
             print(f"warning: expected {vn} to have units {em_units!r} but it has {ds[vn].units!r}")
 
     for spc in SPECIES:
-
+        print("mapping species", f"{spc}")
         kwargs = {}
         if compress:
             kwargs.update(zlib=True, complevel=1)
@@ -151,7 +157,8 @@ def main(ifp, ofp, *, compress=True):
                 ds[f"{spc}_ant"][:]
                 + (ds["MTPA_bio"][:] + ds["MTPO_bio"][:] + ds["LIMO_bio"][:]) * 0.4666
             )
-
+        elif spc == "SOILNOX_NO":
+            ds_new["NO"][:] = ds["SOILNOX_NO"][:] + ds["NO_ant"][:]
         # 4. The remainder of species are just anthropogenic from HEMCO
         else:
             ds_new[spc][:] = ds[f"{spc}_ant"][:]
