@@ -108,8 +108,9 @@ def main(ifp, ofp, *, compress=True):
         kwargs = {}
         if compress:
             kwargs.update(zlib=True, complevel=1)
-        ds_new.createVariable(spc, np.float32, ("time", "y", "x"), **kwargs)
-        ds_new[spc].units = em_units
+        if spc != "SOILNOX_NO":
+            ds_new.createVariable(spc, np.float32, ("time", "y", "x"), **kwargs)
+            ds_new[spc].units = em_units
 
         # 1. Use HEMCO MEGANv2.1 instantaneous diagnostic for some bio-only species
         if spc == "AACD":
@@ -157,8 +158,6 @@ def main(ifp, ofp, *, compress=True):
                 ds[f"{spc}_ant"][:]
                 + (ds["MTPA_bio"][:] + ds["MTPO_bio"][:] + ds["LIMO_bio"][:]) * 0.4666
             )
-        # elif spc == "NO":
-        #     ds_new[spc][:] = ds[f"{spc}_ant"][:] + ds["SOIL_NOx"][:]
         elif spc == "SOILNOX_NO":
             ds_new["NO"][:] = ds["SOILNOX_NO"][:] + ds["NO_ant"][:]
         # 4. The remainder of species are just anthropogenic from HEMCO
