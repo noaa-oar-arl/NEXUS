@@ -35,12 +35,16 @@ Input data:
 
 #### GMU Hopper
 
-##### hpc-stack feat. GCC v10 ([somewhat WIP](https://github.com/noaa-oar-arl/ufs-srweather-app/pull/6))
-
 ```
 module reset
-module load hpc-stack/1.2.0
+module load gnu10/10.3.0-ya
+module load openmpi/4.1.2-4a
+module load xerces-c/3.2.3-jn
+module load hdf5/1.12.1-z2
+module load netcdf-c/4.8.1-l3
 module load netcdf-fortran/4.5.3-4p
+module load esmf/8.2.0-zq
+# module load esmf/8.3.0b09-ou
 export CMAKE_Fortran_COMPILER=mpifort
 ```
 
