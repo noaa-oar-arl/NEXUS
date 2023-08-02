@@ -41,6 +41,7 @@ Input data:
 module reset
 module load hpc-stack/1.2.0
 module load netcdf-fortran/4.5.3-4p
+export CMAKE_Fortran_COMPILER=mpifort
 ```
 
 Input data:
