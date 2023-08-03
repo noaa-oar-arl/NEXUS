@@ -392,7 +392,7 @@ contains
     !=======================================================================
 
     ! Set ESMF flag
-    HcoState%Options%isESMF = .FALSE.
+    HcoState%Options%isESMF = .FALSE.  ! TODO: should this still be the case?
 
     ! Let HEMCO schedule the diagnostics output
     HcoState%Options%HcoWritesDiagn = .not.do_NEXUS
