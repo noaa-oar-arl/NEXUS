@@ -1446,6 +1446,7 @@ contains
     ! -- begin
     if (present(rc)) rc = ESMF_SUCCESS
 
+    print "('Input grid nc fn:', x, a)", trim(filename)
     ncerr = nf90_open(fileName, NF90_NOWRITE, ncid)
     if (ESMF_LogFoundNetCDFError(ncerrToCheck=ncerr, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__,  &
@@ -1569,6 +1570,7 @@ contains
       rcToReturn=rc)) return
 
     do while (flag == HCO_SUCCESS)
+      print "('Initializing Diag variable ''', a, '''')", trim(thisDiagn%cName)
       select case ( thisDiagn % spaceDim )
        case (2)
         field = ESMF_FieldCreate( HcoGrid, ESMF_TYPEKIND_R4, &
@@ -1650,6 +1652,7 @@ contains
       rcToReturn=rc)) return  ! bail out
 
     do item = 1, itemCount
+      print "('Initializing Expt variable ''', a, '''')", trim(itemNameList(item))
       if (itemTypeList(item) == ESMF_STATEITEM_FIELD) then
         call ESMF_StateGet( importState, itemNameList(item), srcfield, rc=localrc )
         if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
