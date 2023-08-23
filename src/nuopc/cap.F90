@@ -37,8 +37,8 @@ module nexus_cap
 
   type(ESMF_Grid)        :: HCO_Grid
   type(ESMF_Grid)        :: NXS_Grid
-  type(ESMF_State)       :: NXS_Diag_State
-  type(ESMF_State)       :: NXS_Expt_State
+  type(ESMF_State)       :: NXS_Diag_State  !! "importState"
+  type(ESMF_State)       :: NXS_Expt_State  !! "exportState"
   type(ESMF_RouteHandle) :: NXS_RouteHandle
 
   logical :: do_Regrid = .false.
