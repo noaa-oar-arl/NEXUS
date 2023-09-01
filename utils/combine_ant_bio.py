@@ -108,8 +108,9 @@ def main(ifp, ofp, *, compress=True):
         kwargs = {}
         if compress:
             kwargs.update(zlib=True, complevel=1)
-        ds_new.createVariable(spc, np.float32, ("time", "y", "x"), **kwargs)
-        ds_new[spc].units = em_units
+        if spc != "SOILNOX_NO":
+            ds_new.createVariable(spc, np.float32, ("time", "y", "x"), **kwargs)
+            ds_new[spc].units = em_units
 
         # 1. Use HEMCO MEGANv2.1 instantaneous diagnostic for some bio-only species
         if spc == "AACD":
