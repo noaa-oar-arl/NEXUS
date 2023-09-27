@@ -11,7 +11,7 @@ module nexus_cap
   use HCO_CharTools_Mod, only: NextCharPos, HCO_SPC, GetNextLine
   use HCO_STATE_MOD, only : Hco_State
   use HCO_TYPES_MOD, only : ConfigObj
-  use HCO_Error_Mod, only : hp, HCO_LogFile_Open, HCO_SUCCESS, HCO_Error, HCO_MISSVAL, HCO_MSG
+  use HCO_Error_Mod, only : rk_hco => hp, HCO_LogFile_Open, HCO_SUCCESS, HCO_Error, HCO_MISSVAL, HCO_MSG
   use HCOX_STATE_MOD, only: Ext_State
 
   implicit none
@@ -58,10 +58,10 @@ module nexus_cap
   integer                        :: nModelSpec
   character(len= 31),    pointer :: ModelSpecNames(:) => NULL()
   integer,               pointer :: ModelSpecIDs  (:) => NULL()
-  real(hp),              pointer :: ModelSpecMW   (:) => NULL()
-  real(hp),              pointer :: ModelSpecK0   (:) => NULL()
-  real(hp),              pointer :: ModelSpecCR   (:) => NULL()
-  real(hp),              pointer :: ModelSpecPKA  (:) => NULL()
+  real(rk_hco),          pointer :: ModelSpecMW   (:) => NULL()
+  real(rk_hco),          pointer :: ModelSpecK0   (:) => NULL()
+  real(rk_hco),          pointer :: ModelSpecCR   (:) => NULL()
+  real(rk_hco),          pointer :: ModelSpecPKA  (:) => NULL()
   integer,               pointer :: matchidx      (:) => NULL()
 
   ! Start and end time of simulation
@@ -69,13 +69,13 @@ module nexus_cap
   integer :: T_HRS(2), T_MNS(2), T_SCS(2)
 
   ! Grid
-  real(hp), allocatable, target :: XMID   (:,:,:)
-  real(hp), allocatable, target :: YMID   (:,:,:)
-  real(hp), allocatable, target :: XEDGE  (:,:,:)
-  real(hp), allocatable, target :: YEDGE  (:,:,:)
-  real(hp), allocatable, target :: YSIN   (:,:,:)
-  real(hp), allocatable, target :: AREA_M2(:,:,:)
-  real(hp), allocatable, target :: PBL_M  (:,:)
+  real(rk_hco), allocatable, target :: XMID   (:,:,:)
+  real(rk_hco), allocatable, target :: YMID   (:,:,:)
+  real(rk_hco), allocatable, target :: XEDGE  (:,:,:)
+  real(rk_hco), allocatable, target :: YEDGE  (:,:,:)
+  real(rk_hco), allocatable, target :: YSIN   (:,:,:)
+  real(rk_hco), allocatable, target :: AREA_M2(:,:,:)
+  real(rk_hco), allocatable, target :: PBL_M  (:,:)
 
   ! MAXIT is the maximum number of run calls allowed
   integer, parameter             :: MAXIT = 100000
@@ -569,17 +569,17 @@ contains
     integer               :: NX, NY, NZ
     integer               :: I, J, N, LNG, LOW, UPP
     integer               :: IU_FILE, IOS, STRT
-    real(hp)              :: XMIN, XMAX
-    real(hp)              :: YMIN, YMAX
-    real(hp)              :: DVAL
-    real(hp)              :: DLON, DLAT
-    real(hp)              :: PI_180, YDGR, YSN, SIN_DELTA, AM2
+    real(rk_hco)          :: XMIN, XMAX
+    real(rk_hco)          :: YMIN, YMAX
+    real(rk_hco)          :: DVAL
+    real(rk_hco)          :: DLON, DLAT
+    real(rk_hco)          :: PI_180, YDGR, YSN, SIN_DELTA, AM2
     logical               :: FOUND,   EOF
 
     ! Arrays
-    integer               :: SZ(3)
-    real(hp)              :: RG(4)
-    real(hp), allocatable :: Ap(:), Bp(:)
+    integer                   :: SZ(3)
+    real(rk_hco)              :: RG(4)
+    real(rk_hco), allocatable :: Ap(:), Bp(:)
 
     ! Strings
     character(len=255)    :: LOC
