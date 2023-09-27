@@ -201,14 +201,20 @@ contains
   end subroutine
 
   subroutine Advance(model, rc)
+    use HCO_Clock_Mod,   only : HcoClock_Set
+
     type(ESMF_GridComp)  :: model
     integer, intent(out) :: rc
 
     ! Local variables
-    type(ESMF_Clock)            :: clock
-    type(ESMF_State)            :: importState, exportState
-    character(len=160)          :: msgString
-    integer(ESMF_KIND_I8)       :: advanceCount
+    type(ESMF_Clock)      :: clock
+    type(ESMF_Time)       :: time
+    type(ESMF_State)      :: importState, exportState
+    character(len=160)    :: msgString
+    integer(ESMF_KIND_I8) :: advanceCount
+    integer               :: yy, mm, dd, h, m, s
+    character(len=255)    :: msg
+    integer               :: localrc
 
     rc = ESMF_SUCCESS
 
@@ -223,7 +229,7 @@ contains
     ! HERE THE MODEL ADVANCES: currTime -> currTime + timeStep
 
     ! Get some Clock info
-    call ESMF_ClockGet(clock, advanceCount=advanceCount)
+    call ESMF_ClockGet(clock, advanceCount=advanceCount, currTime=time)
 
     ! Because of the way that the internal Clock was set by default,
     ! its timeStep is equal to the parent timeStep. As a consequence the
@@ -253,6 +259,22 @@ contains
       line=__LINE__, &
       file=__FILE__)) &
       return  ! bail out
+
+    ! Set HEMCO clock based on ESMF clock
+    call ESMF_TimeGet(time, yy=yy, mm=mm, dd=dd, h=h, m=m, s=s, rc=rc)
+    call HcoClock_Set(HcoState, &
+      yy, mm, dd, h, m, s, &
+      IsEmisTime=.TRUE., RC=localrc)
+    if (nxs_error_log(localrc, msg='Error encountered in routine "HcoClock_Set"!', &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
+    write(msg, &
+      "('Calculate emissions at ', i0.4, '-', i0.2, '-', i0.2, ' ', i2.2, ':', i0.2, ':', i0.2)") &
+      yy, mm, dd, h, m, s
+    call ESMF_LogWrite(msg)
+    print *, trim(msg)
 
   end subroutine
 
@@ -1764,5 +1786,25 @@ contains
       rcToReturn=rc)) return  ! bail out
 
   end subroutine nxs_expt_state_init
+
+  !> If `rcToCheck` is not `HCO_SUCCESS`, log error message with ESMF
+  !> and return.
+  logical function nxs_error_log(rcToCheck, msg, line, file, rcToReturn) result(not_ok)
+    integer,                    intent(in)  :: rcToCheck
+    character(len=*), optional, intent(in)  :: msg
+    integer,          optional, intent(in)  :: line
+    character(len=*), optional, intent(in)  :: file
+    integer,          optional, intent(out) :: rcToReturn
+
+    not_ok = (rcToCheck /= HCO_SUCCESS)
+
+    if (not_ok) then
+      call ESMF_LogSetError(ESMF_RC_INTNRL_BAD, msg=msg, &
+        line=line, file=file, rcToReturn=rcToReturn)
+    else
+      if (present(rcToReturn)) rcToReturn = ESMF_SUCCESS
+    end if
+
+  end function nxs_error_log
 
 end module nexus_cap
