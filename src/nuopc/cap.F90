@@ -9,9 +9,12 @@ module nexus_cap
   use NUOPC_Model, modelSS => SetServices
 
   use HCO_CharTools_Mod, only: NextCharPos, HCO_SPC, GetNextLine
-  use HCO_STATE_MOD, only : Hco_State
-  use HCO_TYPES_MOD, only : ConfigObj
-  use HCO_Error_Mod, only : rk_hco => hp, HCO_LogFile_Open, HCO_SUCCESS, HCO_Error, HCO_MISSVAL, HCO_MSG
+  use HCO_STATE_MOD, only: Hco_State
+  use HCO_TYPES_MOD, only: ConfigObj
+  use HCO_Error_Mod, only: rk_hco => hp, &
+    HCO_LogFile_Open, &
+    HCO_Error, HCO_MSG, &
+    HCO_SUCCESS, HCO_MISSVAL
   use HCOX_STATE_MOD, only: Ext_State
 
   implicit none
@@ -20,27 +23,27 @@ module nexus_cap
 
   ! Default values for HEMCO input files: contain definitions of
   ! species, grid, and time settings, etc.
-  character(len=255) :: GridFile  = 'HEMCO_sa_Grid'
-  character(len=255) :: SpecFile  = 'HEMCO_sa_Spec'
-  character(len=255) :: TimeFile  = 'HEMCO_sa_Time'
-  character(len=255) :: DiagFile  = 'NEXUS_Diag.nc'
-  character(len=255) :: ExptFile  = 'NEXUS_Expt.nc'
+  character(len=255) :: GridFile = 'HEMCO_sa_Grid'
+  character(len=255) :: SpecFile = 'HEMCO_sa_Spec'
+  character(len=255) :: TimeFile = 'HEMCO_sa_Time'
+  character(len=255) :: DiagFile = 'NEXUS_Diag.nc'
+  character(len=255) :: ExptFile = 'NEXUS_Expt.nc'
 
-  ! HEMCO config object
+  !> HEMCO config object
   type(ConfigObj), pointer :: HcoConfig => NULL()
 
-  ! HEMCO state object
+  !> HEMCO state object
   type(Hco_State), pointer :: HcoState => NULL()
 
-  ! HEMCO extensions state
+  !> HEMCO extensions state
   type(Ext_State), pointer :: HcoExtState => NULL()
 
-  type(ESMF_Grid)        :: HCO_Grid
-  type(ESMF_Grid)        :: NXS_Grid
-  type(ESMF_State)       :: NXS_Diag_State
+  type(ESMF_Grid)  :: HCO_Grid
+  type(ESMF_Grid)  :: NXS_Grid
+  type(ESMF_State) :: NXS_Diag_State
     !! "importState"
     !! An ESMF state of diagnostics on the HEMCO grid.
-  type(ESMF_State)       :: NXS_Expt_State
+  type(ESMF_State) :: NXS_Expt_State
     !! "exportState"
     !! Regridded to the desired output grid.
   type(ESMF_RouteHandle) :: NXS_RouteHandle
@@ -65,10 +68,10 @@ module nexus_cap
   real(rk_hco), allocatable, target :: AREA_M2(:,:,:)
   real(rk_hco), allocatable, target :: PBL_M  (:,:)
 
-  ! MAXIT is the maximum number of run calls allowed
-  integer, parameter             :: MAXIT = 100000
+  !> MAXIT is the maximum number of run calls allowed
+  integer, parameter :: MAXIT = 100000
 
-  integer, parameter             :: rootPet = 0
+  integer, parameter :: rootPet = 0
 
   type(ESMF_StaggerLoc), parameter :: staggerList(2) = &
     (/ ESMF_STAGGERLOC_CENTER, ESMF_STAGGERLOC_CORNER /)
