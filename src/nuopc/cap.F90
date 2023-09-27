@@ -40,19 +40,19 @@ module nexus_cap
   type(ESMF_Grid)  :: HCO_Grid
   type(ESMF_Grid)  :: NXS_Grid
   type(ESMF_State) :: NXS_Diag_State
-    !! "importState"
-    !! An ESMF state of diagnostics on the HEMCO grid.
+  !! "importState"
+  !! An ESMF state of diagnostics on the HEMCO grid.
   type(ESMF_State) :: NXS_Expt_State
-    !! "exportState"
-    !! Regridded to the desired output grid.
+  !! "exportState"
+  !! Regridded to the desired output grid.
   type(ESMF_RouteHandle) :: NXS_RouteHandle
 
   logical :: do_Regrid = .false.
-    !! True if grid file path passed to `init` is not empty string.
+  !! True if grid file path passed to `init` is not empty string.
   logical :: do_Debug  = .false.
-    !! True if `debugLevel` passed to `init` is greater than zero.
+  !! True if `debugLevel` passed to `init` is greater than zero.
   logical :: do_NEXUS  = .false.
-    !! True if either `do_Regrid` or `do_Debug` is true.
+  !! True if either `do_Regrid` or `do_Debug` is true.
 
   ! Start and end time of simulation
   integer :: T_YY(2), T_MM(2), T_DD(2)
@@ -172,7 +172,7 @@ contains
       return  ! bail out
 
     ! TODO: use the real grids/states
-  
+
     ! Create a Grid object for Fields
     gridIn = ESMF_GridCreateNoPeriDimUfrm(maxIndex=(/10, 100/), &
       minCornerCoord=(/10._ESMF_KIND_R8, 20._ESMF_KIND_R8/), &
@@ -517,9 +517,9 @@ contains
     if (do_Debug) then
       call nxs_write_grid( HCO_Grid, DiagFile, rc=localrc )
       if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-          line=__LINE__,  &
-          file=__FILE__,  &
-          rcToReturn=rc)) return  ! bail out
+        line=__LINE__,  &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
     end if
 
     if (do_Regrid) then
@@ -544,9 +544,9 @@ contains
       if (do_Debug) then
         call nxs_write_grid( NXS_Grid, ExptFile, rc=localrc )
         if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-            line=__LINE__,  &
-            file=__FILE__,  &
-            rcToReturn=rc)) return  ! bail out
+          line=__LINE__,  &
+          file=__FILE__,  &
+          rcToReturn=rc)) return  ! bail out
       end if
     end if
 
@@ -1469,15 +1469,15 @@ contains
     do item = 1, 2
       call ESMF_GridGetCoord(grid, item, array=array, rc=localrc)
       if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-         line=__LINE__,  &
-         file=__FILE__,  &
-         rcToReturn=rc)) return  ! bail out
+        line=__LINE__,  &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
       call ESMF_ArrayWrite(array, fileName, variableName=vNames(item), &
         overwrite=.true., iofmt=ESMF_IOFMT_NETCDF, rc=localrc )
       if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-         line=__LINE__,  &
-         file=__FILE__,  &
-         rcToReturn=rc)) return  ! bail out
+        line=__LINE__,  &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
     end do
 
   end subroutine nxs_write_grid
