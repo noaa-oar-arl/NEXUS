@@ -33,17 +33,24 @@ module nexus_cap
   type(Hco_State), pointer :: HcoState => NULL()
 
   ! HEMCO extensions state
-  type(Ext_State), pointer :: ExtState => NULL()
+  type(Ext_State), pointer :: HcoExtState => NULL()
 
   type(ESMF_Grid)        :: HCO_Grid
   type(ESMF_Grid)        :: NXS_Grid
-  type(ESMF_State)       :: NXS_Diag_State  !! "importState"
-  type(ESMF_State)       :: NXS_Expt_State  !! "exportState"
+  type(ESMF_State)       :: NXS_Diag_State
+    !! "importState"
+    !! An ESMF state of diagnostics on the HEMCO grid.
+  type(ESMF_State)       :: NXS_Expt_State
+    !! "exportState"
+    !! Regridded to the desired output grid.
   type(ESMF_RouteHandle) :: NXS_RouteHandle
 
   logical :: do_Regrid = .false.
+    !! True if grid file path passed to `init` is not empty string.
   logical :: do_Debug  = .false.
+    !! True if `debugLevel` passed to `init` is greater than zero.
   logical :: do_NEXUS  = .false.
+    !! True if either `do_Regrid` or `do_Debug` is true.
 
   ! Pointers used during initialization (for species matching)
   integer                        :: nHcoSpec
@@ -58,8 +65,8 @@ module nexus_cap
   integer,               pointer :: matchidx      (:) => NULL()
 
   ! Start and end time of simulation
-  integer :: YRS(2), MTS(2), DYS(2)
-  integer :: HRS(2), MNS(2), SCS(2)
+  integer :: T_YRS(2), T_MTS(2), T_DYS(2)
+  integer :: T_HRS(2), T_MNS(2), T_SCS(2)
 
   ! Grid
   real(hp), allocatable, target :: XMID   (:,:,:)
@@ -257,6 +264,8 @@ contains
   !-----------------------------------------------------------------------------
   ! Cap routines
 
+  !> Cap initialization
+  !> (read HEMCO config, initialize HEMCO state, create grid objects, etc.)
   subroutine init(ConfigFile, ReGridFile, OutputFile, debugLevel, rc)
     use HCO_Config_Mod,  only: Config_ReadFile
     use HCO_Driver_Mod,  only: HCO_Init
@@ -355,7 +364,7 @@ contains
 
     !-----------------------------------------------------------------------
     ! Set grid
-    call Set_Grid ( HcoState, localrc )
+    call hco_set_grid ( HcoState, localrc )
     if (NEXUS_Error_Log(localrc, msg='Error encountered in routine "Set_Grid"!', &
       line=__LINE__, &
       file=__FILE__, &
@@ -364,7 +373,7 @@ contains
     !-----------------------------------------------------------------------
     ! Create NEXUS grid and reset HEMCO grid as distributed
     if (do_NEXUS) then
-      HCO_Grid = HCO_GridCreate( HcoState, rc=localrc )
+      HCO_Grid = nxs_reset_hco_grid( HcoState, rc=localrc )
       if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
         line=__LINE__,  &
         file=__FILE__,  &
@@ -381,7 +390,7 @@ contains
 
     !-----------------------------------------------------------------------
     ! Read time information, incl. timesteps and simulation time(s)
-    call Read_Time( HcoState, localrc )
+    call hco_read_time( HcoState, localrc )
     if (NEXUS_Error_Log(localrc, msg='Error encountered in routine "Read_Time"!', &
       line=__LINE__, &
       file=__FILE__, &
@@ -442,7 +451,7 @@ contains
     ! This initializes all (enabled) extensions and selects all met.
     ! fields needed by them.
     !=======================================================================
-    call HCOX_Init( HcoState, ExtState, localrc )
+    call HCOX_Init( HcoState, HcoExtState, localrc )
     if (NEXUS_Error_Log(localrc, msg='Error encountered in routine "HCOX_Init"!', &
       line=__LINE__, &
       file=__FILE__, &
@@ -481,7 +490,7 @@ contains
         file=__FILE__,  &
         rcToReturn=rc)) return  ! bail out
 
-      call NXS_DiagState_Init( HCO_Grid, HcoState, NXS_Diag_State, rc=localrc )
+      call nxs_diag_state_init( HCO_Grid, HcoState, NXS_Diag_State, rc=localrc )
       if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
         line=__LINE__,  &
         file=__FILE__,  &
@@ -497,7 +506,7 @@ contains
     end if
 
     if (do_Regrid) then
-      NXS_Grid = GridCreate_GridSpec( ReGridFile, rc=localrc )
+      NXS_Grid = nxs_set_grid( ReGridFile, rc=localrc )
       if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
         line=__LINE__,  &
         file=__FILE__,  &
@@ -509,7 +518,7 @@ contains
         file=__FILE__,  &
         rcToReturn=rc)) return  ! bail out
 
-      call NXS_ExptState_Init( NXS_Grid, NXS_Diag_State, NXS_Expt_State, rc=localrc )
+      call nxs_expt_state_init( NXS_Grid, NXS_Diag_State, NXS_Expt_State, rc=localrc )
       if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
         line=__LINE__,  &
         file=__FILE__,  &
@@ -531,7 +540,7 @@ contains
   ! (Copied here from nexus_methods_mod since they are private in
   ! hcoi_standalone_mod)
 
-  subroutine SET_Grid( HcoState, RC )
+  subroutine hco_set_grid( HcoState, RC )
     !
     ! !USES:
     !
@@ -1078,9 +1087,9 @@ contains
     ! Return w/ success
     RC = HCO_SUCCESS
 
-  end subroutine Set_Grid
+  end subroutine hco_set_grid
 
-  subroutine Read_Time( HcoState, RC )
+  subroutine hco_read_time( HcoState, RC )
     !
     ! !USES:
     !
@@ -1179,12 +1188,12 @@ contains
         return
       end if
 
-      READ ( DUM( 1: 4), * ) YRS(N)
-      READ ( DUM( 6: 7), * ) MTS(N)
-      READ ( DUM( 9:10), * ) DYS(N)
-      READ ( DUM(12:13), * ) HRS(N)
-      READ ( DUM(15:16), * ) MNS(N)
-      READ ( DUM(18:19), * ) SCS(N)
+      READ ( DUM( 1: 4), * ) T_YRS(N)
+      READ ( DUM( 6: 7), * ) T_MTS(N)
+      READ ( DUM( 9:10), * ) T_DYS(N)
+      READ ( DUM(12:13), * ) T_HRS(N)
+      READ ( DUM(15:16), * ) T_MNS(N)
+      READ ( DUM(18:19), * ) T_SCS(N)
 
     end do !I
 
@@ -1214,12 +1223,12 @@ contains
     ! Return w/ success
     RC = HCO_SUCCESS
 
-  end subroutine Read_Time
+  end subroutine hco_read_time
 
   !-----------------------------------------------------------------------------
   ! NEXUS methods
 
-  function HCO_GridCreate( HcoState, rc ) result ( grid )
+  function nxs_reset_hco_grid( HcoState, rc ) result ( grid )
 
     type(HCO_State),   pointer     :: HcoState
     integer, optional, intent(out) :: rc
@@ -1420,9 +1429,9 @@ contains
     HcoState % NX = size(HcoState % Grid % XMID % Val, dim=1)
     HcoState % NY = size(HcoState % Grid % XMID % Val, dim=2)
 
-  end function HCO_GridCreate
+  end function nxs_reset_hco_grid
 
-  function GridCreate_GridSpec( fileName, rc ) result ( grid )
+  function nxs_set_grid( fileName, rc ) result ( grid )
 
     use netcdf
 
@@ -1541,9 +1550,9 @@ contains
       file=__FILE__,  &
       rcToReturn=rc)) return  ! bail out
 
-  end function GridCreate_GridSpec
+  end function nxs_set_grid
 
-  subroutine NXS_DiagState_Init( HcoGrid, HcoState, DiagState, rc )
+  subroutine nxs_diag_state_init( HcoGrid, HcoState, DiagState, rc )
     use HCO_TYPES_MOD, only: DiagnCont  ! diagnostics container
     use HCO_Diagn_Mod, only: Diagn_Get
     use NEXUS_Error_Mod, only: NEXUS_Error_Log
@@ -1611,9 +1620,9 @@ contains
       file=__FILE__,  &
       rcToReturn=rc)) return  ! bail out
 
-  end subroutine NXS_DiagState_Init
+  end subroutine nxs_diag_state_init
 
-  subroutine NXS_ExptState_Init( grid, importState, exportState, rc )
+  subroutine nxs_expt_state_init( grid, importState, exportState, rc )
     type(ESMF_Grid)                :: grid
     type(ESMF_State)               :: importState
     type(ESMF_State)               :: exportState
@@ -1725,6 +1734,6 @@ contains
       file=__FILE__,  &
       rcToReturn=rc)) return  ! bail out
 
-  end subroutine NXS_ExptState_Init
+  end subroutine nxs_expt_state_init
 
 end module nexus_cap
