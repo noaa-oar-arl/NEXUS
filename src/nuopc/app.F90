@@ -31,6 +31,12 @@ program app
     [-c|--config-file <file>] [-r|--regrid-to <file>] [-o|--output <file>] &
     [-d|--debug] [-h|--help]"
 
+  character(1), parameter :: newline = new_line('a')
+  character(len=*), parameter :: description = &
+    "NOAA Emission and Exchange Unified System (NEXUS)" // newline // &
+    "(NUOPC Single-Model Driver application)" // newline // &
+    "https://github.com/noaa-oar-arl/NEXUS"
+
   integer :: rc, localrc, userRc
   integer, parameter :: rootPet = 0
   integer :: localPet
@@ -114,10 +120,14 @@ program app
     end do
   end if
 
+  call print_sep(char="=")
+  print "(a)", description
+  call print_sep()
   print "('ConfigFile = ', a)", trim(ConfigFile)
   print "('ReGridFile = ', a)", trim(ReGridFile)
   print "('debugLevel = ', i0)", debugLevel
   print "('OutputFile = ', a)", trim(OutputFile)
+  call print_sep()
 
   ibuf(1) = localrc
   ibuf(2) = debugLevel
@@ -210,5 +220,36 @@ program app
 
   ! Finalize ESMF
   call ESMF_Finalize()
+
+contains
+
+  !> By default, 60 hyphens.
+  subroutine print_sep(char, n)
+    character(len=1), intent(in), optional :: char
+    integer, intent(in), optional :: n
+
+    character(len=1) :: char_
+    integer :: n_
+    character(len=:), allocatable :: sep
+    integer i
+
+    if (.not. present(char)) then
+      char_ = "-"
+    else
+      char_ = char
+    end if
+    if (.not. present(n)) then
+      n_ = 60
+    else
+      n_ = n
+    end if
+
+    allocate(character(len=n_) :: sep)
+    do i = 1, n_
+      sep(i:i) = char_
+    end do
+
+    print "(a)", sep
+  end subroutine print_sep
 
 end program app
