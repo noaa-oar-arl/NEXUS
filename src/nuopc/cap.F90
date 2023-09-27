@@ -52,18 +52,6 @@ module nexus_cap
   logical :: do_NEXUS  = .false.
     !! True if either `do_Regrid` or `do_Debug` is true.
 
-  ! Pointers used during initialization (for species matching)
-  integer                        :: nHcoSpec
-  character(len= 31),    pointer :: HcoSpecNames  (:) => NULL()
-  integer                        :: nModelSpec
-  character(len= 31),    pointer :: ModelSpecNames(:) => NULL()
-  integer,               pointer :: ModelSpecIDs  (:) => NULL()
-  real(rk_hco),          pointer :: ModelSpecMW   (:) => NULL()
-  real(rk_hco),          pointer :: ModelSpecK0   (:) => NULL()
-  real(rk_hco),          pointer :: ModelSpecCR   (:) => NULL()
-  real(rk_hco),          pointer :: ModelSpecPKA  (:) => NULL()
-  integer,               pointer :: matchidx      (:) => NULL()
-
   ! Start and end time of simulation
   integer :: T_YRS(2), T_MTS(2), T_DYS(2)
   integer :: T_HRS(2), T_MNS(2), T_SCS(2)
