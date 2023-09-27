@@ -488,13 +488,13 @@ contains
         rcToReturn=rc)) return  ! bail out
     end if
 
-    !   if (do_Debug) then
-    !     call GridWrite( HCO_Grid, DiagFile, rc=localrc )
-    !     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-    !        line=__LINE__,  &
-    !        file=__FILE__,  &
-    !        rcToReturn=rc)) return  ! bail out
-    !   end if
+    if (do_Debug) then
+      call GridWrite( HCO_Grid, DiagFile, rc=localrc )
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+          line=__LINE__,  &
+          file=__FILE__,  &
+          rcToReturn=rc)) return  ! bail out
+    end if
 
     if (do_Regrid) then
       NXS_Grid = GridCreate_GridSpec( ReGridFile, rc=localrc )
@@ -515,11 +515,13 @@ contains
         file=__FILE__,  &
         rcToReturn=rc)) return  ! bail out
 
-      !     call GridWrite( NXS_Grid, ExptFile, rc=localrc )
-      !     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-      !        line=__LINE__,  &
-      !        file=__FILE__,  &
-      !        rcToReturn=rc)) return  ! bail out
+      if (do_Debug) then
+        call GridWrite( NXS_Grid, ExptFile, rc=localrc )
+        if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+            line=__LINE__,  &
+            file=__FILE__,  &
+            rcToReturn=rc)) return  ! bail out
+      end if
     end if
 
   end subroutine init
