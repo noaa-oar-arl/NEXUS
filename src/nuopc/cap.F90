@@ -55,8 +55,8 @@ module nexus_cap
     !! True if either `do_Regrid` or `do_Debug` is true.
 
   ! Start and end time of simulation
-  integer :: T_YRS(2), T_MTS(2), T_DYS(2)
-  integer :: T_HRS(2), T_MNS(2), T_SCS(2)
+  integer :: T_YY(2), T_MM(2), T_DD(2)
+  integer :: T_H(2), T_M(2), T_S(2)
 
   ! Grid
   real(rk_hco), allocatable, target :: XMID   (:,:,:)
@@ -77,7 +77,9 @@ module nexus_cap
 
   private
 
-  public SetServices, init
+  public SetServices, &
+    init, &
+    T_YY, T_MM, T_DD, T_H, T_M, T_S, HcoState
 
 contains
 
@@ -1091,7 +1093,7 @@ contains
     !
     ! !INPUT PARAMETERS:
     !
-    type(HCO_State), pointer       :: HcoState
+    type(HCO_State), pointer :: HcoState
     !
     ! !INPUT/OUTPUT PARAMETERS
     !
@@ -1181,12 +1183,12 @@ contains
         return
       end if
 
-      READ ( DUM( 1: 4), * ) T_YRS(N)
-      READ ( DUM( 6: 7), * ) T_MTS(N)
-      READ ( DUM( 9:10), * ) T_DYS(N)
-      READ ( DUM(12:13), * ) T_HRS(N)
-      READ ( DUM(15:16), * ) T_MNS(N)
-      READ ( DUM(18:19), * ) T_SCS(N)
+      READ ( DUM( 1: 4), * ) T_YY(N)
+      READ ( DUM( 6: 7), * ) T_MM(N)
+      READ ( DUM( 9:10), * ) T_DD(N)
+      READ ( DUM(12:13), * ) T_H(N)
+      READ ( DUM(15:16), * ) T_M(N)
+      READ ( DUM(18:19), * ) T_S(N)
 
     end do !I
 

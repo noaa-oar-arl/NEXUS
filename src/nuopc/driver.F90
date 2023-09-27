@@ -14,11 +14,6 @@ module nexus_driver
 
   private
 
-  ! private module data --> ONLY PARAMETERS
-  integer, parameter            :: stepCount = 5
-  real(ESMF_KIND_R8), parameter :: stepTime  = 30._ESMF_KIND_R8  ! step time [s]
-  ! should be parent step
-
   public SetServices
 
   !-----------------------------------------------------------------------------
@@ -66,6 +61,8 @@ contains
   !-----------------------------------------------------------------------------
 
   subroutine SetModelServices(driver, rc)
+    use nexus_cap, only: T_YY, T_MM, T_DD, T_H, T_M, T_S, HcoState
+
     type(ESMF_GridComp)  :: driver
     integer, intent(out) :: rc
 
@@ -79,8 +76,8 @@ contains
 
     rc = ESMF_SUCCESS
 
-    ! SetServices for MODEL component
-    call NUOPC_DriverAddComp(driver, "MODEL", modelSS, comp=child, rc=rc)
+    ! SetServices for model component
+    call NUOPC_DriverAddComp(driver, "NEXUS", modelSS, comp=child, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
@@ -91,20 +88,29 @@ contains
       file=__FILE__)) &
       return  ! bail out
 
-    ! set the driver clock
-    call ESMF_TimeSet(startTime, s = 0, rc=rc)
+    !
+    ! Set the driver clock
+    !
+
+    call ESMF_TimeSet(startTime, &
+      yy=T_YY(1), mm=T_MM(1), dd=T_DD(1), &
+      h=T_H(1), m=T_M(1), s=T_S(1), &
+      rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
       call ESMF_Finalize(endflag=ESMF_END_ABORT)
 
-    call ESMF_TimeSet(stopTime, s_r8 = stepTime * stepCount, rc=rc)
+    call ESMF_TimeSet(stopTime, &
+      yy=T_YY(2), mm=T_MM(2), dd=T_DD(2), &
+      h=T_H(2), m=T_M(2), s=T_S(2), &
+      rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
       call ESMF_Finalize(endflag=ESMF_END_ABORT)
 
-    call ESMF_TimeIntervalSet(timeStep, s_r8 = stepTime, rc=rc)
+    call ESMF_TimeIntervalSet(timeStep, s_r8=real(HcoState%TS_EMIS, kind=ESMF_KIND_R8), rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
