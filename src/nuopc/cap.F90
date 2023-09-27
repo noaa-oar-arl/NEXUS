@@ -488,7 +488,7 @@ contains
     end if
 
     if (do_Debug) then
-      call nxs_grid_write( HCO_Grid, DiagFile, rc=localrc )
+      call nxs_write_grid( HCO_Grid, DiagFile, rc=localrc )
       if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
           line=__LINE__,  &
           file=__FILE__,  &
@@ -515,7 +515,7 @@ contains
         rcToReturn=rc)) return  ! bail out
 
       if (do_Debug) then
-        call nxs_grid_write( NXS_Grid, ExptFile, rc=localrc )
+        call nxs_write_grid( NXS_Grid, ExptFile, rc=localrc )
         if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
             line=__LINE__,  &
             file=__FILE__,  &
@@ -1424,7 +1424,7 @@ contains
 
   end function nxs_reset_hco_grid
 
-  subroutine nxs_grid_write( grid, fileName, rc )
+  subroutine nxs_write_grid( grid, fileName, rc )
     type(ESMF_Grid)                :: grid
     character(len=*),  intent(in)  :: fileName
     integer, optional, intent(out) :: rc
@@ -1453,7 +1453,7 @@ contains
          rcToReturn=rc)) return  ! bail out
     end do
 
-  end subroutine nxs_grid_write
+  end subroutine nxs_write_grid
 
   function nxs_set_grid( fileName, rc ) result ( grid )
 
