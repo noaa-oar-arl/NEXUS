@@ -488,7 +488,7 @@ contains
     end if
 
     if (do_Debug) then
-      call GridWrite( HCO_Grid, DiagFile, rc=localrc )
+      call nxs_grid_write( HCO_Grid, DiagFile, rc=localrc )
       if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
           line=__LINE__,  &
           file=__FILE__,  &
@@ -515,7 +515,7 @@ contains
         rcToReturn=rc)) return  ! bail out
 
       if (do_Debug) then
-        call GridWrite( NXS_Grid, ExptFile, rc=localrc )
+        call nxs_grid_write( NXS_Grid, ExptFile, rc=localrc )
         if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
             line=__LINE__,  &
             file=__FILE__,  &
@@ -591,7 +591,7 @@ contains
       'SET_GRID (in module HEMCO/Interfaces/hcoi_standalone_mod.F90)'
 
     ! Set PI_180
-    PI_180 = HcoState%Phys%PI / 180.0_hp
+    PI_180 = HcoState%Phys%PI / 180.0_rk_hco
 
     ! Try to get GridFile from configuration file (in settings)
     call GetExtOpt ( HcoState%Config, CoreNr, 'GridFile', &
@@ -672,12 +672,12 @@ contains
     end if
 
     ! Restrict latitude values to -90.0 and 90.0.
-    if ( YMIN < -90.0_hp ) then
+    if ( YMIN < -90.0_rk_hco ) then
       write(ErrMsg,*) 'Lower latitude must be between -90 and 90 degN: ', YMIN
       call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
       return
     end if
-    if ( YMAX > 90.0_hp ) then
+    if ( YMAX > 90.0_rk_hco ) then
       write(ErrMsg,*) 'Upper latitude must be between -90 and 90 degN: ', YMAX
       call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
       return
@@ -974,10 +974,10 @@ contains
 
         ! Set mid values
         if ( XMID(I,J,1) == HCO_MISSVAL ) then
-          XMID(I,J,1) = XEDGE(I,J,1) + ( DLON / 2.0_hp )
+          XMID(I,J,1) = XEDGE(I,J,1) + ( DLON / 2.0_rk_hco )
         end if
         if ( YMID(I,J,1) == HCO_MISSVAL ) then
-          YMID(I,J,1) = YEDGE(I,J,1) + ( DLAT / 2.0_hp )
+          YMID(I,J,1) = YEDGE(I,J,1) + ( DLAT / 2.0_rk_hco )
         end if
 
         ! Get sine of latitude edges
@@ -1047,7 +1047,7 @@ contains
     CALL HCO_SetPBLm( HcoState = HcoState, &
       FldName  ='PBL_HEIGHT', &
       PBLM     = HcoState%Grid%PBLHEIGHT%Val, &
-      DefVal   = 1000.0_hp, &
+      DefVal   = 1000.0_rk_hco, &
       RC       = RC )
 
     ! The pressure edges and grid box heights are obtained from
@@ -1423,6 +1423,37 @@ contains
     HcoState % NY = size(HcoState % Grid % XMID % Val, dim=2)
 
   end function nxs_reset_hco_grid
+
+  subroutine nxs_grid_write( grid, fileName, rc )
+    type(ESMF_Grid)                :: grid
+    character(len=*),  intent(in)  :: fileName
+    integer, optional, intent(out) :: rc
+
+    ! -- local variables
+    integer          :: localrc
+    integer          :: item
+    type(ESMF_Array) :: array
+
+    character(len=*), parameter :: vNames(2) = (/ "lon", "lat" /)
+
+    ! -- begin
+    if (present(rc)) rc = ESMF_SUCCESS
+
+    do item = 1, 2
+      call ESMF_GridGetCoord(grid, item, array=array, rc=localrc)
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+         line=__LINE__,  &
+         file=__FILE__,  &
+         rcToReturn=rc)) return  ! bail out
+      call ESMF_ArrayWrite(array, fileName, variableName=vNames(item), &
+        overwrite=.true., iofmt=ESMF_IOFMT_NETCDF, rc=localrc )
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+         line=__LINE__,  &
+         file=__FILE__,  &
+         rcToReturn=rc)) return  ! bail out
+    end do
+
+  end subroutine nxs_grid_write
 
   function nxs_set_grid( fileName, rc ) result ( grid )
 
