@@ -92,14 +92,14 @@ contains
 
     rc = ESMF_SUCCESS
 
-    ! derive from NUOPC_Model
+    ! Derive from NUOPC_Model
     call NUOPC_CompDerive(model, modelSS, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
       return  ! bail out
 
-    ! specialize model
+    ! Specialize model
     call NUOPC_CompSpecialize(model, specLabel=label_Advertise, &
       specRoutine=Advertise, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
@@ -125,12 +125,12 @@ contains
     type(ESMF_GridComp)  :: model
     integer, intent(out) :: rc
 
-    ! local variables
+    ! Local variables
     type(ESMF_State) :: importState, exportState
 
     rc = ESMF_SUCCESS
 
-    ! query for importState and exportState
+    ! Query for importState and exportState
     call NUOPC_ModelGet(model, importState=importState, &
       exportState=exportState, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
@@ -138,6 +138,7 @@ contains
       file=__FILE__)) &
       return  ! bail out
 
+    ! TODO: advertise NEXUS output variables
     ! exportable field
     call NUOPC_Advertise(exportState, &
       StandardName="the_best_variable_of_all", name="best", rc=rc)
@@ -152,7 +153,7 @@ contains
     type(ESMF_GridComp)  :: model
     integer, intent(out) :: rc
 
-    ! local variables
+    ! Local variables
     type(ESMF_State)        :: importState, exportState
     type(ESMF_Field)        :: field
     type(ESMF_Grid)         :: gridIn
@@ -162,7 +163,7 @@ contains
 
     print *, HcoConfig%ConfigFileName
 
-    ! query for importState and exportState
+    ! Query for importState and exportState
     call NUOPC_ModelGet(model, importState=importState, &
       exportState=exportState, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
@@ -170,7 +171,9 @@ contains
       file=__FILE__)) &
       return  ! bail out
 
-    ! create a Grid object for Fields
+    ! TODO: use the real grids/states
+  
+    ! Create a Grid object for Fields
     gridIn = ESMF_GridCreateNoPeriDimUfrm(maxIndex=(/10, 100/), &
       minCornerCoord=(/10._ESMF_KIND_R8, 20._ESMF_KIND_R8/), &
       maxCornerCoord=(/100._ESMF_KIND_R8, 200._ESMF_KIND_R8/), &
@@ -182,7 +185,7 @@ contains
       return  ! bail out
     gridOut = gridIn ! for now out same as in
 
-    ! exportable field
+    ! Exportable field
     field = ESMF_FieldCreate(name="best", grid=gridOut, &
       typekind=ESMF_TYPEKIND_R8, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
@@ -201,7 +204,7 @@ contains
     type(ESMF_GridComp)  :: model
     integer, intent(out) :: rc
 
-    ! local variables
+    ! Local variables
     type(ESMF_Clock)            :: clock
     type(ESMF_State)            :: importState, exportState
     character(len=160)          :: msgString
@@ -209,7 +212,7 @@ contains
 
     rc = ESMF_SUCCESS
 
-    ! query for clock, importState and exportState
+    ! Query for clock, importState and exportState
     call ESMF_GridCompGet(model, clock=clock, importState=importState, &
       exportState=exportState, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
