@@ -8,7 +8,6 @@ module nexus_cap
   use NUOPC
   use NUOPC_Model, modelSS => SetServices
 
-  use HCO_CharTools_Mod, only: NextCharPos, HCO_SPC, GetNextLine
   use HCO_STATE_MOD, only: Hco_State
   use HCO_TYPES_MOD, only: ConfigObj
   use HCO_Error_Mod, only: rk_hco => hp, &
@@ -539,6 +538,8 @@ contains
     use HCO_ExtList_Mod,  only  : HCO_GetOpt, GetExtOpt, CoreNr
     use HCO_VertGrid_Mod, only  : HCO_VertGrid_Define
     use HCO_GeoTools_Mod, only  : HCO_SetPBLm
+    use HCO_CharTools_Mod, only : NextCharPos, HCO_SPC, GetNextLine
+
     !
     ! !INPUT/OUTPUT PARAMETERS:
     !
@@ -1086,6 +1087,7 @@ contains
     !
     use HCO_inquireMod,  only : findfreeLUN
     use HCO_Extlist_Mod, only : HCO_GetOpt, GetExtOpt, CoreNr
+    use HCO_CharTools_Mod, only : NextCharPos, GetNextLine
     !
     ! !INPUT PARAMETERS:
     !
