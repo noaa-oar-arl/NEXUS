@@ -12,7 +12,7 @@ module nexus_cap
   use HCO_TYPES_MOD, only: ConfigObj
   use HCO_Error_Mod, only: rk_hco => hp, &
     HCO_LogFile_Open, &
-    HCO_Error, HCO_MSG, &
+    HCO_Error, HCO_MSG, HCO_Leave, HCO_Enter, &
     HCO_SUCCESS, HCO_MISSVAL
   use HCOX_STATE_MOD, only: Ext_State
 
@@ -161,8 +161,6 @@ contains
 
     rc = ESMF_SUCCESS
 
-    print *, HcoConfig%ConfigFileName
-
     ! Query for importState and exportState
     call NUOPC_ModelGet(model, importState=importState, &
       exportState=exportState, rc=rc)
@@ -202,6 +200,10 @@ contains
 
   subroutine Advance(model, rc)
     use HCO_Clock_Mod,   only : HcoClock_Set
+    use HCO_FluxArr_Mod, only : HCO_FluxarrReset
+    use HCO_Driver_Mod,  only : HCO_RUN
+    use HCOX_Driver_Mod, only : HCOX_RUN
+    use HCO_Diagn_Mod,   only : HcoDiagn_AutoUpdate
 
     type(ESMF_GridComp)  :: model
     integer, intent(out) :: rc
@@ -215,7 +217,9 @@ contains
     integer               :: yy, mm, dd, h, m, s
     character(len=255)    :: msg
     integer               :: localrc
+    integer               :: timeSlice
 
+    timeSlice = 0
     rc = ESMF_SUCCESS
 
     ! Query for clock, importState and exportState
@@ -230,6 +234,9 @@ contains
 
     ! Get some Clock info
     call ESMF_ClockGet(clock, advanceCount=advanceCount, currTime=time)
+
+    print "('ESMF Clock advanceCount: ', i0)", advanceCount
+    timeSlice = advanceCount + 1
 
     ! Because of the way that the internal Clock was set by default,
     ! its timeStep is equal to the parent timeStep. As a consequence the
@@ -274,7 +281,134 @@ contains
       "('Calculate emissions at ', i0.4, '-', i0.2, '-', i0.2, ' ', i2.2, ':', i0.2, ':', i0.2)") &
       yy, mm, dd, h, m, s
     call ESMF_LogWrite(msg)
-    print *, trim(msg)
+    print "(a)", trim(msg)
+
+    ! ================================================================
+    ! Reset all emission and deposition values
+    ! ================================================================
+    call HCO_FluxArrReset( HcoState, localrc )
+    if (nxs_error_log(localrc, msg='Error encountered in routine "HCO_FluxArrReset"!', &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
+    ! ================================================================
+    ! Set HCO options and define all arrays needed by core module
+    ! and the extensions
+    ! ================================================================
+
+    ! Range of tracers and emission categories.
+    ! Set Extension number ExtNr to 0, indicating that the core
+    ! module shall be executed.
+    HcoState%Options%SpcMin = 1
+    HcoState%Options%SpcMax = 2  ! FIXME: nModelSpec
+    HcoState%Options%CatMin = 1
+    HcoState%Options%CatMax = -1
+    HcoState%Options%ExtNr  = 0
+
+    ! Use temporary array?
+    HcoState%Options%FillBuffer = .FALSE.
+
+    ! ================================================================
+    ! Run HCO core module
+    ! Emissions will be written into the corresponding flux arrays
+    ! in HcoState.
+    !
+    ! NOTE: Call HCO_Run explicitly twice, once for phase 1 and
+    ! once for phase 2.  This will ensure emissions get computed.
+    ! (bmy, 1/29/18)
+    ! ================================================================
+
+    ! Phase 1: Update reading data fields etc.
+    call HCO_Run( HcoState, 1, localrc )
+    if (nxs_error_log(localrc, msg='Error encountered in routine "Hco_Run", phase 1!', &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
+    ! Phase 2: Compute emissions (skip for dry-run)
+    call HCO_Run( HcoState, 2, localrc )
+    if (nxs_error_log(localrc, msg='Error encountered in routine "Hco_Run", phase 2!', &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
+    ! ================================================================
+    ! Run HCO extensions
+    ! ================================================================
+
+    ! Set ExtState fields (skip for dry-run)
+    call hco_ext_set_fields ( HcoState, HcoExtState, localrc )
+    if (nxs_error_log(localrc, msg='Error encountered in routine "ExtState_SetFields"!', &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
+    ! Update ExtState fields (skip for dry-run)
+    call hco_ext_update_fields( HcoState, HcoExtState, localrc )
+    if (nxs_error_log(localrc, msg='Error encountered in routine "ExtState_Update_Fields"!', &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
+    ! Execute all enabled emission extensions. Emissions will be
+    ! added to corresponding flux arrays in HcoState.
+    call HCOX_Run ( HcoState, HcoExtState, localrc )
+    if (nxs_error_log(localrc, msg='Error encountered in routine "HCOX_Run"!', &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
+    !=================================================================
+    ! Update all autofill diagnostics (skip for dry-run)
+    !=================================================================
+    call HcoDiagn_AutoUpdate ( HcoState, localrc )
+    if (nxs_error_log(localrc, msg='Error encountered in routine "HCOX_AutoUpdate"!', &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
+    !=================================================================
+    ! Update NEXUS Diagnostic state
+    !=================================================================
+    if (do_NEXUS) then
+      call nxs_diag_state_update( HcoState, NXS_Diag_State, rc=localrc )
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__,  &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+    end if
+
+    !=================================================================
+    ! Write NEXUS Diagnostic state
+    !=================================================================
+    if (do_Debug) then
+      call nxs_state_write( NXS_Diag_State, DiagFile, timeSlice=timeSlice, rc=localrc )
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__,  &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+    end if
+
+    if (do_Regrid) then
+      !=================================================================
+      ! Update NEXUS Export state
+      !=================================================================
+      call nxs_expt_state_update( NXS_Diag_State, NXS_Expt_State, rc=localrc )
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__,  &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+
+      !=================================================================
+      ! Write NEXUS Export state
+      !=================================================================
+      call nxs_state_write( NXS_Expt_State, ExptFile, timeSlice=timeSlice, rc=localrc )
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__,  &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+    end if
 
   end subroutine
 
@@ -291,7 +425,6 @@ contains
     use HCOX_Driver_Mod, only: HCOX_Init
     use HCOI_StandAlone_Mod, only: Get_nnMatch, &
       register_species, Define_Diagnostics, HCOI_SA_InitCleanup
-    use NEXUS_Error_Mod, only: NEXUS_Error_Log
 
     character(len=*),  intent(in)  :: ConfigFile
     character(len=*),  intent(in)  :: ReGridFile
@@ -331,8 +464,8 @@ contains
     if (len_trim(OutputFile) > 0) ExptFile = OutputFile
 
     if ( am_I_Root ) then
-      if ( do_Debug  ) print *,'Writing debug emissions to: '//trim(DiagFile)
-      if ( do_Regrid ) print *,'Writing regridded emissions to: '//trim(ExptFile)
+      if ( do_Debug  ) print "(a)", 'Writing debug emissions to: '//trim(DiagFile)
+      if ( do_Regrid ) print "(a)", 'Writing regridded emissions to: '//trim(ExptFile)
     end if
 
     !=======================================================================
@@ -340,9 +473,9 @@ contains
     ! sets the HEMCO error properties (verbose mode? log file name,
     ! etc.) based upon the specifications in the configuration file.
     !=======================================================================
-    call Config_ReadFile( am_I_Root, HcoConfig, ConfigFile,       &
-      0,         localrc,   IsDryRun=.false. )
-    if (NEXUS_Error_Log(localrc, msg='Error encountered in routine "Config_Readfile!"', &
+    call Config_ReadFile( am_I_Root, HcoConfig, ConfigFile, &
+      0, localrc, IsDryRun=.false. )
+    if (nxs_error_log(localrc, msg='Error encountered in routine "Config_Readfile!"', &
       line=__LINE__, &
       file=__FILE__, &
       rcToReturn=rc)) return
@@ -352,7 +485,7 @@ contains
     !======================================================================
     if ( am_I_Root ) then
       call HCO_LogFile_Open( HcoConfig%Err, RC=localrc )
-      if (NEXUS_Error_Log(localrc, msg='Error encountered in routine "HCO_Logfile_Open_Readfile!"', &
+      if (nxs_error_log(localrc, msg='Error encountered in routine "HCO_Logfile_Open_Readfile!"', &
         line=__LINE__, &
         file=__FILE__, &
         rcToReturn=rc)) return
@@ -365,7 +498,7 @@ contains
     !-----------------------------------------------------------------------
     ! Extract species to use in HEMCO
     call Get_nnMatch( HcoConfig, nnMatch, localrc )
-    if (NEXUS_Error_Log(localrc, msg='Error encountered in routine "Get_nnMatch"!', &
+    if (nxs_error_log(localrc, msg='Error encountered in routine "Get_nnMatch"!', &
       line=__LINE__, &
       file=__FILE__, &
       rcToReturn=rc)) return
@@ -374,7 +507,7 @@ contains
     ! Initialize HCO state. Use only species that are used
     ! in HEMCO_sa_Spec.rc and are also found in the HEMCO config. file.
     call HcoState_Init( HcoState, HcoConfig, nnMatch, localrc )
-    if (NEXUS_Error_Log(localrc, msg='Error encountered in routine "HcoState_Init"!', &
+    if (nxs_error_log(localrc, msg='Error encountered in routine "HcoState_Init"!', &
       line=__LINE__, &
       file=__FILE__, &
       rcToReturn=rc)) return
@@ -382,7 +515,7 @@ contains
     !-----------------------------------------------------------------------
     ! Set grid
     call hco_set_grid ( HcoState, localrc )
-    if (NEXUS_Error_Log(localrc, msg='Error encountered in routine "Set_Grid"!', &
+    if (nxs_error_log(localrc, msg='Error encountered in routine "Set_Grid"!', &
       line=__LINE__, &
       file=__FILE__, &
       rcToReturn=rc)) return
@@ -400,7 +533,7 @@ contains
     !-----------------------------------------------------------------------
     ! Register species
     call Register_Species( HcoState, localrc )
-    if (NEXUS_Error_Log(localrc, msg='Error encountered in routine "Register_Species"!', &
+    if (nxs_error_log(localrc, msg='Error encountered in routine "Register_Species"!', &
       line=__LINE__, &
       file=__FILE__, &
       rcToReturn=rc)) return
@@ -408,7 +541,7 @@ contains
     !-----------------------------------------------------------------------
     ! Read time information, incl. timesteps and simulation time(s)
     call hco_read_time( HcoState, localrc )
-    if (NEXUS_Error_Log(localrc, msg='Error encountered in routine "Read_Time"!', &
+    if (nxs_error_log(localrc, msg='Error encountered in routine "Read_Time"!', &
       line=__LINE__, &
       file=__FILE__, &
       rcToReturn=rc)) return
@@ -427,7 +560,7 @@ contains
     call GetExtOpt ( HcoState%Config, CoreNr, &
       'ConfigField to diagnostics', &
       OptValBool=Dum, Found=Found, RC=localrc )
-    if (NEXUS_Error_Log(localrc, msg='Error encountered in routine "GetExtOpt"!', &
+    if (nxs_error_log(localrc, msg='Error encountered in routine "GetExtOpt"!', &
       line=__LINE__, &
       file=__FILE__, &
       rcToReturn=rc)) return
@@ -458,7 +591,7 @@ contains
     ! step. Also initializes the HEMCO clock
     !=======================================================================
     call HCO_Init( HcoState, localrc )
-    if (NEXUS_Error_Log(localrc, msg='Error encountered in routine "HCO_Init"!', &
+    if (nxs_error_log(localrc, msg='Error encountered in routine "HCO_Init"!', &
       line=__LINE__, &
       file=__FILE__, &
       rcToReturn=rc)) return
@@ -469,7 +602,7 @@ contains
     ! fields needed by them.
     !=======================================================================
     call HCOX_Init( HcoState, HcoExtState, localrc )
-    if (NEXUS_Error_Log(localrc, msg='Error encountered in routine "HCOX_Init"!', &
+    if (nxs_error_log(localrc, msg='Error encountered in routine "HCOX_Init"!', &
       line=__LINE__, &
       file=__FILE__, &
       rcToReturn=rc)) return
@@ -483,7 +616,7 @@ contains
     ! and define diagnostic variables for output
     !--------------------------------------------------------------------
     call Define_Diagnostics( HcoState, localrc )
-    if (NEXUS_Error_Log(localrc, msg='Error encountered in routine "Define_Diagnostics"!', &
+    if (nxs_error_log(localrc, msg='Error encountered in routine "Define_Diagnostics"!', &
       line=__LINE__, &
       file=__FILE__, &
       rcToReturn=rc)) return
@@ -492,7 +625,7 @@ contains
     ! Leave HEMCO Init
     !=======================================================================
     call HCOI_SA_InitCleanup( localrc )
-    if (NEXUS_Error_Log(localrc, msg='Error encountered in routine "HCOI_SA_InitCleanup"!', &
+    if (nxs_error_log(localrc, msg='Error encountered in routine "HCOI_SA_InitCleanup"!', &
       line=__LINE__, &
       file=__FILE__, &
       rcToReturn=rc)) return
@@ -1245,6 +1378,736 @@ contains
 
   end subroutine hco_read_time
 
+! !DESCRIPTION: Subroutine ExtState\_SetFields fills the ExtState data fields
+! with data read through the HEMCO configuration file.
+!\\
+!\\
+! !INTERFACE:
+!
+  subroutine hco_ext_set_fields ( HcoState, ExtState, RC )
+    !
+    ! !USES:
+    !
+    use HCO_ARR_MOD,        only : HCO_ArrAssert
+    use HCO_GEOTOOLS_MOD,   only : HCO_GetSUNCOS
+    use HCO_GEOTOOLS_MOD,   only : HCO_CalcVertGrid
+    use HCOX_STATE_MOD,     only : ExtDat_Set
+    use HCO_CLOCK_MOD,      only : HcoClock_First
+    !
+    ! !INPUT/OUTPUT PARAMETERS
+    !
+    type(HCO_STATE), pointer       :: HcoState
+    type(EXT_STATE), pointer       :: ExtState
+    integer,         intent(inout) :: RC          ! Success or failure?
+    !
+    ! !REVISION HISTORY:
+    !  28 Jul 2014 - C. Keller   - Initial Version
+    !  06 Oct 2014 - M. Sulprizio- Remove PCENTER. Now calculate from pressure edges
+    !  09 Jul 2015 - E. Lundgren - Add MODIS Chlorophyll-a (CHLR)
+    !  26 Oct 2016 - R. Yantosca - Don't nullify local ptrs in declaration stmts
+    !  15 Jan 2019 - R. Yantosca - Update met field names to be consistent with
+    !                              those used for the FlexGrid update
+    !  18 Jan 2019 - R. Yantosca - Improve error trapping
+    !EOP
+    !------------------------------------------------------------------------------
+    !BOC
+    !
+    ! LOCAL VARIABLES:
+    !
+    ! Scalars
+    logical            :: FIRST
+
+    ! Strings
+    character(len=255) :: Name, ErrMsg, ThisLoc
+
+    ! Pointers
+    real(rk_hco), pointer  :: PSFC    (:,:  )
+    real(rk_hco), pointer  :: ZSFC    (:,:  )
+    real(rk_hco), pointer  :: TK      (:,:,:)
+    real(rk_hco), pointer  :: BXHEIGHT(:,:,:)
+    real(rk_hco), pointer  :: PEDGE   (:,:,:)
+
+    !========================================================================
+    ! ExtState_SetFields begins here
+    !========================================================================
+
+    ! Initialize
+    RC       = HCO_SUCCESS
+    ErrMsg   = ''
+    ThisLoc  = &
+      'ExtState_SetFields (in HEMCO/Interfaces/hcoi_standalone_mod.F90'
+
+    ! Nullify pointers
+    PSFC     => NULL()
+    ZSFC     => NULL()
+    TK       => NULL()
+    BXHEIGHT => NULL()
+    PEDGE    => NULL()
+
+    ! Enter
+    call HCO_Enter( HcoState%Config%Err, ThisLoc, RC )
+    if ( RC /= HCO_SUCCESS ) then
+      ErrMsg = 'Error encountered in "HCO_Enter"!'
+      call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+      return
+    end if
+
+    ! First call?
+    FIRST = HcoClock_First ( HcoState%Clock, .FALSE. )
+
+    !------------------------------------------------------------------------
+    ! %%%%% 2D fields %%%%%
+    ! (1) Now use the same met field names as are specified in the
+    !     the HEMCO_Config.rc file for the "FlexGrid" update
+    ! (2) Not all extension fields are used for a given simulation type
+    !------------------------------------------------------------------------
+
+    !%%%%% 10-m winds %%%%%
+    if ( ExtState%U10M%DoUse ) then
+      Name = 'U10M'
+      call ExtDat_Set( HcoState,     ExtState%U10M,                         &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    if ( ExtState%V10M%DoUse ) then
+      Name = 'V10M'
+      call ExtDat_Set( HcoState,     ExtState%V10M,                         &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    !%%%%% Albedo %%%%%
+    if ( ExtState%ALBD%DoUse ) then
+      Name = 'ALBEDO'
+      call ExtDat_Set( HcoState,     ExtState%ALBD,                         &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    !%%%%% Air and skin temperature %%%%%
+    if ( ExtState%T2M%DoUse ) then
+      Name = 'T2M'
+      call ExtDat_Set( HcoState,     ExtState%T2M,                          &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    if ( ExtState%TSKIN%DoUse ) then
+      Name = 'TS'
+      call ExtDat_Set( HcoState,     ExtState%TSKIN,                        &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    !%%%%% Soil moisture %%%%%
+    if ( ExtState%GWETROOT%DoUse ) then
+      Name = 'GWETROOT'
+      call ExtDat_Set( HcoState,     ExtState%GWETROOT,                     &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    if ( ExtState%GWETTOP%DoUse ) then
+      Name = 'GWETTOP'
+      call ExtDat_Set( HcoState,     ExtState%GWETTOP,                      &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    !%%%%% Snow fields %%%%%
+    if ( ExtState%SNOWHGT%DoUse ) then
+      Name = 'SNOMAS'
+      call ExtDat_Set( HcoState,     ExtState%SNOWHGT,                      &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    if ( ExtState%SNODP%DoUse ) then
+      Name = 'SNODP'
+      call ExtDat_Set( HcoState,     ExtState%SNODP,                        &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    !%%%%% Friction velocity %%%%%
+    if ( ExtState%USTAR%DoUse ) then
+      Name = 'USTAR'
+      call ExtDat_Set( HcoState,     ExtState%USTAR,                        &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    !%%%%% Roughness height %%%%%
+    if ( ExtState%Z0%DoUse ) then
+      Name = 'Z0M'
+      call ExtDat_Set( HcoState,     ExtState%Z0,                           &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg , RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    !%%%%% Tropopause pressure %%%%%
+    if ( ExtState%TROPP%DoUse ) then
+      Name = 'TROPPT'
+      call ExtDat_Set( HcoState,     ExtState%TROPP,                        &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    !%%%%% PAR direct and diffuse %%%%%
+    if ( ExtState%PARDR%DoUse ) then
+      Name = 'PARDR'
+      call ExtDat_Set( HcoState,     ExtState%PARDR,                        &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    if ( ExtState%PARDF%DoUse ) then
+      Name = 'PARDF'
+      call ExtDat_Set( HcoState,     ExtState%PARDF,                        &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    if ( ExtState%RADSWG%DoUse ) then
+      Name = 'SWGDN'
+      call ExtDat_Set( HcoState,     ExtState%RADSWG,                       &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    !%%%%% Cloud fraction @ surface %%%%%
+    if ( ExtState%CLDFRC%DoUse ) then
+      Name = 'CLDTOT'
+      call ExtDat_Set( HcoState,     ExtState%CLDFRC,                       &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    !%%%%% Leaf area index %%%%%
+    if ( ExtState%LAI%DoUse ) then
+      Name = 'LAI'
+      call ExtDat_Set( HcoState,     ExtState%LAI,                          &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    !%%%%% Flash density %%%%%
+    if ( ExtState%FLASH_DENS%DoUse ) then
+      Name = 'FLASH_DENS'
+      call ExtDat_Set( HcoState,     ExtState%FLASH_DENS,                   &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    !%%%%% Convective depth %%%%%
+    if ( ExtState%CONV_DEPTH%DoUse ) then
+      Name = 'CONV_DEPTH'
+      call ExtDat_Set( HcoState,     ExtState%CONV_DEPTH,                   &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    !%%%%% Fractional coverage fields %%%%%
+    if ( ExtState%FRCLND%DoUse ) then
+      Name = 'FRCLND'
+      call ExtDat_Set( HcoState,     ExtState%FRCLND,                       &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    if ( ExtState%FRLAND%DoUse ) then
+      Name = 'FRLAND'
+      call ExtDat_Set( HcoState,     ExtState%FRLAND,                       &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    if ( ExtState%FROCEAN%DoUse ) then
+      Name = 'FROCEAN'
+      call ExtDat_Set( HcoState,     ExtState%FROCEAN,                      &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    if ( ExtState%FRLAKE%DoUse ) then
+      Name = 'FRLAKE'
+      call ExtDat_Set( HcoState,     ExtState%FRLAKE,                       &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    if ( ExtState%FRLANDIC%DoUse ) then
+      Name = 'FRLANDIC'
+      call ExtDat_Set( HcoState,     ExtState%FRLANDIC,                     &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    !%%%%% Solar zenith angle %%%%%
+    if ( ExtState%SZAFACT%DoUse ) then
+      Name = 'SZAFACT'
+      call ExtDat_Set( HcoState,     ExtState%SZAFACT,                      &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    !%%%%% Photolysis values %%%%%
+    if ( ExtState%JNO2%DoUse ) then
+      Name = 'JNO2'
+      call ExtDat_Set( HcoState,     ExtState%JNO2,                         &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC == HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )             // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    if ( ExtState%JOH%DoUse ) then
+      Name = 'JOH'
+      call ExtDat_Set( HcoState,     ExtState%JOH,                           &
+        trim( Name ), RC,       FIRST=FIRST                  )
+      if ( RC == HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )             // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    !-----------------------------------------------------------------
+    ! %%%%% 3D fields %%%%%
+    ! (1) Now use the same met field names as are specified in the
+    !     the HEMCO_Config.rc file for the "FlexGrid" update
+    ! (2) Not all extension fields are used for a given simulation type
+    !-----------------------------------------------------------------
+
+    !%%%%% Cloud convection mass flux %%%%%
+    if ( ExtState%CNV_MFC%DoUse ) then
+      Name = 'CMFMC'
+      call ExtDat_Set( HcoState,     ExtState%CNV_MFC,                      &
+        trim( Name ), RC,       FIRST=FIRST,                 &
+        OnLevEdge=.TRUE.                                    )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    !%%%%% Specific humidity %%%%%
+    if ( ExtState%SPHU%DoUse ) then
+      Name = 'SPHU'
+      call ExtDat_Set( HcoState,     ExtState%SPHU,                         &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    !%%%%% Temperature %%%%%
+    if ( ExtState%TK%DoUse ) then
+      Name = 'TMPU'
+      call ExtDat_Set( HcoState,     ExtState%TK,                           &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    !%%%%% Air mass, volume, density etc fields %%%%%
+    if ( ExtState%AIR%DoUse ) then
+      Name = 'AIR'
+      call ExtDat_Set( HcoState,     ExtState%AIR,                          &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC == HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    if ( ExtState%AIRVOL%DoUse ) then
+      Name = 'AIRVOL'
+      call ExtDat_Set( HcoState,     ExtState%AIRVOL,                       &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC == HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    if ( ExtState%AIRDEN%DoUse ) then
+      Name = 'AIRDEN'
+      call ExtDat_Set( HcoState,     ExtState%AIRDEN,                       &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC == HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    !%%%%% Concentration fields %%%%%
+    if ( ExtState%O3%DoUse ) then
+      Name = 'O3'
+      call ExtDat_Set( HcoState,     ExtState%O3,                           &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC == HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    if ( ExtState%NO%DoUse ) then
+      Name = 'NO'
+      call ExtDat_Set( HcoState,     ExtState%NO,                           &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC == HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    if ( ExtState%NO2%DoUse ) then
+      Name = 'NO2'
+      call ExtDat_Set( HcoState,     ExtState%NO2,                          &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC == HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    if ( ExtState%HNO3%DoUse ) then
+      Name = 'HNO3'
+      call ExtDat_Set( HcoState,     ExtState%HNO3,                         &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC == HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    !%%%%% Deposition fields (for soil NOx) %%%%%
+    if ( ExtState%DRY_TOTN%DoUse ) then
+      Name = 'DRY_TOTN'
+      call ExtDat_Set( HcoState,     ExtState%DRY_TOTN,                     &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC == HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    if ( ExtState%WET_TOTN%DoUse ) then
+      Name = 'WET_TOTN'
+      call ExtDat_Set( HcoState,     ExtState%WET_TOTN,                     &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC == HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    !%%%%% Fraction of PBL field (for sea exchange only) %%%%%
+    if ( ExtState%FRAC_OF_PBL%DoUse ) then
+      Name = 'FRAC_OF_PBL'
+      call ExtDat_Set( HcoState,     ExtState%FRAC_OF_PBL,                  &
+        trim( Name ), RC,       FIRST=FIRST                 )
+      if ( RC == HCO_SUCCESS ) then
+        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
+          '" for the HEMCO standalone simulation!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    !-----------------------------------------------------------------
+    ! ==> DRYCOEFF must be read from the configuration file in module
+    !     hcox_soilnox_mod.F90.
+    !-----------------------------------------------------------------
+
+    !-----------------------------------------------------------------
+    ! Check for vertical grid update. This will try to read the
+    ! vertical grid quantities from disk or calculate them from other
+    ! quantities read from disk.
+    !-----------------------------------------------------------------
+
+    ! Eventually get temperature from disk
+    if ( ExtState%TK%DoUse ) TK => ExtState%TK%Arr%Val
+
+    ! Attempt to calculate vertical grid quantities
+    call HCO_CalcVertGrid( HcoState, PSFC, ZSFC, TK, BXHEIGHT, PEDGE, RC )
+    if ( RC /= HCO_SUCCESS ) return
+
+    ! Reset pointers
+    PSFC     => NULL()
+    ZSFC     => NULL()
+    TK       => NULL()
+    BXHEIGHT => NULL()
+    PEDGE    => NULL()
+
+    !-----------------------------------------------------------------
+    ! If needed, calculate SUNCOS values
+    !-----------------------------------------------------------------
+    if ( ExtState%SUNCOS%DoUse ) then
+      if ( FIRST ) then
+        call HCO_ArrAssert( ExtState%SUNCOS%Arr, HcoState%NX, HcoState%NY, RC )
+        if ( RC /= HCO_SUCCESS ) then
+          ErrMsg = 'SUNCOS array is not the expected dimensions!'
+          call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+          call HCO_Leave( HcoState%Config%Err, RC )
+          return
+        end if
+      end if
+
+      call HCO_GetSUNCOS( HcoState, ExtState%SUNCOS%Arr%Val, 0, RC )
+      if ( RC /= HCO_SUCCESS ) then
+        ErrMsg = 'Error encountered in routine "HCO_GetSuncos"!'
+        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Leave( HcoState%Config%Err, RC )
+        return
+      end if
+    end if
+
+    !-----------------------------------------------------------------
+    ! All done
+    !-----------------------------------------------------------------
+
+    ! Not first call any more
+    FIRST = .FALSE.
+
+    ! Leave w/ success
+    call HCO_Leave( HcoState%Config%Err, RC )
+
+  end subroutine hco_ext_set_fields
+
+! !DESCRIPTION: Subroutine ExtState\_UpdateFields makes sure that all local
+! variables that ExtState is pointing to are up to date. For the moment, this
+! is just a placeholder routine as none of the ExtState fields is filled by
+! local module fields. Content can be added to it if there are variables that
+! need to be updated manually, e.g. not through netCDF input data.
+!\\
+!\\
+! !INTERFACE:
+!
+  subroutine hco_ext_update_fields ( HcoState, ExtState, RC )
+    !
+    ! !INPUT/OUTPUT PARAMETERS
+    !
+    type(HCO_STATE),  pointer       :: HcoState
+    type(EXT_STATE),  pointer       :: ExtState
+    integer,          intent(inout) :: RC          ! Success or failure?
+    !
+    ! !REVISION HISTORY:
+    !  28 Jul 2014 - C. Keller - Initial Version
+    !EOP
+    !------------------------------------------------------------------------------
+    !BOC
+    !
+    ! LOCAL VARIABLES:
+    !
+
+    !=================================================================
+    ! ExtState_UpdateFields begins here
+    !=================================================================
+
+    ! Return w/ success
+    RC = HCO_SUCCESS
+
+  end subroutine hco_ext_update_fields
+
   !-----------------------------------------------------------------------------
   ! NEXUS methods
 
@@ -1606,7 +2469,6 @@ contains
   subroutine nxs_diag_state_init( HcoGrid, HcoState, DiagState, rc )
     use HCO_TYPES_MOD, only: DiagnCont  ! diagnostics container
     use HCO_Diagn_Mod, only: Diagn_Get
-    use NEXUS_Error_Mod, only: NEXUS_Error_Log
 
     type(ESMF_Grid)                :: HcoGrid
     type(HCO_State), pointer       :: HcoState
@@ -1626,7 +2488,7 @@ contains
     EOI = .false.
     nullify(thisDiagn)
     call Diagn_Get( HcoState, EOI, thisDiagn, flag, localrc )
-    if (NEXUS_Error_Log(localrc, msg='Error encountered in routine "Diagn_Get!"', &
+    if (nxs_error_log(localrc, msg='Error encountered in routine "Diagn_Get!"', &
       line=__LINE__, &
       file=__FILE__, &
       rcToReturn=rc)) return
@@ -1659,7 +2521,7 @@ contains
         rcToReturn=rc)) return  ! bail out
 
       call Diagn_Get( HcoState, EOI, thisDiagn, flag, localrc )
-      if (NEXUS_Error_Log(localrc, msg='Error encountered in routine "Diagn_Get!"', &
+      if (nxs_error_log(localrc, msg='Error encountered in routine "Diagn_Get!"', &
         line=__LINE__, &
         file=__FILE__, &
         rcToReturn=rc)) return
@@ -1672,6 +2534,68 @@ contains
       rcToReturn=rc)) return  ! bail out
 
   end subroutine nxs_diag_state_init
+
+  subroutine nxs_diag_state_update( HcoState, DiagState, rc )
+    use HCO_TYPES_MOD, only: DiagnCont
+    use HCO_Diagn_Mod, only: Diagn_Get
+
+    type(HCO_State), pointer       :: HcoState
+    type(ESMF_State)               :: DiagState
+    integer, optional, intent(out) :: rc
+
+    ! -- local variables
+    integer :: localrc
+    integer :: flag
+    integer :: lb(2), ub(2)
+    logical :: EOI
+    real(ESMF_KIND_R4), pointer :: fp2d(:,:), fp3d(:,:,:)
+    type(ESMF_Field) :: field
+    type(DiagnCont), pointer :: thisDiagn
+
+    ! -- begin
+    if (present(rc)) rc = ESMF_SUCCESS
+
+    EOI = .false.
+    nullify(thisDiagn)
+    call Diagn_Get( HcoState, EOI, thisDiagn, flag, localrc )
+    if (nxs_error_log(localrc, msg='Error encountered in routine "Diagn_Get!"', &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
+    do while (flag == HCO_SUCCESS)
+      call ESMF_StateGet( DiagState, thisDiagn % cName, field, rc=localrc)
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__,  &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+      select case ( thisDiagn % spaceDim )
+       case (2)
+        call ESMF_FieldGet(field, farrayPtr=fp2d, &
+          computationalLBound=lb, computationalUBound=ub, rc=localrc)
+        if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+          line=__LINE__,  &
+          file=__FILE__,  &
+          rcToReturn=rc)) return  ! bail out
+        fp2d(lb(1):ub(1),lb(2):ub(2)) = thisDiagn % Arr2D % Val
+       case (3)
+        call ESMF_FieldGet(field, farrayPtr=fp3d, &
+          computationalLBound=lb, computationalUBound=ub, rc=localrc)
+        if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+          line=__LINE__,  &
+          file=__FILE__,  &
+          rcToReturn=rc)) return  ! bail out
+        fp3d(lb(1):ub(1),lb(2):ub(2),:) = thisDiagn % Arr3D % Val
+      end select
+
+      call Diagn_Get( HcoState, EOI, thisDiagn, flag, localrc )
+      if (nxs_error_log(localrc, msg='Error encountered in routine "Diagn_Get!"', &
+        line=__LINE__, &
+        file=__FILE__, &
+        rcToReturn=rc)) return
+    end do
+
+  end subroutine nxs_diag_state_update
 
   subroutine nxs_expt_state_init( grid, importState, exportState, rc )
     type(ESMF_Grid)                :: grid
@@ -1786,6 +2710,139 @@ contains
       rcToReturn=rc)) return  ! bail out
 
   end subroutine nxs_expt_state_init
+
+  subroutine nxs_expt_state_update( importState, exportState, rc )
+    type(ESMF_State)               :: importState
+    type(ESMF_State)               :: exportState
+    integer, optional, intent(out) :: rc
+
+    ! -- local variables
+    integer :: localrc
+    integer :: item, itemCount, rank
+    integer :: stat
+    integer :: lb(1), ub(1)
+    type(ESMF_Field) :: srcfield, dstfield
+    type(ESMF_TypeKind_Flag) :: typekind
+    character(len=ESMF_MAXSTR), allocatable :: itemNameList(:)
+    type(ESMF_StateItem_Flag),  allocatable :: itemTypeList(:)
+
+    ! -- begin
+    if (present(rc)) rc = ESMF_SUCCESS
+
+    call ESMF_StateGet( importState, itemCount=itemCount, rc=localrc )
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
+
+    allocate(itemNameList(itemCount), itemTypeList(itemCount), stat=stat)
+    if (ESMF_LogFoundAllocError(statusToCheck=stat, &
+      msg="Unable to allocate memory", &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
+
+    call ESMF_StateGet( importState, itemNameList=itemNameList, &
+      itemTypeList=itemTypeList, rc=localrc )
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
+
+    do item = 1, itemCount
+      if (itemTypeList(item) == ESMF_STATEITEM_FIELD) then
+        call ESMF_StateGet( importState, itemNameList(item), srcfield, rc=localrc )
+        if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+          line=__LINE__,  &
+          file=__FILE__,  &
+          rcToReturn=rc)) return  ! bail out
+        call ESMF_StateGet( exportState, itemNameList(item), dstfield, rc=localrc )
+        if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+          line=__LINE__,  &
+          file=__FILE__,  &
+          rcToReturn=rc)) return  ! bail out
+        call ESMF_FieldRegrid(srcField=srcfield, dstField=dstfield, &
+          routehandle   = NXS_RouteHandle, &
+          termorderflag = ESMF_TERMORDER_SRCSEQ, &
+          rc = localrc)
+        if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+          line=__LINE__,  &
+          file=__FILE__,  &
+          rcToReturn=rc)) return  ! bail out
+      end if
+    end do
+
+    deallocate(itemNameList, itemTypeList, stat=stat)
+    if (ESMF_LogFoundDeallocError(statusToCheck=stat, &
+      msg="Unable to deallocate memory", &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
+
+  end subroutine nxs_expt_state_update
+
+  !> Write an ESMF state using `ESMF_FieldWrite`.
+  subroutine nxs_state_write( state, fileName, timeSlice, rc )
+    type(ESMF_State)               :: state
+    character(len=*),  intent(in)  :: fileName
+    integer, optional, intent(in)  :: timeSlice
+    integer, optional, intent(out) :: rc
+
+    ! -- local variables
+    integer :: localrc
+    integer :: item, itemCount
+    integer :: stat
+    type(ESMF_Field) :: field
+    character(len=ESMF_MAXSTR), allocatable :: itemNameList(:)
+    type(ESMF_StateItem_Flag),  allocatable :: itemTypeList(:)
+
+    ! -- begin
+    if (present(rc)) rc = ESMF_SUCCESS
+
+    call ESMF_StateGet( state, itemCount=itemCount, rc=localrc )
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
+
+    allocate(itemNameList(itemCount), itemTypeList(itemCount), stat=stat)
+    if (ESMF_LogFoundAllocError(statusToCheck=stat, &
+      msg="Unable to allocate memory", &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
+
+    call ESMF_StateGet( state, itemNameList=itemNameList, &
+      itemTypeList=itemTypeList, rc=localrc )
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
+
+    do item = 1, itemCount
+      if (itemTypeList(item) == ESMF_STATEITEM_FIELD) then
+        call ESMF_StateGet( state, itemNameList(item), field, rc=localrc )
+        if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+          line=__LINE__,  &
+          file=__FILE__,  &
+          rcToReturn=rc)) return  ! bail out
+        call ESMF_FieldWrite( field, fileName, overwrite=.true., &
+          timeslice=timeSlice, iofmt=ESMF_IOFMT_NETCDF, rc=localrc )
+        if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+          line=__LINE__,  &
+          file=__FILE__,  &
+          rcToReturn=rc)) return  ! bail out
+      end if
+    end do
+
+    deallocate(itemNameList, itemTypeList, stat=stat)
+    if (ESMF_LogFoundDeallocError(statusToCheck=stat, &
+      msg="Unable to deallocate memory", &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
+
+  end subroutine nxs_state_write
 
   !> If `rcToCheck` is not `HCO_SUCCESS`, log error message with ESMF
   !> and return.
