@@ -1,0 +1,342 @@
+#------------------------------------------------------------------------------
+#                  Harvard-NASA Emissions Component (HEMCO)                   !
+#------------------------------------------------------------------------------
+#BOP
+#
+# !MODULE: HEMCO_Config.rc
+#
+# !DESCRIPTION: Contains configuration information for HEMCO. Define the
+#  emissions inventories and corresponding file paths here. Entire 
+#  configuration files can be inserted into this configuration file with
+#  an '>>>include' statement, e.g. '>>>include HEMCO\_Config\_test.rc' 
+#  The settings of include-files will be ignored.
+#\\
+#\\
+# !REMARKS:
+#  The following tokens will be replaced:
+#  (1) ROOT    : Filepath to HEMCO root directory
+#  (2) CFDIR   : Filepath to directory of this configuration file. 
+#  (3) MET     : Met field type (from G-C compilation command)
+#  (4) GRID    : Horizontal grid type (from G-C compilation command)
+#  (5) SIM     : Simulation type (from G-C compilation command)
+#  (6) NEST    : Nested-grid type (CH, EU, NA, SE)
+#  (7) LNOX    : String for OTD/LIS lightning NOx files:
+#                (a) For GEOS-5 this is either "geos5.1.0" or "geos5.2.0".  
+#                (b) For other met fields, this is the same as MET.
+#  (8) LEVRED  : String w/ the # of levels in the reduced GEOS-Chem grid
+#                as used in some filenames (e.g. "23L", "30L", "47L")
+#  (9) LEVFULL : String w/ the # of levels in the full GEOS-Chem grid
+#                as used in some filenames (e.g. "55L", "72L")
+# 
+# !REVISION HISTORY: 
+#  09 Mar 2021 - P. Campbell - Initial UFS-CMAQ HEMCO Configuration File for 
+#                              CEDS2019-NEI2016v1-OMI-HTAP2019-EDGAR-HTAP2010
+#  15 Jun 2022 - P. Campbell - Added MEGANv2.1 sa extension calcultaions
+#  04 Oct 2022 - B. Baker    - Remove point sources 
+
+#------------------------------------------------------------------------------
+#BOC
+###############################################################################
+### BEGIN SECTION SETTINGS
+###############################################################################
+
+ROOT                        : /scratch1/RDARCH/rda-arl-gpu/Barry.Baker/emissions/nexus
+GridFile                    : HEMCO_sa_Grid.rc
+SpecFile                    : HEMCO_sa_Spec.rc
+TimeFile                    : HEMCO_sa_Time.rc
+DiagnFile                   : HEMCO_sa_Diagn.rc
+DiagnPrefix                 : output/test
+DiagnFreq                   : Monthly
+Logfile                     : NEXUS.log
+Unit tolerance              : 2
+Negative values             : 1
+Verbose                     : 10
+Warnings                    : 1
+Mask fractions              : true
+MET                         : geosfp
+RES                         : 4x5
+PBL dry deposition          : False
+SINTOK                      : 0.5
+Cap time shift              : true
+#
+
+### END SECTION SETTINGS ###
+
+###############################################################################
+### BEGIN SECTION EXTENSION SWITCHES
+###############################################################################
+###
+### This section lists all emission extensions available to HEMCO and whether 
+### they shall be used or not. Extension 'base' must have extension number 
+### zero, all other extension numbers can be freely chosen. Data fields in 
+### section 'base emissions' will only be read if the corresponding extension 
+### (identified by ExtNr) is enabled. Similarly, fields grouped into data 
+### collections ('(((CollectionName', ')))CollectionName') are only considered
+### if the corresponding data collection is enabled in this section. Data
+### listed within a disabled extension are always ignored, even if they are
+### grouped in an enabled collection (e.g. GFED-4 data will never be considered
+### if the GFED extension is disabled, even if the GFED4 option is set to true).
+###
+### It is possible to define collections that are only evaluated if a
+### collection name is *not* enabled. This is achieved by leading the
+### collection name with '.not.', e.g. '(((.not.FINN_daily' ...
+### '))).not.FINN_daily' for FINN monthly data (only used if daily data is
+### not being used). 
+###
+### The ExtNr provided in this section must match with the ExtNr assigned to
+### the data listed in the base emissions sections. Otherwise, the listed 
+### files won't be read!
+###
+### NOTES:
+### --> You can only select one biomass burning option (GFED, QFED, FINN).
+###
+### --> BOND_BIOMASS must be set to false if GFED, QFED, or FINN is enabled.
+###
+### --> The biomass burning POA scale factor is the same as for the biofuel 
+###     and anthro sources. 
+###
+### --> The NAP scale factor is determined as in the original simulation:
+###     Obtain NAP emissions using scale factor from Hays 2002 ES&T 
+###     (0.0253 g NAP/kg DM) and Andreae and Merlet 2001 GBC (92 g CO/kg DM)
+###############################################################################
+# ExtNr ExtName           on/off  Species
+0       Base              : on    *
+    --> HEMCO_RESTART     :       true
+    --> AEIC              :       false
+    --> BIOFUEL           :       false
+    --> BOND              :       false
+    --> BRAVO             :       false
+    --> CAC               :       false
+    --> C2H6              :       false
+    --> EDGAR             :       false
+    --> HTAP              :  on   true
+    --> EMEP              :       false 
+    --> GEIA              :       false
+    --> LIANG_BROMOCARB   :       false
+    --> NEI2005           :       false
+    --> NEI2016v1_AR      :  off  false
+    --> NEI2016v1_PT      :  off  false
+    --> NEI2016v1_PTSH    :  off  false
+    --> RETRO             :       false
+    --> SHIP              :       false
+    --> MIX               :       false
+    --> STREETS           :       false
+    --> VOLCANO           :       false
+    --> RCP_3PD           :       false 
+    --> RCP_45            :       false
+    --> RCP_60            :       false
+    --> RCP_85            :       false
+    --> QFED2             :       false
+    --> +UValbedo+        :       false
+    --> +TOMS_SBUV_O3+    :       false
+    --> +LinStratChem+    :       false
+    --> CEDS              :  on   true
+    --> OMI_HTAP_SO2      :  off  false
+    --> Yuan_XLAI         :  off  false
+    --> MODIS_XLAI        :       false
+    --> ACCMIP            :  off  false
+# -----------------------------------------------------------------------------
+100     Custom            : off   - 
+101     SeaFlux           : off   DMS/ACET
+102     ParaNOx           : off   NO/NO2/O3/HNO3
+    --> LUT data format   :       nc
+    --> LUT source dir    :       $ROOT/PARANOX/v2015-02
+103     LightNOx          : off   NO
+    --> OTD-LIS factors   :       true
+    --> CDF table         :       $ROOT/LIGHTNOX/v2014-07/light_dist.ott2010.dat
+104     SoilNOx           : off   NO 
+    --> Use fertilizer NOx:       true
+105     DustDead          : off   DST1/DST2/DST3/DST4 
+106     DustGinoux        : off   DST1/DST2/DST3/DST4
+107     SeaSalt           : off   SALA/SALC/Br2
+    --> SALA lower radius :       0.01 
+    --> SALA upper radius :       0.5
+    --> SALC lower radius :       0.5
+    --> SALC upper radius :       8.0
+    --> Emit Br2          :       true  
+    --> Br2 scaling       :       1.0 
+108     MEGAN             : off   ISOP/ACET/PRPE/C2H4/ALD2/EOH/MOH/MTPA/MTPO/LIMO/SESQ
+    --> Isoprene scaling  :       1.0
+    --> CO2 inhibition    :       true
+    --> CO2 conc (ppmv)   :       411.0
+    --> Isoprene to SOAP  :       0.015
+    --> Isoprene to SOAS  :       0.015
+110     MEGAN_SOA         : off   MTPA/MTPO/LIMO/SESQ
+111     GFED              : off   NO/CO/ALK4/ACET/MEK/ALD2/PRPE/C3H8/CH2O/C2H6/SO2/NH3/BCPO/BCPI/OCPO/OCPI/POA1/NAP
+    --> GFED3             :       false 
+    --> GFED4             :       true
+    --> GFED_daily        :       false
+    --> GFED_3hourly      :       false
+    --> CO scale factor   :       1.05
+    --> POA scale factor  :       1.27
+    --> NAP scale factor  :       2.75e-4
+    --> hydrophilic BC    :       0.2
+    --> hydrophilic OC    :       0.5
+114     FINN              : off   NO/CO/ALK4/ACET/MEK/ALD2/PRPE/C3H8/CH2O/C2H6/SO2/NH3/BCPI/BCPO/OCPI/OCPO/GLYC/HAC
+    --> FINN_daily        :       false
+    --> CO scale factor   :       1.0
+    --> hydrophilic BC    :       0.2
+    --> hydrophilic OC    :       0.5
+
+### END SECTION EXTENSION SWITCHES ###
+
+###############################################################################
+### BEGIN SECTION BASE EMISSIONS 
+###############################################################################
+
+
+# ExtNr	  Name sourceFile      sourceVar sourceTime C/R/E SrcDim SrcUnit Species ScalIDs Cat Hier
+0 UNIFORM 1.0 - * C xy kg/m2/s NO - 1 5
+
+#==============================================================================
+# --- CEDS ---
+#==============================================================================
+(((CEDS
+0 BC_agr $ROOT/CEDS/v2021-06/$YYYY/BC-em-anthro_CMIP_CEDS_$YYYY.nc BC_agr 1994-2020/1-12/1/0 C xy kg/m2/s BC -     1 1
+0 BC_ene $ROOT/CEDS/v2021-06/$YYYY/BC-em-anthro_CMIP_CEDS_$YYYY.nc BC_ene 1994-2020/1-12/1/0 C xy kg/m2/s BC_elev -     1 1
+0 BC_ind $ROOT/CEDS/v2021-06/$YYYY/BC-em-anthro_CMIP_CEDS_$YYYY.nc BC_ind 1994-2020/1-12/1/0 C xy kg/m2/s BC -     1 1
+0 BC_rco $ROOT/CEDS/v2021-06/$YYYY/BC-em-anthro_CMIP_CEDS_$YYYY.nc BC_rco 1994-2020/1-12/1/0 C xy kg/m2/s BC -     1 1
+0 BC_tra $ROOT/CEDS/v2021-06/$YYYY/BC-em-anthro_CMIP_CEDS_$YYYY.nc BC_tra 1994-2020/1-12/1/0 C xy kg/m2/s BC -     1 1
+0 BC_shp $ROOT/CEDS/v2021-06/$YYYY/BC-em-anthro_CMIP_CEDS_$YYYY.nc BC_shp 1994-2020/1-12/1/0 C xy kg/m2/s BC_ship -     1 1
+0 BC_slv $ROOT/CEDS/v2021-06/$YYYY/BC-em-anthro_CMIP_CEDS_$YYYY.nc BC_slv 1994-2020/1-12/1/0 C xy kg/m2/s BC -     1 1
+0 BC_wst $ROOT/CEDS/v2021-06/$YYYY/BC-em-anthro_CMIP_CEDS_$YYYY.nc BC_wst 1994-2020/1-12/1/0 C xy kg/m2/s BC -     1 1
+
+0 OC_agr $ROOT/CEDS/v2021-06/$YYYY/OC-em-anthro_CMIP_CEDS_$YYYY.nc OC_agr 1994-2020/1-12/1/0 C xy kg/m2/s OC -     1 1
+0 OC_ene $ROOT/CEDS/v2021-06/$YYYY/OC-em-anthro_CMIP_CEDS_$YYYY.nc OC_ene 1994-2020/1-12/1/0 C xy kg/m2/s OC_elev -     1 1
+0 OC_ind $ROOT/CEDS/v2021-06/$YYYY/OC-em-anthro_CMIP_CEDS_$YYYY.nc OC_ind 1994-2020/1-12/1/0 C xy kg/m2/s OC -     1 1
+0 OC_rco $ROOT/CEDS/v2021-06/$YYYY/OC-em-anthro_CMIP_CEDS_$YYYY.nc OC_rco 1994-2020/1-12/1/0 C xy kg/m2/s OC -     1 1
+0 OC_tra $ROOT/CEDS/v2021-06/$YYYY/OC-em-anthro_CMIP_CEDS_$YYYY.nc OC_tra 1994-2020/1-12/1/0 C xy kg/m2/s OC -     1 1
+0 OC_shp $ROOT/CEDS/v2021-06/$YYYY/OC-em-anthro_CMIP_CEDS_$YYYY.nc OC_shp 1994-2020/1-12/1/0 C xy kg/m2/s OC_ship -     1 1
+0 OC_slv $ROOT/CEDS/v2021-06/$YYYY/OC-em-anthro_CMIP_CEDS_$YYYY.nc OC_slv 1994-2020/1-12/1/0 C xy kg/m2/s OC -     1 1
+0 OC_wst $ROOT/CEDS/v2021-06/$YYYY/OC-em-anthro_CMIP_CEDS_$YYYY.nc OC_wst 1994-2020/1-12/1/0 C xy kg/m2/s OC -     1 1
+
+0 SO2_agr $ROOT/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_agr 1994-2020/1-12/1/0 C xy kg/m2/s SO2 -     1 1
+0 SO2_ene $ROOT/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_ene 1994-2020/1-12/1/0 C xy kg/m2/s SO2_elev -     1 1
+0 SO2_ind $ROOT/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_ind 1994-2020/1-12/1/0 C xy kg/m2/s SO2 -     1 1
+0 SO2_rco $ROOT/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_rco 1994-2020/1-12/1/0 C xy kg/m2/s SO2 -     1 1
+0 SO2_tra $ROOT/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_tra 1994-2020/1-12/1/0 C xy kg/m2/s SO2 -     1 1
+0 SO2_shp $ROOT/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_shp 1994-2020/1-12/1/0 C xy kg/m2/s SO2_ship -     1 1
+0 SO4_shp $ROOT/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_shp 1994-2020/1-12/1/0 C xy kg/m2/s SO4_ship 199     1 1
+0 SO2_slv $ROOT/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_slv 1994-2020/1-12/1/0 C xy kg/m2/s SO2 -     1 1
+0 SO2_wst $ROOT/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_wst 1994-2020/1-12/1/0 C xy kg/m2/s SO2 -     1 1
+
+# 0 NH3_agr $ROOT/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_agr 1994- 2020/1-12/1/0 C xy kg/m2/s NH3_ag -     1 1
+# 0 NH3_ene $ROOT/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_ene 1994-2020/1-12/1/0 C xy kg/m2/s NH3_en -     1 1
+# 0 NH3_ind $ROOT/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_ind 1994-2020/1-12/1/0 C xy kg/m2/s NH3_in -     1 1
+# 0 NH3_rco $ROOT/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_rco 1994-2020/1-12/1/0 C xy kg/m2/s NH3_re -     1 1
+# 0 NH3_tra $ROOT/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_tra 1994-2020/1-12/1/0 C xy kg/m2/s NH3_tr -     1 1
+# 0 NH3_shp $ROOT/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_shp 1994-2020/1-12/1/0 C xy kg/m2/s NH3_tr -     1 1
+# 0 NH3_slv $ROOT/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_slv 1994-2020/1-12/1/0 C xy kg/m2/s NH3_oc -     1 1
+# 0 NH3_wst $ROOT/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_wst 1994-2020/1-12/1/0 C xy kg/m2/s NH3_oc -     1 1
+)))CEDS
+
+(((HTAP
+0 SO2_lto $ROOT/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_so2.aviation_lto.x3600_y1800_t12.2010.nc4 so2_aviation 1994-2020/1-12/1/0 C xy kg/m2/s SO2_lto - 1 1
+0 SO2_cds $ROOT/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_so2.aviation_lto.x3600_y1800_t12.2010.nc4 so2_aviation 1994-2020/1-12/1/0 C xy kg/m2/s SO2_cds - 1 1
+0 SO2_crs $ROOT/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_so2.aviation_lto.x3600_y1800_t12.2010.nc4 so2_aviation 1994-2020/1-12/1/0 C xy kg/m2/s SO2_crs - 1 1
+0 OC_lto $ROOT/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_oc.aviation_lto.x3600_y1800_t12.2010.nc4 oc_aviation 1994-2020/1-12/1/0 C xy kg/m2/s OC_lto - 1 1
+0 OC_cds $ROOT/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_oc.aviation_lto.x3600_y1800_t12.2010.nc4 oc_aviation 1994-2020/1-12/1/0 C xy kg/m2/s OC_cds - 1 1
+0 OC_crs $ROOT/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_oc.aviation_lto.x3600_y1800_t12.2010.nc4 oc_aviation 1994-2020/1-12/1/0 C xy kg/m2/s OC_crs - 1 1
+0 BC_lto $ROOT/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_bc.aviation_lto.x3600_y1800_t12.2010.nc4 bc_aviation 1994-2020/1-12/1/0 C xy kg/m2/s BC_lto - 1 1
+0 BC_cds $ROOT/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_bc.aviation_lto.x3600_y1800_t12.2010.nc4 bc_aviation 1994-2020/1-12/1/0 C xy kg/m2/s BC_cds - 1 1
+0 BC_crs $ROOT/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_bc.aviation_lto.x3600_y1800_t12.2010.nc4 bc_aviation 1994-2020/1-12/1/0 C xy kg/m2/s BC_crs - 1 1
+)))HTAP
+ 
+###############################################################################
+### NON-EMISSIONS DATA (subsection of BASE EMISSIONS SECTION)
+###
+### Non-emissions data. The following fields are read through HEMCO but do 
+### not contain emissions data. The extension number is set to wildcard 
+### character denoting that these fields will not be considered for emission 
+### calculation. A given entry is only read if the assigned species name is 
+### an HEMCO species.
+###############################################################################
+
+#==============================================================================
+# --- Time zones (offset to UTC) ---
+#==============================================================================
+* TIMEZONES $ROOT/TIMEZONES/v2015-02/timezones_1x1.nc UTC_OFFSET 2000/1/1/0 C xy count * - 1 1
+
+### END SECTION BASE EMISSIONS ###
+
+###############################################################################
+### BEGIN SECTION SCALE FACTORS 
+###############################################################################
+
+# ScalID Name sourceFile sourceVar sourceTime C/R/E SrcDim SrcUnit Oper
+
+# Units carbon to species conversions for MEGANv2.1
+# Factor = # carbon atoms * MW carbon) / MW species
+61 CtoISOP_bio MATH:68.13/(5.0*12.0)   - - - xy unitless 1
+62 CtoMTPA_bio MATH:136.26/(10.0*12.0) - - - xy unitless 1
+64 CtoMBOX_bio MATH:86.13/(5.0*12.0)   - - - xy unitless 1
+
+#==============================================================================
+# --- annual scale factors ---
+#==============================================================================
+1  TOTFUEL_THISYR    $ROOT/AnnualScalar/v2014-07/AnnualScalar.geos.1x1.nc NOxscalar 1985-2010/1/1/0 C xy 1  1
+27 TOTFUEL_2008_2010 $ROOT/AnnualScalar/v2014-07/AnnualScalar.geos.1x1.nc NOxscalar 2008-2010/1/1/0 C xy 1 -1
+
+63 SO2toSO4       0.031 - - - xy unitless 1
+64 SOX2SO4_EU     0.05  - - - xy unitless 1
+65 SO2toSO4_CAC   0.014 - - - xy unitless 1
+199 SO2toSO4_HTAP 0.077 - - - xy unitless 1
+
+#==============================================================================
+# --- diurnal scale factors --- 
+#==============================================================================
+25 EDGAR_TODNOX $ROOT/EDGARv42/v2015-02/NO/EDGAR_hourly_NOxScal.nc NOXscale 2000/1/1/HH C xy unitless 1
+
+#==============================================================================
+# --- seasonal scale factors ---
+#==============================================================================
+
+#==============================================================================
+# Units carbon to species conversions
+# Factor = # carbon atoms * MW carbon) / MW species
+#==============================================================================
+440 CtoACET MATH:58.1/(3.0*12.0)   - - - xy unitless 1
+441 CtoALD2 MATH:44.0/(2.0*12.0)   - - - xy unitless 1
+442 CtoALDX MATH:58.1/(4.3*12.0)   - - - xy unitless 1
+443 CtoBENZ MATH:78.1/(6.0*12.0)   - - - xy unitless 1
+445 CtoETHA MATH:30.1/(2.0*12.0)   - - - xy unitless 1
+446 CtoPRPA MATH:44.1/(3.0*12.0)   - - - xy unitless 1
+447 CtoETOH MATH:46.1/(2.0*12.0)   - - - xy unitless 1
+448 CtoKET  MATH:72.1/(4.0*12.0)   - - - xy unitless 1
+449 CtoTOL  MATH:92.1/(7.0*12.0)   - - - xy unitless 1
+450 CtoXYLMN MATH:106.2/(8.0*12.0)  - - - xy unitless 1
+451 CtoETHY MATH:26.0/(2.0*12.0)   - - - xy unitless 1
+452 CtoISOP MATH:68.1/(5.0*12.0)   - - - xy unitless 1
+453 CtoACROLEIN MATH:56.1/(3.0*12.0)   - - - xy unitless 1
+454 CtoBUTADIENE13 MATH:54.0/(4.0*12.0)   - - - xy unitless 1
+455 CtoTERP MATH:136.2/(5.0*12.0)   - - - xy unitless 1
+456 CtoFORM MATH:30.0/(1.0*12.0)   - - - xy unitless 1
+457 CtoPAR MATH:72.1/(4.0*12.0)   - - - xy unitless 1
+458 CtoIOLE MATH:56.1/(4.0*12.0)   - - - xy unitless 1
+459 CtoOLE MATH:42.1/(2.0*12.0)   - - - xy unitless 1
+460 CtoETH MATH:28.0/(2.0*12.0)   - - - xy unitless 1
+461 CtoMEOH MATH:32.0/(1.0*12.0)   - - - xy unitless 1
+462 CtoNAPH MATH:128.2/(10.0*12.0)   - - - xy unitless 1
+463 CtoALD2_PRIMARY MATH:44.0/(2.0*12.0)   - - - xy unitless 1
+464 CtoFORM_PRIMARY MATH:30.0/(1.0*12.0)   - - - xy unitless 1
+465 CtoSOAALK MATH:112.0/(4.0*12.0)   - - - xy unitless 1
+
+### END SECTION SCALE FACTORS ###
+
+###############################################################################
+### BEGIN SECTION MASKS 
+###############################################################################
+
+# ScalID Name sourceFile sourceVar sourceTime C/R/E SrcDim SrcUnit Oper Lon1/Lat1/Lon2/Lat2
+
+1008  OMI_HTAP_MASK_2019 $ROOT/MASKS/v2018-09/OMI_HTAP_ZEROMASK_2019.nc ZEROMASK 2019/1-12/1/0 C xy unitless 1 -180/-90/180/90
+
+#==============================================================================
+# Country/region masks
+#==============================================================================
+1007 NEI_MASK    $ROOT/MASKS/v2018-09/USA_LANDMASK_NEI2016Beta_0.1x0.1.20160921.corrected.nc LANDMASK 2011/1/1/0 C xy unitless 1 -165/10/-40/90
+
+### END SECTION MASKS ###
+
+### END OF HEMCO INPUT FILE ###
+#EOC

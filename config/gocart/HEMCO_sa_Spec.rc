@@ -1,0 +1,36 @@
+# List species below. For each species, the following entries must be given:
+# ID        : species ID
+# NAME      : species name
+# MW        : molecular weight (g/mol)
+# MWEMIS    : molecular weight of emitted species (g/mol)
+# MOLECRATIO: molecules of emitted species per molecule of species
+# K0        : Henry constant at 298 K (M/atm, liquid over gas)
+# CR        : Henry temperature dependency (-d ln(KH)/d(1/T)
+# pKA       : acid dissociation constant
+
+# ID NAME MW MWEMIS MOLECRATIO K0 CR PKA
+1 SO2  64.1 64.1 1.0 0.0 0.0 0.0
+2 BC   12.0 12.0 1.0 0.0 0.0 0.0
+3 OC   12.0 12.0 1.0 0.0 0.0 0.0
+4 SO2_elev  64.1 64.1 1.0 0.0 0.0 0.0
+5 BC_elev   12.0 12.0 1.0 0.0 0.0 0.0
+6 OC_elev   12.0 12.0 1.0 0.0 0.0 0.0
+7 SO2_ship  64.1 64.1 1.0 0.0 0.0 0.0
+8 SO4_ship 64.1 64.1 1.0 0.0 0.0 0.0
+9 OC_ship   12.0 12.0 1.0 0.0 0.0 0.0
+10 BC_ship   12.0 12.0 1.0 0.0 0.0 0.0
+11 NH3_ag   17.0 17.0 1.0 0.0 0.0 0.0
+12 NH3_tr   17.0 17.0 1.0 0.0 0.0 0.0
+13 NH3_re   17.0 17.0 1.0 0.0 0.0 0.0
+14 NH3_in   17.0 17.0 1.0 0.0 0.0 0.0
+15 NH3_eg   17.0 17.0 1.0 0.0 0.0 0.0
+16 NH3_oc   17.0 17.0 1.0 0.0 0.0 0.0
+17 SO2_lto  64.1 64.1 1.0 0.0 0.0 0.0
+18 SO2_cds  64.1 64.1 1.0 0.0 0.0 0.0
+19 SO2_crs  64.1 64.1 1.0 0.0 0.0 0.0
+20 OC_lto   12.0 12.0 1.0 0.0 0.0 0.0
+21 OC_cds   12.0 12.0 1.0 0.0 0.0 0.0
+22 OC_crs   12.0 12.0 1.0 0.0 0.0 0.0
+23 BC_lto   12.0 12.0 1.0 0.0 0.0 0.0
+24 BC_cds   12.0 12.0 1.0 0.0 0.0 0.0
+25 BC_crs   12.0 12.0 1.0 0.0 0.0 0.0

@@ -1,0 +1,31 @@
+# This file defines the diagnostics to be written
+# out by the HEMCO standalone model
+#
+# Name      Spec ExtNr Cat Hier Dim Unit   
+SO2          SO2     -1    -1  -1   2   kg/m2/s
+OC           OC      -1    -1  -1   2   kg/m2/s
+BC           BC      -1    -1  -1   2   kg/m2/s
+PM25         PM25    -1    -1  -1   2   kg/m2/s
+PM10         PM10    -1    -1  -1   2   kg/m2/s
+SO2_elev     SO2_elev     -1    -1  -1   2   kg/m2/s
+OC_elev      OC_elev      -1    -1  -1   2   kg/m2/s
+BC_ship      OC_ship      -1    -1  -1   2   kg/m2/s
+OC_ship      OC_ship      -1    -1  -1   2   kg/m2/s
+BC_elev      BC_elev      -1    -1  -1   2   kg/m2/s
+SO2_ship     SO2_ship     -1    -1  -1   2   kg/m2/s
+SO4_ship     SO4_ship     -1    -1  -1   2   kg/m2/s
+NH3_ag       NH3_ag     -1    -1  -1   2   kg/m2/s
+NH3_en       NH3_en     -1    -1  -1   2   kg/m2/s
+NH3_in       NH3_in     -1    -1  -1   2   kg/m2/s
+NH3_re       NH3_re     -1    -1  -1   2   kg/m2/s
+NH3_tr       NH3_tr     -1    -1  -1   2   kg/m2/s
+NH3_oc       NH3_oc     -1    -1  -1   2   kg/m2/s
+SO2_lto      SO2_lto     -1    -1  -1   2   kg/m2/s
+SO2_cds      SO2_cds     -1    -1  -1   2   kg/m2/s
+SO2_crs      SO2_crs     -1    -1  -1   2   kg/m2/s
+OC_lto      OC_lto     -1    -1  -1   2   kg/m2/s
+OC_cds      OC_cds     -1    -1  -1   2   kg/m2/s
+OC_crs      OC_crs     -1    -1  -1   2   kg/m2/s
+BC_lto      BC_lto     -1    -1  -1   2   kg/m2/s
+BC_cds      BC_cds     -1    -1  -1   2   kg/m2/s
+BC_crs      BC_crs     -1    -1  -1   2   kg/m2/s
