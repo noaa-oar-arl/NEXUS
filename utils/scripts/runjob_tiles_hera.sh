@@ -37,36 +37,3 @@ for tile in  tile1 tile2 tile3 tile4 tile5 tile6; do
     ./make_nexus_output_pretty.py -s ${output} -g ${grid} -t HEMCO_sa_Time.rc -o ${pretty}
     rm ${output}
 done
-#for year in {1990..2018}; do 
-#    for month in 01 02 03 04 05 06 07 08 09 10 11 12; do
-#	yyyymmdd=$(date -d "${year}${month}01" +"%Y%m%d00")
-#for i in {0..365}; do
-#    yyyymmdd=$(date -d "20210101 + ${i} days" +"%Y%m%d00")
-#    end_yyyymmdd=$(date -d "20210101 + $(expr $i + 1) days" +"%Y%m%d00")
-	
-  #  echo "./nexus_time_parser.py -f HEMCO_sa_Time.rc -s ${yyyymmdd} -m True"
-
-#    ./nexus_time_parser.py -f HEMCO_sa_Time.rc -s ${yyyymmdd} -m True
-
-#    srun -l $binary -c NEXUS_Config.rc
-#done
- # ./nexus_time_parser.py -f HEMCO_sa_Time.rc -s ${yyyymmdd} --monthly=True
-#      #for i in tile1 tile2 tile3 tile4 tile5 tile6; do
-#      #srun -l $binary -c HEMCO_Config.rc # -r C384_grid_spec.${i}.nc  -d 1 -o GEFS.2019${m}01-${exp_name}.${i}.nc
-#      srun -l $binary -c HEMCO_Config.rc
-# #     done
-# # #    rm NEXUS_Diag.nc
-# # #    mv NEXUS_Diag.nc GEFS.2019${m}01-${exp_name}.nc
-#  done
-#done
-
-# #dump to GEFS-Aerosol Binary input data
-# conda activate dev
-
-# for m in 01 02 03 04 05 06 07 08 09 10 11 12; do
-#     rm tile1/*.dat tile2/*.dat tile3/*.dat tile4/*.dat tile5/*.dat tile6/*.dat 
-#     for i in tile1 tile2 tile3 tile4 tile5 tile6; do
-# 	./dump_to_binary.py -f GEFS.2019${m}01-${exp_name}.${i}.nc
-#     done
-# done
-
