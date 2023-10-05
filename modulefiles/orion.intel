@@ -8,25 +8,33 @@ proc ModulesHelp {} {
 
 module-whatis "loads NEXUS prerequisites for Orion/Intel"
 
-## clean up environment ---------------------------------------------------
-module purge
-
-module load contrib noaatools
-
 ## load hpc-stack ---------------------------------------------------------
-module use /apps/contrib/NCEP/libs/hpc-stack/modulefiles/stack
-module load hpc/1.1.0
-module load hpc-intel/2018.4
-module load hpc-impi/2018.4
+module use /work/noaa/epic/role-epic/spack-stack/spack-stack-1.4.1/envs/ufs-pio-2.5.10/install/modulefiles/Core
+module use /work/noaa/da/role-da/spack-stack/modulefiles
+module load stack-intel/2022.0.2
+module load stack-intel-oneapi-mpi/2021.5.1
+module load cmake/3.23.1
+# module load stack-python/3.9.7
+module load miniconda/3.9.7
+##module load hpc/1.1.0
+##module load hpc-intel/2018.4
+##module load hpc-impi/2018.4
 
 ## load esmf / netcdf -----------------------------------------------------
-module load hdf5/1.10.6
-module load netcdf/4.7.4
-module load esmf/8_2_0
+module load jasper/2.0.32
+module load zlib/1.2.13
+module load libpng/1.6.37
+module load hdf5/1.14.0
+module load netcdf-c/4.9.2
+module load netcdf-fortran/4.6.0
+module load esmf/8.4.2
+
 
 ## cmake environment ------------------------------------------------------
-module load cmake/3.18.1
 setenv CMAKE_C_COMPILER mpiicc
 setenv CMAKE_CXX_COMPILER mpiicpc
 setenv CMAKE_Fortran_COMPILER mpiifort
 setenv CMAKE_Platform orion.intel
+
+
+
