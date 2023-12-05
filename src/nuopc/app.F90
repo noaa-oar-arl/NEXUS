@@ -86,7 +86,7 @@ program app
 
   localrc = ESMF_SUCCESS
 
-  if (localPet == 0) then
+  if (localPet == rootPet) then
     do item = 1, size(NEXUS_options, dim=1)
       call ESMF_UtilGetArgIndex(NEXUS_options(item,1), argindex=ind, rc=localrc)
       if (ESMF_LogFoundError(localrc, msg=ESMF_LOGERR_PASSTHRU, &
@@ -118,16 +118,17 @@ program app
         end select
       end if
     end do
-  end if
 
-  call print_sep(char="=")
-  print "(a)", description
-  call print_sep()
-  print "('ConfigFile = ', a)", trim(ConfigFile)
-  print "('ReGridFile = ', a)", trim(ReGridFile)
-  print "('debugLevel = ', i0)", debugLevel
-  print "('OutputFile = ', a)", trim(OutputFile)
-  call print_sep()
+    call print_sep(char="=")
+    print "(a)", description
+    call print_sep()
+
+    print "('ConfigFile = ', a)", trim(ConfigFile)
+    print "('ReGridFile = ', a)", trim(ReGridFile)
+    print "('debugLevel = ', i0)", debugLevel
+    print "('OutputFile = ', a)", trim(OutputFile)
+    call print_sep()
+  end if
 
   ibuf(1) = localrc
   ibuf(2) = debugLevel
