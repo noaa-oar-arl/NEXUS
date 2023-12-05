@@ -6,7 +6,7 @@ program app
 
   use ESMF
 
-  use nexus_cap, only: init_cap => init
+  use nexus_cap, only: init_cap => init, finalize_cap => finalize
   use nexus_driver, only: driverSS => SetServices
 
   implicit none
@@ -212,11 +212,15 @@ program app
 
   !-----------------------------------------------------------------------------
 
-  call ESMF_LogWrite("app FINISHED", ESMF_LOGMSG_INFO, rc=rc)
+  call ESMF_LogWrite("NEXUS run finished", ESMF_LOGMSG_INFO, rc=rc)
+
+  call finalize_cap(rc=rc)
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
     line=__LINE__, &
     file=__FILE__)) &
     call ESMF_Finalize(endflag=ESMF_END_ABORT)
+
+  call ESMF_LogWrite("NEXUS finalized", ESMF_LOGMSG_INFO)
 
   ! Finalize ESMF
   call ESMF_Finalize()

@@ -78,7 +78,7 @@ module nexus_cap
   private
 
   public SetServices, &
-    init, &
+    init, finalize, &
     T_YY, T_MM, T_DD, T_H, T_M, T_S, HcoState
 
 contains
