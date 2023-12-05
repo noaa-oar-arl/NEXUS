@@ -18,7 +18,7 @@ module nexus_cap
 
   implicit none
 
-  ! TOOD: cap object with pointers that can be retrieved with ESMF_GridCompGetInternalState?
+  ! TODO: cap object with pointers that can be retrieved with ESMF_GridCompGetInternalState?
 
   ! Default values for HEMCO input files: contain definitions of
   ! species, grid, and time settings, etc.
@@ -969,7 +969,7 @@ contains
 
     ! ------------------------------------------------------------------
     ! Extract grid size (x,y,z)
-    ! The grid sizes are expected to be provided in three separte lines:
+    ! The grid sizes are expected to be provided in three separate lines:
     ! NX: 360
     ! NY: 180
     ! NZ: 1
