@@ -685,6 +685,130 @@ contains
 
   end subroutine init
 
+  subroutine finalize( rc )
+
+    use HCO_Driver_Mod,  only : HCO_Final
+    use HCOX_Driver_Mod, only : HCOX_Final
+    use HCO_State_Mod,   only : HcoState_Final
+    use HCO_Diagn_Mod,   only : DiagnBundle_Cleanup
+
+    integer, optional, intent(out) :: rc
+
+    ! -- local variables
+    integer :: localrc
+    logical :: isCreated
+
+    ! -- begin
+    if (present(rc)) rc = ESMF_SUCCESS
+
+    ! Cleanup HCO core
+    call HCO_FINAL( HcoState, .FALSE., localrc )
+    if (nxs_error_log(localrc, msg='Error encountered in routine "HCO_Final"!', &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
+    ! Cleanup extensions and ExtState object
+    ! This will also nullify all pointer to the met fields.
+    call HCOX_FINAL( HcoState, HcoExtState, localrc )
+    if (nxs_error_log(localrc, msg='Error encountered in routine "HCOX_Final"!', &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
+    ! Cleanup diagnostics (skip if dry-run)
+    call DiagnBundle_Cleanup( HcoState%Diagn )
+
+    ! Deallocate module arrays/pointers
+    if ( allocated( XMID    ) ) deallocate ( XMID    )
+    if ( allocated( YMID    ) ) deallocate ( YMID    )
+    if ( allocated( XEDGE   ) ) deallocate ( XEDGE   )
+    if ( allocated( YEDGE   ) ) deallocate ( YEDGE   )
+    if ( allocated( YSIN    ) ) deallocate ( YSIN    )
+    if ( allocated( AREA_M2 ) ) deallocate ( AREA_M2 )
+    if ( allocated( PBL_M   ) ) deallocate ( PBL_M   )
+
+    ! Cleanup HcoState object
+    call HcoState_Final( HcoState )
+
+    ! Cleanup NEXUS
+    isCreated = ESMF_GridIsCreated(HCO_Grid, rc=localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
+    if (isCreated) then
+      call ESMF_GridDestroy(HCO_Grid, rc=localrc)
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__,  &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+    end if
+
+    isCreated = ESMF_GridIsCreated(NXS_Grid, rc=localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
+    if (isCreated) then
+      call ESMF_GridDestroy(NXS_Grid, rc=localrc)
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__,  &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+    end if
+
+    isCreated = ESMF_RouteHandleIsCreated(NXS_RouteHandle, rc=localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
+    if (isCreated) then
+      call ESMF_FieldRegridRelease(NXS_RouteHandle, rc=localrc)
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__,  &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+    end if
+
+    isCreated = ESMF_StateIsCreated(NXS_Diag_State, rc=localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
+    if (isCreated) then
+      call nxs_state_finalize(NXS_Diag_State, rc=localrc)
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__,  &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+      call ESMF_StateDestroy(NXS_Diag_State, rc=localrc)
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__,  &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+    end if
+
+    isCreated = ESMF_StateIsCreated(NXS_Expt_State, rc=localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
+    if (isCreated) then
+      call nxs_state_finalize(NXS_Expt_State, rc=localrc)
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__,  &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+      call ESMF_StateDestroy(NXS_Expt_State, rc=localrc)
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__,  &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+    end if
+
+  end subroutine finalize
+
   !-----------------------------------------------------------------------------
   ! Selected HEMCO standalone routines
   ! (Copied here from nexus_methods_mod since they are private in
@@ -2843,6 +2967,65 @@ contains
       rcToReturn=rc)) return  ! bail out
 
   end subroutine nxs_state_write
+
+  subroutine nxs_state_finalize( state, rc )
+    type(ESMF_State)               :: state
+    integer, optional, intent(out) :: rc
+
+    ! -- local variables
+    integer :: localrc
+    integer :: item, itemCount
+    integer :: stat
+    type(ESMF_Field) :: field
+    character(len=ESMF_MAXSTR), allocatable :: itemNameList(:)
+    type(ESMF_StateItem_Flag),  allocatable :: itemTypeList(:)
+
+    ! -- begin
+    if (present(rc)) rc = ESMF_SUCCESS
+
+    call ESMF_StateGet( state, itemCount=itemCount, rc=localrc )
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
+
+    allocate(itemNameList(itemCount), itemTypeList(itemCount), stat=stat)
+    if (ESMF_LogFoundAllocError(statusToCheck=stat, &
+      msg="Unable to allocate memory", &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
+
+    call ESMF_StateGet( state, itemNameList=itemNameList, &
+      itemTypeList=itemTypeList, rc=localrc )
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
+
+    do item = 1, itemCount
+      if (itemTypeList(item) == ESMF_STATEITEM_FIELD) then
+        call ESMF_StateGet( state, itemNameList(item), field, rc=localrc )
+        if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+          line=__LINE__,  &
+          file=__FILE__,  &
+          rcToReturn=rc)) return  ! bail out
+        call ESMF_FieldDestroy( field, rc=localrc )
+        if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+          line=__LINE__,  &
+          file=__FILE__,  &
+          rcToReturn=rc)) return  ! bail out
+      end if
+    end do
+
+    deallocate(itemNameList, itemTypeList, stat=stat)
+    if (ESMF_LogFoundDeallocError(statusToCheck=stat, &
+      msg="Unable to deallocate memory", &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
+
+  end subroutine nxs_state_finalize
 
   !> If `rcToCheck` is not `HCO_SUCCESS`, log error message with ESMF
   !> and return.
