@@ -39,7 +39,7 @@ program app
 
   integer :: rc, localrc, userRc
   integer, parameter :: rootPet = 0
-  integer :: localPet
+  integer :: localPet, petCount
   integer :: idx, ind, item
   integer :: debugLevel
   integer :: ibuf(2)
@@ -73,6 +73,12 @@ program app
     call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
   call ESMF_VMGet(vm, localPet=localPet, rc=rc)
+  if (ESMF_LogFoundError(rc, msg=ESMF_LOGERR_PASSTHRU, &
+    line=__LINE__,  &
+    file=__FILE__)) &
+    call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
+
+  call ESMF_VMGet(vm, petCount=petCount, rc=rc)
   if (ESMF_LogFoundError(rc, msg=ESMF_LOGERR_PASSTHRU, &
     line=__LINE__,  &
     file=__FILE__)) &
@@ -127,6 +133,7 @@ program app
     print "('ReGridFile = ', a)", trim(ReGridFile)
     print "('debugLevel = ', i0)", debugLevel
     print "('OutputFile = ', a)", trim(OutputFile)
+    print "('petCount   = ', i0)", petCount
     call print_sep()
   end if
 
