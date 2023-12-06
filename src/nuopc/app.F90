@@ -119,7 +119,7 @@ program app
           debugLevel = 1
          case ("h")
           print "(a)", usage
-          return
+          stop
          case default
         end select
       end if
