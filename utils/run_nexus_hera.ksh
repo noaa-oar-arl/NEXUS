@@ -1,4 +1,7 @@
-#!/bin/ksh -x
+#!/bin/bash
+
+set -x
+
 #SBATCH -A gsd-fv3-dev
 #SBATCH -q debug
 #SBATCH -n 1
