@@ -687,6 +687,7 @@ contains
 
   subroutine finalize( rc )
 
+    use HCO_Clock_Mod,   only : HcoClock_Increase
     use HCO_Driver_Mod,  only : HCO_Final
     use HCOX_Driver_Mod, only : HCOX_Final
     use HCO_State_Mod,   only : HcoState_Final
@@ -700,6 +701,13 @@ contains
 
     ! -- begin
     if (present(rc)) rc = ESMF_SUCCESS
+
+    ! Advance HEMCO clock to last timestamp
+    call HcoClock_Increase ( HcoState, HcoState%TS_EMIS, .TRUE., RC=localrc )
+    if (nxs_error_log(localrc, msg='Error encountered in routine "HcoClock_Increase"!', &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
 
     ! Cleanup HCO core
     call HCO_FINAL( HcoState, .FALSE., localrc )
