@@ -581,6 +581,7 @@ contains
   subroutine Finalize( rc )
 
     use HCO_Driver_Mod,  only : HCO_Final
+    USE HCOIO_DIAGN_MOD, only : HcoDiagn_Write
     use HCOX_Driver_Mod, only : HCOX_Final
     use HCO_State_Mod,   only : HcoState_Final
 
@@ -592,6 +593,14 @@ contains
 
     ! -- begin
     if (present(rc)) rc = ESMF_SUCCESS
+
+    if (do_NEXUS .and. alwaysWriteRestartFile) then
+      call HcoDiagn_Write( HcoState, .TRUE.,  localrc )
+      if (NEXUS_Error_Log(localrc, msg='Error encountered in routine "HcoDiagn_Write"!', &
+         line=__LINE__, &
+         file=__FILE__, &
+         rcToReturn=rc)) return
+    end if
 
     ! Cleanup HCO core
     call HCO_FINAL( HcoState, .FALSE., localrc )
