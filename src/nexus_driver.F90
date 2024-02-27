@@ -14,6 +14,7 @@ program NEXUS_driver
       "--regrid-to  ", "r:           ", &
       "-d           ", "d            ", &
       "--debug      ", "d            ", &
+      "--wr         ", "wr           ", &
       "-o           ", "o:           ", &
       "--output     ", "o:           "  &
     /), (/ 9, 2 /), order=(/ 2, 1 /))
@@ -23,6 +24,7 @@ program NEXUS_driver
   integer :: localPet
   integer :: idx, ind, item
   integer :: debugLevel
+  logical :: writeRestart
   integer :: ibuf(2)
   character(ESMF_MAXSTR) :: ConfigFile
   character(ESMF_MAXSTR) :: ReGridFile
@@ -60,6 +62,7 @@ program NEXUS_driver
   OutputFile = ""
 
   debugLevel = 0
+  writeRestart = .false.
 
   localrc = ESMF_SUCCESS
 
@@ -88,6 +91,8 @@ program NEXUS_driver
             OutputFile = optarg
           case ("d")
             debugLevel = 1
+          case ("wr")
+            writeRestart = .true.
           case ("h")
           case default
         end select
@@ -124,7 +129,7 @@ program NEXUS_driver
   ! ----------------------------------------------------------------------------
   !   Initialize NEXUS
   ! ----------------------------------------------------------------------------
-  call NEXUS_Initialize( ConfigFile, ReGridFile, OutputFile, debugLevel, rc=rc )
+  call NEXUS_Initialize( ConfigFile, ReGridFile, OutputFile, debugLevel, writeRestart, rc=rc )
   if (ESMF_LogFoundError(rc, msg=ESMF_LOGERR_PASSTHRU, &
     line=__LINE__,  &
     file=__FILE__)) &
