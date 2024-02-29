@@ -22,6 +22,7 @@ module NEXUS_Methods_Mod
   logical :: do_Regrid = .false.
   logical :: do_Debug  = .false.
   logical :: do_NEXUS  = .false.
+  logical :: alwaysWriteRestartFile = .false.
 
 
   ! Default values for HEMCO input files: contain definitions of
@@ -96,7 +97,7 @@ module NEXUS_Methods_Mod
 
 contains
 
-  subroutine Init( ConfigFile, ReGridFile, OutputFile, debugLevel, rc )
+  subroutine Init( ConfigFile, ReGridFile, OutputFile, debugLevel, writeRestart, rc )
 
     use HCO_Config_Mod,    only : Config_ReadFile
     use HCO_State_Mod,     only : HcoState_Init
@@ -108,6 +109,7 @@ contains
     character(len=*),  intent(in)  :: ReGridFile
     character(len=*),  intent(in)  :: OutputFile
     integer,           intent(in)  :: debugLevel
+    logical,           intent(in)  :: writeRestart
     integer, optional, intent(out) :: rc
 
     ! -- local variables
@@ -140,6 +142,7 @@ contains
     do_Regrid = (len_trim(ReGridFile) > 0)
     do_Debug  = (debugLevel > 0)
     do_NEXUS  = (do_Debug .or. do_Regrid)
+    alwaysWriteRestartFile = writeRestart
 
     if (len_trim(OutputFile) > 0) ExptFile = OutputFile
 
@@ -578,6 +581,7 @@ contains
   subroutine Finalize( rc )
 
     use HCO_Driver_Mod,  only : HCO_Final
+    USE HCOIO_DIAGN_MOD, only : HcoDiagn_Write
     use HCOX_Driver_Mod, only : HCOX_Final
     use HCO_State_Mod,   only : HcoState_Final
 
@@ -589,6 +593,14 @@ contains
 
     ! -- begin
     if (present(rc)) rc = ESMF_SUCCESS
+
+    if (do_NEXUS .and. alwaysWriteRestartFile) then
+      call HcoDiagn_Write( HcoState, .TRUE.,  localrc )
+      if (NEXUS_Error_Log(localrc, msg='Error encountered in routine "HcoDiagn_Write"!', &
+         line=__LINE__, &
+         file=__FILE__, &
+         rcToReturn=rc)) return
+    end if
 
     ! Cleanup HCO core
     call HCO_FINAL( HcoState, .FALSE., localrc )
