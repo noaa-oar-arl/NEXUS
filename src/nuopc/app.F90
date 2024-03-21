@@ -233,6 +233,8 @@ program app
   ! Finalize ESMF
   call ESMF_Finalize()
 
+  print "('NEXUS: ', a)", "Done"
+
 contains
 
   !> By default, 60 hyphens.

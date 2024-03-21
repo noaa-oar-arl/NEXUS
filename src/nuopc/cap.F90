@@ -161,7 +161,7 @@ contains
       long_name = trim(thisDiagn % long_name)
       units = trim(thisDiagn % OutUnit)
 
-      print "('Advertising ''', a, ''' (long_name=''', a, ''', units=''', a, ''')')", &
+      print "('NEXUS: Advertising ''', a, ''' (long_name=''', a, ''', units=''', a, ''')')", &
         name, long_name, units
 
       ! Add to field dictionary
@@ -246,7 +246,7 @@ contains
         file=__FILE__,  &
         rcToReturn=rc)) return  ! bail out
 
-      print "('Realizing ''', a, '''')", trim(itemNameList(item))
+      print "('NEXUS: Realizing ''', a, '''')", trim(itemNameList(item))
       call NUOPC_Realize(exportState, field=field, rc=localrc)
       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
         line=__LINE__, &
@@ -294,7 +294,7 @@ contains
     ! Get some Clock info
     call ESMF_ClockGet(clock, advanceCount=advanceCount, currTime=time)
 
-    print "('ESMF Clock advanceCount: ', i0)", advanceCount
+    print "('NEXUS: ESMF Clock advanceCount: ', i0)", advanceCount
     timeSlice = advanceCount + 1
 
     ! Because of the way that the internal Clock was set by default,
@@ -340,7 +340,7 @@ contains
       "('Calculate emissions at ', i0.4, '-', i0.2, '-', i0.2, ' ', i2.2, ':', i0.2, ':', i0.2)") &
       yy, mm, dd, h, m, s
     call ESMF_LogWrite(msg)
-    print "(a)", trim(msg)
+    print "('NEXUS: ', a)", trim(msg)
 
     ! ================================================================
     ! Reset all emission and deposition values
@@ -523,8 +523,8 @@ contains
     if (len_trim(OutputFile) > 0) ExptFile = OutputFile
 
     if ( am_I_Root ) then
-      if ( do_Debug  ) print "(a)", 'Writing debug emissions to: '//trim(DiagFile)
-      if ( do_Regrid ) print "(a)", 'Writing regridded emissions to: '//trim(ExptFile)
+      if ( do_Debug  ) print "('NEXUS: ', a)", 'Writing debug emissions to: '//trim(DiagFile)
+      if ( do_Regrid ) print "('NEXUS: ', a)", 'Writing regridded emissions to: '//trim(ExptFile)
     end if
 
     !=======================================================================
@@ -2562,7 +2562,7 @@ contains
     ! -- begin
     if (present(rc)) rc = ESMF_SUCCESS
 
-    print "('Input grid nc fn:', x, a)", trim(filename)
+    print "('NEXUS: Input grid nc fn:', x, a)", trim(filename)
     ncerr = nf90_open(fileName, NF90_NOWRITE, ncid)
     if (ESMF_LogFoundNetCDFError(ncerrToCheck=ncerr, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__,  &
@@ -2685,7 +2685,7 @@ contains
       rcToReturn=rc)) return
 
     do while (flag == HCO_SUCCESS)
-      print "('Initializing Diag variable ''', a, '''')", trim(thisDiagn%cName)
+      print "('NEXUS: Initializing Diag variable ''', a, '''')", trim(thisDiagn%cName)
       select case ( thisDiagn % spaceDim )
        case (2)
         field = ESMF_FieldCreate( HcoGrid, ESMF_TYPEKIND_R4, &
@@ -2829,7 +2829,7 @@ contains
       rcToReturn=rc)) return  ! bail out
 
     do item = 1, itemCount
-      print "('Initializing Expt variable ''', a, '''')", trim(itemNameList(item))
+      print "('NEXUS: Initializing Expt variable ''', a, '''')", trim(itemNameList(item))
       if (itemTypeList(item) == ESMF_STATEITEM_FIELD) then
         call ESMF_StateGet( importState, itemNameList(item), srcfield, rc=localrc )
         if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
