@@ -122,30 +122,72 @@ contains
   end subroutine
 
   subroutine Advertise(model, rc)
+    use HCO_TYPES_MOD, only: DiagnCont
+    use HCO_Diagn_Mod, only: Diagn_Get
+
     type(ESMF_GridComp)  :: model
     integer, intent(out) :: rc
 
     ! Local variables
     type(ESMF_State) :: importState, exportState
+    integer :: localrc
+    integer :: flag
+    logical :: EOI
+    type(DiagnCont), pointer :: thisDiagn
 
     rc = ESMF_SUCCESS
 
     ! Query for importState and exportState
     call NUOPC_ModelGet(model, importState=importState, &
-      exportState=exportState, rc=rc)
+    exportState=exportState, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
+    line=__LINE__, &
+    file=__FILE__)) &
+    return  ! bail out
 
-    ! TODO: advertise NEXUS output variables
-    ! exportable field
-    call NUOPC_Advertise(exportState, &
-      StandardName="the_best_variable_of_all", name="best", rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+    ! Advertise NEXUS output variables
+    EOI = .false.
+    nullify(thisDiagn)
+    call Diagn_Get(HcoState, EOI, thisDiagn, flag, localrc)
+    if (nxs_error_log(localrc, msg='Error encountered in routine "Diagn_Get!"', &
       line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
+    do while (flag == HCO_SUCCESS)
+
+      print "('Advertising ''', a, '''')", trim(thisDiagn % cName)
+      print "('  - long_name: ''', a, '''')", trim(thisDiagn % long_name)
+      print "('  - units: ''', a, '''')", trim(thisDiagn % OutUnit)
+
+      ! Add to field dictionary
+      call NUOPC_FieldDictionaryAddEntry(trim(thisDiagn % long_name), &
+        trim(thisDiagn % OutUnit), &
+        rc=rc)
+      if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__, &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+
+      ! Advertise field
+      call NUOPC_Advertise(exportState, &
+        name = trim(thisDiagn % cName), &
+        StandardName = trim(thisDiagn % long_name), &
+        LongName = trim(thisDiagn % long_name), &
+        Units = trim(thisDiagn % OutUnit), &
+        rc=rc)
+      if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__, &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+
+      ! Next
+      call Diagn_Get(HcoState, EOI, thisDiagn, flag, localrc)
+      if (nxs_error_log(localrc, msg='Error encountered in routine "Diagn_Get!"', &
+        line=__LINE__, &
+        file=__FILE__, &
+        rcToReturn=rc)) return
+    end do
 
   end subroutine
 
@@ -183,18 +225,18 @@ contains
       return  ! bail out
     gridOut = gridIn ! for now out same as in
 
-    ! Exportable field
-    field = ESMF_FieldCreate(name="best", grid=gridOut, &
-      typekind=ESMF_TYPEKIND_R8, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
-    call NUOPC_Realize(exportState, field=field, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
+    ! ! Exportable field
+    ! field = ESMF_FieldCreate(name="best", grid=gridOut, &
+    !   typekind=ESMF_TYPEKIND_R8, rc=rc)
+    ! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+    !   line=__LINE__, &
+    !   file=__FILE__)) &
+    !   return  ! bail out
+    ! call NUOPC_Realize(exportState, field=field, rc=rc)
+    ! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+    !   line=__LINE__, &
+    !   file=__FILE__)) &
+    !   return  ! bail out
 
   end subroutine
 
