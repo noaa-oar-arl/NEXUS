@@ -134,6 +134,7 @@ contains
     integer :: flag
     logical :: EOI
     type(DiagnCont), pointer :: thisDiagn
+    character(len=:), allocatable :: name, long_name, units
 
     rc = ESMF_SUCCESS
 
@@ -156,14 +157,16 @@ contains
 
     do while (flag == HCO_SUCCESS)
 
-      print "('Advertising ''', a, '''')", trim(thisDiagn % cName)
-      print "('  - long_name: ''', a, '''')", trim(thisDiagn % long_name)
-      print "('  - units: ''', a, '''')", trim(thisDiagn % OutUnit)
+      name = trim(thisDiagn % cName)
+      long_name = trim(thisDiagn % long_name)
+      units = trim(thisDiagn % OutUnit)
+
+      print "('Advertising ''', a, '''')", name
+      print "('  - long_name: ''', a, '''')", long_name
+      print "('  - units: ''', a, '''')", units
 
       ! Add to field dictionary
-      call NUOPC_FieldDictionaryAddEntry(trim(thisDiagn % long_name), &
-        trim(thisDiagn % OutUnit), &
-        rc=rc)
+      call NUOPC_FieldDictionaryAddEntry(long_name, units, rc=rc)
       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
         line=__LINE__, &
         file=__FILE__,  &
@@ -171,10 +174,10 @@ contains
 
       ! Advertise field
       call NUOPC_Advertise(exportState, &
-        name = trim(thisDiagn % cName), &
-        StandardName = trim(thisDiagn % long_name), &
-        LongName = trim(thisDiagn % long_name), &
-        Units = trim(thisDiagn % OutUnit), &
+        name = name, &
+        StandardName = long_name, &
+        LongName = long_name, &
+        Units = units, &
         rc=rc)
       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
         line=__LINE__, &
