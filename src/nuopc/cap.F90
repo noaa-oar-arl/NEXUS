@@ -161,9 +161,8 @@ contains
       long_name = trim(thisDiagn % long_name)
       units = trim(thisDiagn % OutUnit)
 
-      print "('Advertising ''', a, '''')", name
-      print "('  - long_name: ''', a, '''')", long_name
-      print "('  - units: ''', a, '''')", units
+      print "('Advertising ''', a, ''' (long_name=''', a, ''', units=''', a, ''')')", &
+        name, long_name, units
 
       ! Add to field dictionary
       call NUOPC_FieldDictionaryAddEntry(long_name, units, rc=rc)
