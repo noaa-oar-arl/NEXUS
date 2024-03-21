@@ -12,7 +12,7 @@ or
 ```
 git clone -b develop --recurse-submodules git@github.com:noaa-oar-arl/NEXUS.git
 ```
-(Replace `noaa-oar-arl` with your fork if desired.)
+(Replace `noaa-oar-arl/NEXUS` with your fork if desired.)
 
 
 ### Setup
