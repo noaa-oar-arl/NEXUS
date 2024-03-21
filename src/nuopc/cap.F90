@@ -53,6 +53,8 @@ module nexus_cap
   !! True if `debugLevel` passed to `init` is greater than zero.
   logical :: do_NEXUS  = .false.
   !! True if either `do_Regrid` or `do_Debug` is true.
+  logical :: alwaysWriteRestartFile = .false.
+  !! Even in NEXUS mode (`do_NEXUS`)
 
   ! Start and end time of simulation
   integer :: T_YY(2), T_MM(2), T_DD(2)
@@ -140,11 +142,11 @@ contains
 
     ! Query for importState and exportState
     call NUOPC_ModelGet(model, importState=importState, &
-    exportState=exportState, rc=rc)
+      exportState=exportState, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-    line=__LINE__, &
-    file=__FILE__)) &
-    return  ! bail out
+      line=__LINE__, &
+      file=__FILE__)) &
+      return  ! bail out
 
     ! Advertise NEXUS output variables
     EOI = .false.
@@ -476,7 +478,7 @@ contains
 
   !> Cap initialization
   !> (read HEMCO config, initialize HEMCO state, create grid objects, etc.)
-  subroutine init(ConfigFile, ReGridFile, OutputFile, debugLevel, rc)
+  subroutine init(ConfigFile, ReGridFile, OutputFile, debugLevel, writeRestart, rc)
     use HCO_Config_Mod,  only: Config_ReadFile
     use HCO_Driver_Mod,  only: HCO_Init
     use HCO_EXTLIST_Mod, only: GetExtOpt, CoreNr
@@ -489,6 +491,7 @@ contains
     character(len=*),  intent(in)  :: ReGridFile
     character(len=*),  intent(in)  :: OutputFile
     integer,           intent(in)  :: debugLevel
+    logical,           intent(in)  :: writeRestart
     integer, optional, intent(out) :: rc
 
     integer :: localrc
@@ -519,6 +522,7 @@ contains
     do_Regrid = (len_trim(ReGridFile) > 0)
     do_Debug  = (debugLevel > 0)
     do_NEXUS  = (do_Debug .or. do_Regrid)
+    alwaysWriteRestartFile = writeRestart
 
     if (len_trim(OutputFile) > 0) ExptFile = OutputFile
 
@@ -750,6 +754,7 @@ contains
     use HCO_Driver_Mod,  only : HCO_Final
     use HCOX_Driver_Mod, only : HCOX_Final
     use HCO_State_Mod,   only : HcoState_Final
+    use HCOIO_DIAGN_MOD, only : HcoDiagn_Write
     use HCO_Diagn_Mod,   only : DiagnBundle_Cleanup
 
     integer, optional, intent(out) :: rc
@@ -767,6 +772,14 @@ contains
       line=__LINE__, &
       file=__FILE__, &
       rcToReturn=rc)) return
+
+    if (do_NEXUS .and. alwaysWriteRestartFile) then
+      call HcoDiagn_Write( HcoState, .TRUE.,  localrc )
+      if (nxs_error_log(localrc, msg='Error encountered in routine "HcoDiagn_Write"!', &
+        line=__LINE__, &
+        file=__FILE__, &
+        rcToReturn=rc)) return
+    end if
 
     ! Cleanup HCO core
     call HCO_FINAL( HcoState, .FALSE., localrc )
