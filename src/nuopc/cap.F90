@@ -201,8 +201,11 @@ contains
     ! Local variables
     type(ESMF_State)        :: importState, exportState
     type(ESMF_Field)        :: field
-    type(ESMF_Grid)         :: gridIn
-    type(ESMF_Grid)         :: gridOut
+    ! type(ESMF_Grid)         :: gridIn
+    ! type(ESMF_Grid)         :: gridOut
+    integer :: item, itemCount, localrc, stat
+    character(len=ESMF_MAXSTR), allocatable :: itemNameList(:)
+    type(ESMF_StateItem_Flag),  allocatable :: itemTypeList(:)
 
     rc = ESMF_SUCCESS
 
@@ -214,32 +217,44 @@ contains
       file=__FILE__)) &
       return  ! bail out
 
-    ! TODO: use the real grids/states
+    ! Note: grids and fields were already created as part of the `init` routine
+    call ESMF_StateGet(exportState, itemCount=itemCount, rc=localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
 
-    ! Create a Grid object for Fields
-    gridIn = ESMF_GridCreateNoPeriDimUfrm(maxIndex=(/10, 100/), &
-      minCornerCoord=(/10._ESMF_KIND_R8, 20._ESMF_KIND_R8/), &
-      maxCornerCoord=(/100._ESMF_KIND_R8, 200._ESMF_KIND_R8/), &
-      coordSys=ESMF_COORDSYS_CART, staggerLocList=(/ESMF_STAGGERLOC_CENTER/), &
-      rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
-    gridOut = gridIn ! for now out same as in
+    allocate(itemNameList(itemCount), itemTypeList(itemCount), stat=stat)
+    if (ESMF_LogFoundAllocError(statusToCheck=stat, &
+      msg="Unable to allocate memory", &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
 
-    ! ! Exportable field
-    ! field = ESMF_FieldCreate(name="best", grid=gridOut, &
-    !   typekind=ESMF_TYPEKIND_R8, rc=rc)
-    ! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-    !   line=__LINE__, &
-    !   file=__FILE__)) &
-    !   return  ! bail out
-    ! call NUOPC_Realize(exportState, field=field, rc=rc)
-    ! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-    !   line=__LINE__, &
-    !   file=__FILE__)) &
-    !   return  ! bail out
+    call ESMF_StateGet(exportState, itemNameList=itemNameList, &
+      itemTypeList=itemTypeList, rc=localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
+
+    do item = 1, itemCount
+      if (itemTypeList(item) /= ESMF_STATEITEM_FIELD) cycle
+
+      call ESMF_StateGet(exportState, itemNameList(item), field, rc=localrc)
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__,  &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+
+      print "('Realizing ''', a, '''')", trim(itemNameList(item))
+      call NUOPC_Realize(exportState, field=field, rc=localrc)
+      if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__, &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+
+    end do
 
   end subroutine
 
