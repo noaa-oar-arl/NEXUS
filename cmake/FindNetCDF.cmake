@@ -7,7 +7,7 @@
 # does it submit to any jurisdiction.
 #
 # Try to find NetCDF includes and library.
-# Supports static and shared libaries and allows each component to be found in sepearte prefixes.
+# Supports static and shared libraries and allows each component to be found in separate prefixes.
 #
 # This module defines
 #

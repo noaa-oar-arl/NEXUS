@@ -331,7 +331,7 @@ contains
     end if
 
 !   if (do_Debug) then
-!     call GridWrite( HCO_Grid, DiagFile, rc=localrc ) 
+!     call GridWrite( HCO_Grid, DiagFile, rc=localrc )
 !     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
 !        line=__LINE__,  &
 !        file=__FILE__,  &
@@ -344,20 +344,20 @@ contains
          line=__LINE__,  &
          file=__FILE__,  &
          rcToReturn=rc)) return  ! bail out
-  
+
       NXS_Expt_State = ESMF_StateCreate( rc=localrc )
       if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
          line=__LINE__,  &
          file=__FILE__,  &
          rcToReturn=rc)) return  ! bail out
-  
-      call NXS_ExptState_Init( NXS_Grid, NXS_Diag_State, NXS_Expt_State, rc=localrc ) 
+
+      call NXS_ExptState_Init( NXS_Grid, NXS_Diag_State, NXS_Expt_State, rc=localrc )
       if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
          line=__LINE__,  &
          file=__FILE__,  &
          rcToReturn=rc)) return  ! bail out
 
-!     call GridWrite( NXS_Grid, ExptFile, rc=localrc ) 
+!     call GridWrite( NXS_Grid, ExptFile, rc=localrc )
 !     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
 !        line=__LINE__,  &
 !        file=__FILE__,  &
@@ -546,12 +546,12 @@ contains
          !=================================================================
          ! Update NEXUS Export state
          !=================================================================
-         call NXS_ExptState_Update( NXS_Diag_State, NXS_Expt_State, rc=localrc ) 
+         call NXS_ExptState_Update( NXS_Diag_State, NXS_Expt_State, rc=localrc )
          if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
             line=__LINE__,  &
             file=__FILE__,  &
             rcToReturn=rc)) return  ! bail out
-  
+
          !=================================================================
          ! Write NEXUS Export state
          !=================================================================
@@ -1123,7 +1123,7 @@ contains
 
     ! ------------------------------------------------------------------
     ! Extract grid size (x,y,z)
-    ! The grid sizes are expected to be provided in three separte lines:
+    ! The grid sizes are expected to be provided in three separate lines:
     ! NX: 360
     ! NY: 180
     ! NZ: 1
@@ -2926,7 +2926,7 @@ contains
          file=__FILE__,  &
          rcToReturn=rc)) return  ! bail out
 
-    else  
+    else
 
       grid = ESMF_GridCreateNoPeriDim( &
                maxIndex = (/ HcoState % NX, HcoState % NY /), &
@@ -3143,7 +3143,7 @@ contains
          rcToReturn=rc)) return  ! bail out
     end do
 
-   
+
     grid = ESMF_GridCreateNoPeriDim( &
              maxIndex = dimLengths,  &
              coordSys = ESMF_COORDSYS_SPH_DEG, &
@@ -3209,13 +3209,13 @@ contains
        line=__LINE__,  &
        file=__FILE__,  &
        rcToReturn=rc)) return  ! bail out
-    
+
     ncerr = nf90_close(ncid)
     if (ESMF_LogFoundNetCDFError(ncerrToCheck=ncerr, msg=ESMF_LOGERR_PASSTHRU, &
        line=__LINE__,  &
        file=__FILE__,  &
        rcToReturn=rc)) return  ! bail out
-   
+
   end function GridCreate_GridSpec
 
   subroutine GridWrite( grid, fileName, rc )
@@ -3246,7 +3246,7 @@ contains
          file=__FILE__,  &
          rcToReturn=rc)) return  ! bail out
     end do
-   
+
   end subroutine GridWrite
 
   subroutine NXS_DiagState_Init( HcoGrid, HcoState, DiagState, rc )
@@ -3273,7 +3273,7 @@ contains
       file=__FILE__, &
       rcToReturn=rc)) return
 
-    do while (flag == HCO_SUCCESS) 
+    do while (flag == HCO_SUCCESS)
       select case ( thisDiagn % spaceDim )
         case (2)
           field = ESMF_FieldCreate( HcoGrid, ESMF_TYPEKIND_R4, &
@@ -3311,7 +3311,7 @@ contains
        line=__LINE__,  &
        file=__FILE__,  &
        rcToReturn=rc)) return  ! bail out
-    
+
   end subroutine NXS_DiagState_Init
 
   subroutine NXS_DiagState_Update( HcoState, DiagState, rc )
@@ -3392,7 +3392,7 @@ contains
 
     ! -- begin
     if (present(rc)) rc = ESMF_SUCCESS
-    
+
     call ESMF_StateGet( importState, itemCount=itemCount, rc=localrc )
     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
        line=__LINE__,  &
@@ -3405,7 +3405,7 @@ contains
       line=__LINE__,  &
       file=__FILE__,  &
       rcToReturn=rc)) return  ! bail out
-    
+
     call ESMF_StateGet( importState, itemNameList=itemNameList, &
       itemTypeList=itemTypeList, rc=localrc )
     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
@@ -3477,13 +3477,13 @@ contains
       line=__LINE__,  &
       file=__FILE__,  &
       rcToReturn=rc)) return  ! bail out
-    
+
     call ESMF_StateReconcile( exportState, rc=localrc )
     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
        line=__LINE__,  &
        file=__FILE__,  &
        rcToReturn=rc)) return  ! bail out
-    
+
   end subroutine NXS_ExptState_Init
 
   subroutine NXS_ExptState_Update( importState, exportState, rc )
@@ -3503,7 +3503,7 @@ contains
 
     ! -- begin
     if (present(rc)) rc = ESMF_SUCCESS
-    
+
     call ESMF_StateGet( importState, itemCount=itemCount, rc=localrc )
     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
        line=__LINE__,  &
@@ -3516,7 +3516,7 @@ contains
       line=__LINE__,  &
       file=__FILE__,  &
       rcToReturn=rc)) return  ! bail out
-    
+
     call ESMF_StateGet( importState, itemNameList=itemNameList, &
       itemTypeList=itemTypeList, rc=localrc )
     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
@@ -3553,7 +3553,7 @@ contains
       line=__LINE__,  &
       file=__FILE__,  &
       rcToReturn=rc)) return  ! bail out
-    
+
   end subroutine NXS_ExptState_Update
 
   subroutine StateWrite( state, fileName, timeSlice, rc )
@@ -3572,7 +3572,7 @@ contains
 
     ! -- begin
     if (present(rc)) rc = ESMF_SUCCESS
-    
+
     call ESMF_StateGet( state, itemCount=itemCount, rc=localrc )
     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
        line=__LINE__,  &
@@ -3585,7 +3585,7 @@ contains
       line=__LINE__,  &
       file=__FILE__,  &
       rcToReturn=rc)) return  ! bail out
-    
+
     call ESMF_StateGet( state, itemNameList=itemNameList, &
       itemTypeList=itemTypeList, rc=localrc )
     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
@@ -3615,7 +3615,7 @@ contains
       line=__LINE__,  &
       file=__FILE__,  &
       rcToReturn=rc)) return  ! bail out
-    
+
   end subroutine StateWrite
 
 
@@ -3633,7 +3633,7 @@ contains
 
     ! -- begin
     if (present(rc)) rc = ESMF_SUCCESS
-    
+
     call ESMF_StateGet( state, itemCount=itemCount, rc=localrc )
     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
        line=__LINE__,  &
@@ -3646,7 +3646,7 @@ contains
       line=__LINE__,  &
       file=__FILE__,  &
       rcToReturn=rc)) return  ! bail out
-    
+
 
     call ESMF_StateGet( state, itemNameList=itemNameList, &
       itemTypeList=itemTypeList, rc=localrc )
@@ -3676,7 +3676,7 @@ contains
       line=__LINE__,  &
       file=__FILE__,  &
       rcToReturn=rc)) return  ! bail out
-    
+
   end subroutine StateFinalize
 
 end module NEXUS_Methods_Mod
