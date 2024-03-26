@@ -124,6 +124,7 @@ M2_DATA_VAR_INFO = {
 
 M2_DATA_VAR_OLD_TO_NEW = {d["gfs_name"]: k for k, d in M2_DATA_VAR_INFO.items()}
 
+# fmt: off
 # https://github.com/NCAR/ccpp-physics/blob/c348f3e363f066c2c513b0449690859d3104bac8/physics/set_soilveg.f#L258
 DRYSMC = [
     None,  # for vtype 0
@@ -143,6 +144,7 @@ MAXSMC = [
     0.395, 0.000, 0.000, 0.000, 0.000, 0.000,
     0.000, 0.000, 0.000, 0.000, 0.000, 0.000,
 ]
+# fmt: on
 
 
 def main(i_fps, o_fp):
@@ -271,8 +273,7 @@ def main(i_fps, o_fp):
     ds_new = nc.Dataset(o_fp, "w", format="NETCDF4")
     ds_new.title = "Biogenic inputs from GFS for NEXUS/HEMCO"
     ds_new.history = (
-        "NOAA GFS data reformatted to fit the COARDS conventions "
-        "and be used in NEXUS/HEMCO"
+        "NOAA GFS data reformatted to fit the COARDS conventions and be used in NEXUS/HEMCO"
     )
     for k, v in M2_DS_ATTRS.items():
         ds_new.setncattr(k, v)

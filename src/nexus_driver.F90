@@ -8,7 +8,7 @@ program NEXUS_driver
   character(len=*), parameter :: NEXUS_options(9,2) = reshape( &
     (/ &
       "-c           ", "c:           ", &
-      "--config     ", "c:           ", & 
+      "--config     ", "c:           ", &
       "--config-file", "c:           ", &
       "-r           ", "r:           ", &
       "--regrid-to  ", "r:           ", &
@@ -158,5 +158,5 @@ program NEXUS_driver
   call ESMF_LogWrite("NEXUS Driver ends", ESMF_LOGMSG_INFO)
 
   call ESMF_Finalize()
-  
+
 end program NEXUS_driver

@@ -83,7 +83,6 @@ def main(ifp, ofp, *, compress=True):
     import numpy as np
     from netCDF4 import Dataset
 
-
     print(" ------------------------------------- ")
     print(" PROGRAM: combine_ant_bio.py")
     print(" Starting...")
@@ -178,7 +177,9 @@ def parse_args(argv=None):
     )
     parser.add_argument("INPUT", type=Path, help="Input file path.")
     parser.add_argument("OUTPUT", type=Path, help="Output file path.")
-    parser.add_argument("--compress", action="store_true", help="Whether to apply compression for the variables.")
+    parser.add_argument(
+        "--compress", action="store_true", help="Whether to apply compression for the variables."
+    )
     parser.add_argument("--no-compress", action="store_false", dest="compress")
     parser.set_defaults(compress=True)
 
