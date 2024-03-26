@@ -87,10 +87,10 @@ def find_day_in_iso_week(target_date, dates, files):
     dweek = target_date.isocalendar()[1]
     days_of_week = []
     if dweek in iso_week:
-        indexs = find_indexes(iso_week, dweek)
-        days_of_week = [dow[i] for i in indexs]
-        dates_of_week = [dates[i] for i in indexs]  # noqa: F841
-        files_of_week = [files[i] for i in indexs]
+        indexes = find_indexes(iso_week, dweek)
+        days_of_week = [dow[i] for i in indexes]
+        dates_of_week = [dates[i] for i in indexes]  # noqa: F841
+        files_of_week = [files[i] for i in indexes]
     if target_date.isoweekday() in days_of_week:
         index = days_of_week.index(target_date.isoweekday())
         return files_of_week[index]
@@ -99,13 +99,13 @@ def find_day_in_iso_week(target_date, dates, files):
             dweek -= 1
         else:
             dweek += 1
-        indexs = find_indexes(iso_week, dweek)
-        if len(indexs) == 0:
+        indexes = find_indexes(iso_week, dweek)
+        if len(indexes) == 0:
             # return closest available week
-            indexs = [find_closest_index(iso_week, dweek)]
-        days_of_week = [dow[i] for i in indexs]
-        dates_of_week = [dates[i] for i in indexs]  # noqa: F841
-        files_of_week = [files[i] for i in indexs]
+            indexes = [find_closest_index(iso_week, dweek)]
+        days_of_week = [dow[i] for i in indexes]
+        dates_of_week = [dates[i] for i in indexes]  # noqa: F841
+        files_of_week = [files[i] for i in indexes]
         if target_date.isoweekday() in days_of_week:
             index = days_of_week.index(target_date.isoweekday())
             return files_of_week[index]
@@ -134,7 +134,7 @@ def get_closest_file(target_date, dates, files):
         return find_day_in_iso_week(target_date, dates, files)
     elif nfiles_per_month == 7:
         print("ONLY ONE WEEK")
-        # daily files are availbale for a single month
+        # daily files are available for a single month
         files_in_month, iwd_in_month = get_files_in_month(files, dates, target_date)
         index = iwd_in_month.index(target_date.isoweekday())
         return files_in_month[index]

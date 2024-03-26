@@ -1123,7 +1123,7 @@ contains
 
     ! ------------------------------------------------------------------
     ! Extract grid size (x,y,z)
-    ! The grid sizes are expected to be provided in three separte lines:
+    ! The grid sizes are expected to be provided in three separate lines:
     ! NX: 360
     ! NY: 180
     ! NZ: 1
