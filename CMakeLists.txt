@@ -30,8 +30,21 @@ if(CMAKE_BUILD_TYPE)
   string(TOUPPER ${CMAKE_BUILD_TYPE} UPPER_CMAKE_BUILD_TYPE)
 endif()
 
+# Note HEMCO only support GNU and Intel
+message(STATUS "CMAKE_Fortran_COMPILER_ID: ${CMAKE_Fortran_COMPILER_ID}")
 if(UPPER_CMAKE_BUILD_TYPE STREQUAL "DEBUG")
-  set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} -ftrapuv -check all")
+  if(CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
+    set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} -ftrapuv -check all")
+  elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
+    set(CMAKE_Fortran_FLAGS_DEBUG
+      "${CMAKE_Fortran_FLAGS_DEBUG} \
+-ffpe-trap=invalid,zero,overflow -finit-real=snan \
+-fcheck=all"
+    )
+  endif()
+  message(STATUS "CMAKE_Fortran_FLAGS_DEBUG: ${CMAKE_Fortran_FLAGS_DEBUG}")
+else()
+  message(STATUS "CMAKE_Fortran_FLAGS: ${CMAKE_Fortran_FLAGS}")
 endif()
 
 # add project's subdirectories
