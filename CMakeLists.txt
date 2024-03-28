@@ -38,8 +38,12 @@ if(UPPER_CMAKE_BUILD_TYPE STREQUAL "DEBUG")
   elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
     set(CMAKE_Fortran_FLAGS_DEBUG
       "${CMAKE_Fortran_FLAGS_DEBUG} \
+-O0 \
+-fbacktrace \
 -ffpe-trap=invalid,zero,overflow -finit-real=snan \
--fcheck=all"
+-fcheck=all \
+-Wall -Wextra -Wconversion-extra -Warray-temporaries -Wcharacter-truncation \
+"
     )
   endif()
   message(STATUS "CMAKE_Fortran_FLAGS_DEBUG: ${CMAKE_Fortran_FLAGS_DEBUG}")
