@@ -45,6 +45,10 @@ if(UPPER_CMAKE_BUILD_TYPE STREQUAL "DEBUG")
   message(STATUS "CMAKE_Fortran_FLAGS_DEBUG: ${CMAKE_Fortran_FLAGS_DEBUG}")
 endif()
 
+if(CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
+  string(APPEND CMAKE_Fortran_FLAGS " -diag-disable=10448")
+endif()
+
 # add project's subdirectories
 add_subdirectory(HEMCO)
 add_subdirectory(src)
