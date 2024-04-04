@@ -10,6 +10,7 @@ DEFAULT_TIME_FILE_PATH = Path("./HEMCO_sa_Time.rc")
 
 def get_hemco_dates(time_file=DEFAULT_TIME_FILE_PATH):
     import datetime as dt
+
     import numpy as np
 
     print(time_file.as_posix())
@@ -19,7 +20,7 @@ def get_hemco_dates(time_file=DEFAULT_TIME_FILE_PATH):
         return dt.datetime.strptime(f"{s_date} {s_time}", r"%Y-%m-%d %H:%M:%S")
 
     start = end = ts_emis = None
-    with open(time_file, "r") as f:
+    with open(time_file) as f:
         for line in f:
             line = line.strip()
             if line.startswith("START:"):
@@ -62,7 +63,7 @@ def main(s_fp, g_fp, t_fp, o_fp):
     ds = nc.Dataset(o_fp, "w", format="NETCDF4")
     x_dim = ds.createDimension("x", ds_g["grid_xt"].size)
     y_dim = ds.createDimension("y", ds_g["grid_yt"].size)
-    time_dim = ds.createDimension("time", None)
+    _ = ds.createDimension("time", None)
     ds.title = "NEXUS Generated Emission Data"
 
     # Add coordinates
