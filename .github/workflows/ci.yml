@@ -53,8 +53,8 @@ jobs:
           esmf_base=$HOME/esmf
 
           export ESMF_DIR=${esmf_base}/${v}-gcc-${gcc}
-          cd $esmf_base
           mkdir -p $ESMF_DIR
+          cd $esmf_base
           wget https://github.com/esmf-org/esmf/archive/refs/tags/v${v}.tar.gz
           tar xzvf v${v}.tar.gz --directory=/tmp && mv /tmp/esmf-${v}/* $ESMF_DIR
 
