@@ -24,11 +24,8 @@ jobs:
           color: true
           path: spack
 
-      - name: Find compilers
-        run: spack compiler find --mixed-toolchain
-
       - name: Install dependencies
-        run: spack install --no-check-signature esmf
+        run: spack install --no-check-signature esmf@8.4%gcc@13
 
       - name: Configure
         run: cmake -S . -B build
