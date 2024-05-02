@@ -131,7 +131,7 @@ jobs:
           cd $ESMF_DIR
           make -j lib
 
-          echo "ESMFMKFILE=${ESMF_DIR}/lib/libO/Linux.gfortran.64.mpi.default/esmf.mk" >> "$GITHUB_ENV"
+          echo "ESMFMKFILE=${ESMF_DIR}/lib/libO/Linux.gfortran.64.mpiuni.default/esmf.mk" >> "$GITHUB_ENV"
 
       - name: Configure
         run: cmake -S . -B build
