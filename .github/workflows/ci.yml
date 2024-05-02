@@ -78,7 +78,7 @@ jobs:
           export ESMF_CXXLINKER=/usr/bin/ld
 
           cd $ESMF_DIR
-          make lib
+          make -j lib
 
           echo "ESMFMKFILE=${ESMF_DIR}/lib/libO/Linux.gfortran.64.mpi.default/esmf.mk" >> "$GITHUB_ENV"
 
