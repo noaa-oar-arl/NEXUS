@@ -10,7 +10,7 @@ set(CMAKE_Fortran_COMPILER $ENV{CMAKE_Fortran_COMPILER})
 
 # Set the project name and version
 project(NEXUS
-        VERSION 0.1.0
+        VERSION 0.2.0
         LANGUAGES Fortran)
 
 # Include local macros
