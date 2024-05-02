@@ -6,7 +6,7 @@ program app
 
   use ESMF
 
-  use nexus_cap, only: init_cap => init, finalize_cap => finalize
+  use nexus_cap, only: init_cap => nxs_init, finalize_cap => nxs_finalize
   use nexus_driver, only: driverSS => SetServices
 
   implicit none

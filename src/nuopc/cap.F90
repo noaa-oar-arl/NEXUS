@@ -80,7 +80,7 @@ module nexus_cap
   private
 
   public SetServices, &
-    init, finalize, &
+    nxs_init, nxs_finalize, &
     T_YY, T_MM, T_DD, T_H, T_M, T_S, &
     HcoState
 
@@ -477,9 +477,9 @@ contains
   !-----------------------------------------------------------------------------
   ! Cap routines
 
-  !> Cap initialization
+  !> NEXUS initialization
   !> (read HEMCO config, initialize HEMCO state, create grid objects, etc.)
-  subroutine init(ConfigFile, ReGridFile, OutputFile, debugLevel, writeRestart, rc)
+  subroutine nxs_init(ConfigFile, ReGridFile, OutputFile, debugLevel, writeRestart, rc)
     use HCO_Config_Mod,  only: Config_ReadFile
     use HCO_Driver_Mod,  only: HCO_Init
     use HCO_EXTLIST_Mod, only: GetExtOpt, CoreNr
@@ -747,9 +747,11 @@ contains
       end if
     end if
 
-  end subroutine init
+  end subroutine nxs_init
 
-  subroutine finalize( rc )
+  !> NEXUS finalization
+  !> (write last restart file, clean up HEMCO and grid objects, etc.)
+  subroutine nxs_finalize( rc )
 
     use HCO_Clock_Mod,   only : HcoClock_Increase
     use HCO_Driver_Mod,  only : HCO_Final
@@ -888,7 +890,7 @@ contains
         rcToReturn=rc)) return  ! bail out
     end if
 
-  end subroutine finalize
+  end subroutine nxs_finalize
 
   !-----------------------------------------------------------------------------
   ! Selected HEMCO standalone routines
