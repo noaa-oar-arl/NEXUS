@@ -12,7 +12,6 @@ target_include_directories(NEXUS_Shared
 )
 
 # find external libraries
-find_package(MPI REQUIRED)
 find_package(ESMF REQUIRED)
 find_package(NetCDF REQUIRED COMPONENTS Fortran)
 
