@@ -32,7 +32,6 @@ jobs:
 
       - name: Configure
         run: |
-          spack load gcc@13
           spack load esmf@8.4%gcc@13
 
           spack load --list
