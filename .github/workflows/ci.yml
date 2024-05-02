@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-with-spack-packages:
+    name: Build (Spack)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Set up Spack
+        uses: spack/setup-spack@v2
+        with:
+          ref: releases/v0.21
+          buildcache: true
+          color: true
+          path: spack
+
+      - name: Install dependencies
+        run: spack install esmf
+
+      - name: Configure
+        run: cmake -S . -B build
+
+      - name: Build
+        run: cmake --build build
+
+  build-with-apt-packages:
+    name: Build (APT)
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Install dependencies
+        run: sudo apt-get install -y libnetcdf-dev libnetcdff-dev
+          liblapack-dev libopenblas-dev mpi-default-dev mpi-default-bin
+
+      - name: Build ESMF
+        run: |
+          v="8.3.1"  # ESMF
+          gcc="12"
+          esmf_base=$HOME/esmf
+
+          export ESMF_DIR=${esmf_base}/${v}-gcc-${gcc}
+          cd $esmf_base
+          mkdir -p $ESMF_DIR
+          wget https://github.com/esmf-org/esmf/archive/refs/tags/v${v}.tar.gz
+          tar xzvf v${v}.tar.gz --directory=/tmp && mv /tmp/esmf-${v}/* $ESMF_DIR
+
+          export ESMF_COMPILER=gfortran
+          export ESMF_LAPACK=netlib
+          export ESMF_COMM=mpi
+          export ESMF_PIO=internal
+          export ESMF_NETCDF=nc-config
+
+          export OMPI_FC=gfortran-${gcc}
+          export OMPI_CC=gcc-${gcc}
+          export OMPI_CXX=g++-${gcc}
+          export ESMF_F90COMPILER=mpifort
+          export ESMF_CCOMPILER=mpicc
+          export ESMF_CXXCOMPILER=mpic++
+          export ESMF_F90LINKER=/usr/bin/ld
+          export ESMF_CLINKER=/usr/bin/ld
+          export ESMF_CXXLINKER=/usr/bin/ld
+
+          cd $ESMF_DIR
+          make lib
+
+          export ESMFMKFILE=${ESMF_DIR}/lib/libO/Linux.gfortran.64.mpi.default/esmf.mk
+
+      - name: Configure
+        run: cmake -S . -B build
+
+      - name: Build
+        run: cmake --build build
