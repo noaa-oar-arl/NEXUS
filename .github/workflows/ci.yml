@@ -9,7 +9,7 @@ on:
 jobs:
   build-with-spack-packages:
     name: Build (Spack)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out
         uses: actions/checkout@v4
