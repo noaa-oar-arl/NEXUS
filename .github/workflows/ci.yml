@@ -37,7 +37,7 @@ jobs:
 
           spack load --list
 
-          cmake -S . -B build
+          FC=gfortran-13 cmake -S . -B build
 
       - name: Build
         run: cmake --build build
@@ -89,7 +89,7 @@ jobs:
           echo "ESMFMKFILE=${ESMF_DIR}/lib/libO/Linux.gfortran.64.mpi.default/esmf.mk" >> "$GITHUB_ENV"
 
       - name: Configure
-        run: cmake -S . -B build
+        run: FC=gfortran-12 cmake -S . -B build
 
       - name: Build
         run: cmake --build build
@@ -137,7 +137,7 @@ jobs:
           echo "ESMFMKFILE=${ESMF_DIR}/lib/libO/Linux.gfortran.64.mpiuni.default/esmf.mk" >> "$GITHUB_ENV"
 
       - name: Configure
-        run: cmake -S . -B build
+        run: FC=gfortran-12 cmake -S . -B build
 
       - name: Build
         run: cmake --build build
