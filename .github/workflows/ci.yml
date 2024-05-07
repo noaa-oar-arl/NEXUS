@@ -164,8 +164,8 @@ jobs:
 
           export ESMF_DIR=${esmf_base}/${esmf}
           mkdir -p $ESMF_DIR
-          cd $esmf_base
-          wget https://github.com/zmoon/gha-esmf/releases/download/v0.0.4/${esmf}.tar.gz
+          cd $ESMF_DIR
+          wget https://github.com/zmoon/gha-esmf/releases/download/v0.0.5/${esmf}.tar.gz
           tar xzvf ${esmf}.tar.gz
 
           echo "ESMFMKFILE=${ESMF_DIR}/lib/libO/Linux.gfortran.64.mpiuni.default/esmf.mk" >> "$GITHUB_ENV"
