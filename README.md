@@ -12,7 +12,7 @@ or
 ```
 git clone -b develop --recurse-submodules git@github.com:noaa-oar-arl/NEXUS.git
 ```
-(Replace `noaa-oar-arl` with your fork if desired.)
+(Replace `noaa-oar-arl/NEXUS` with your fork if desired.)
 
 To install the pre-commit hooks, first [install `pre-commit`](https://pre-commit.com/#install),
 e.g. to your Conda environment.
@@ -41,12 +41,8 @@ Input data:
 
 #### GMU Hopper
 
-##### hpc-stack feat. GCC v10 ([somewhat WIP](https://github.com/noaa-oar-arl/ufs-srweather-app/pull/6))
-
 ```
-module reset
-module load hpc-stack/1.2.0
-module load netcdf-fortran/4.5.3-4p
+. /groups/ESS3/zmoon/nexus/env5
 ```
 
 Input data:

@@ -1,21 +1,21 @@
-# check environment
+# Check environment
 cmake_minimum_required(VERSION 3.5)
 
-# set the project name and version
+# Set the project name and version
 project(NEXUS
-        VERSION 0.1.0
+        VERSION 0.2.0
         LANGUAGES Fortran)
 
-# include local macros
+# Include local macros
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-# control where the static and shared libraries are built so that on windows
-# we don't need to tinker with the path to run the executable
+# Control where the static and shared libraries are built
+# so that on Windows we don't need to tinker with the path to run the executable
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 
-# do not build HEMCO standalone
+# Do not build HEMCO standalone executable
 set(HEMCO_EXTERNAL_CONFIG TRUE)
 set(GCCLASSIC_WRAPPER TRUE)
 
@@ -42,6 +42,6 @@ if(CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
   string(APPEND CMAKE_Fortran_FLAGS " -diag-disable=10448")
 endif()
 
-# add project's subdirectories
+# Add project's subdirectories
 add_subdirectory(HEMCO)
 add_subdirectory(src)
