@@ -1,13 +1,6 @@
 # Check environment
 cmake_minimum_required(VERSION 3.5)
 
-# Set compiler
-if(NOT DEFINED ENV{CMAKE_Fortran_COMPILER})
-  message(FATAL_ERROR "CMAKE_Fortran_COMPILER is not defined")
-endif()
-
-set(CMAKE_Fortran_COMPILER $ENV{CMAKE_Fortran_COMPILER})
-
 # Set the project name and version
 project(NEXUS
         VERSION 0.2.0
@@ -29,9 +22,24 @@ set(GCCLASSIC_WRAPPER TRUE)
 if(CMAKE_BUILD_TYPE)
   string(TOUPPER ${CMAKE_BUILD_TYPE} UPPER_CMAKE_BUILD_TYPE)
 endif()
+message(STATUS "CMAKE_BUILD_TYPE: '${UPPER_CMAKE_BUILD_TYPE}'")
 
 if(UPPER_CMAKE_BUILD_TYPE STREQUAL "DEBUG")
-  set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} -ftrapuv -check all")
+  # HEMCO already sets `-ftrapuv` for Intel and similar options for GNU
+  # https://github.com/geoschem/HEMCO/blob/main/CMakeLists.txt
+  # and its options get applied to NEXUS as well.
+  # Note HEMCO only support GNU and Intel.
+  if(CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
+    set(EXTRA_FLAGS "-check all")
+  elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
+    set(EXTRA_FLAGS "-fcheck=all")
+  endif()
+  set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} ${EXTRA_FLAGS}")
+  message(STATUS "CMAKE_Fortran_FLAGS_DEBUG: ${CMAKE_Fortran_FLAGS_DEBUG}")
+endif()
+
+if(CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
+  string(APPEND CMAKE_Fortran_FLAGS " -diag-disable=10448")
 endif()
 
 # Add project's subdirectories

@@ -14,6 +14,12 @@ git clone -b develop --recurse-submodules git@github.com:noaa-oar-arl/NEXUS.git
 ```
 (Replace `noaa-oar-arl/NEXUS` with your fork if desired.)
 
+To install the pre-commit hooks, first [install `pre-commit`](https://pre-commit.com/#install),
+e.g. to your Conda environment.
+Then, run
+```
+pre-commit install --install-hooks
+```
 
 ### Setup
 

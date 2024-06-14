@@ -80,10 +80,7 @@ def main(ifp, ofp):
         print(f"WARNING: there are one or more time gaps (min dt is {dt_min})")
         inds = np.where(dt != dt_min)[0]
         for i in inds:
-            print(
-                f"- time {i} ({dt_fmt(time[i])}) to {i+1} ({dt_fmt(time[i+1])})"
-                f" has dt {dt[i]}"
-            )
+            print(f"- time {i} ({dt_fmt(time[i])}) to {i+1} ({dt_fmt(time[i+1])}) has dt {dt[i]}")
 
     dst = nc4.Dataset(ofp, "w", format="NETCDF4")
     dst.title = "NEXUS output for AQM"
