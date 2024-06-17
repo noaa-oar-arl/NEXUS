@@ -11,7 +11,6 @@ target_include_directories(NEXUS_Shared
   INTERFACE ${HEMCO_BINARY_DIR}/mod
 )
 
-find_package(MPI REQUIRED)
 find_package(ESMF REQUIRED)
 find_package(NetCDF REQUIRED COMPONENTS Fortran)
 
