@@ -78,7 +78,7 @@ if __name__ == "__main__":
         "--src_dir",
         help=(
             "Source Directory to Emission files "
-            "e.g., /scratch1/RDARCH/rda-arl-gpu/Barry.Baker/emissions/nexus/ on Hera."
+            "e.g., /scratch1/RDARCH/rda-arl-gpu/Barry.Baker/emissions/nexus on Hera."
         ),
         type=str,
         required=True,
@@ -99,8 +99,14 @@ if __name__ == "__main__":
         "-t",
         "--read_hemco_time",
         help="Read HEMCO time file",
+        action="store_true",
         default=True,
         required=False,
+    )
+    parser.add_argument(
+        "--no_read_hemco_time",
+        action="store_false",
+        dest="read_hemco_time",
     )
     parser.add_argument(
         "-tf",
@@ -118,8 +124,8 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    src_dir = args.src_dir
-    work_dir = args.work_dir
+    src_dir = args.src_dir.rstrip("/")
+    work_dir = args.work_dir.rstrip("/")
     version = args.nei_version
 
     if args.read_hemco_time:
@@ -136,6 +142,7 @@ if __name__ == "__main__":
         raise SystemExit(2)
 
     file_map = get_file_map(src_dir, version)
+    print("file map size:", len(file_map))
     if not file_map:
         print(f"error: no files found in {src_dir} for version {version!r}")
         raise SystemExit(1)
@@ -145,7 +152,7 @@ if __name__ == "__main__":
         mo = d.month
         iwd = d.isoweekday()
 
-        print(f"date: {d}, month: {mo}, iwd: {iwd}")
+        print(f"date: {d}, month: {mo}, isoweekday: {iwd}")
         src = file_map.get((mo, iwd))
         if src is None:
             print(f"error: no file found for month {mo}, iwd {iwd}")
@@ -159,6 +166,7 @@ if __name__ == "__main__":
             os.path.dirname(os.path.relpath(src_fp, src_dir)),
             tgt_fn,
         )
+        os.makedirs(os.path.dirname(tgt_fp), exist_ok=True)
 
         print("linking", src_fp, "to", tgt_fp)
         link_file(src_fp, tgt_fp)
