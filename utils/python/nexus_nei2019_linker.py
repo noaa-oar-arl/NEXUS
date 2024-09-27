@@ -11,7 +11,14 @@ if __name__ == "__main__":
         formatter_class=ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
-        "-s", "--src_dir", help="Source Directory to Emission files", type=str, required=True
+        "-s",
+        "--src_dir",
+        help=(
+            "Source Directory to Emission files "
+            "e.g., /scratch1/RDARCH/rda-arl-gpu/Barry.Baker/emissions/nexus/NEMO on Hera."
+        ),
+        type=str,
+        required=True,
     )
     parser.add_argument("-d", "--date", help="date for file: format %Y-%m-%d", required=False)
     parser.add_argument("-w", "--work_dir", help="work directory in the workflow", required=True)
@@ -26,7 +33,7 @@ if __name__ == "__main__":
         required=False,
     )
     parser.add_argument(
-        "-v", "--nei_version", help="NEI VERSION", default="v2020-07", required=False
+        "-v", "--nei_version", help="NEI VERSION", default="v2023-03", required=False
     )
     args = parser.parse_args()
 
@@ -46,7 +53,7 @@ if __name__ == "__main__":
     for d in dates:
         month = d.strftime("%m")
 
-        all_files = glob(f"{src_dir}/NEI2016v1/{version}/{month}/*.nc")
+        all_files = glob(f"{src_dir}/NEI2019/{version}/{month}/*.nc")
         sectors = sorted(list({os.path.basename(i)[27:][:-3] for i in all_files}))
         print(sectors)
         for i in sectors:
@@ -54,10 +61,10 @@ if __name__ == "__main__":
             if (i == "ptfire") | (i == "ptagfire"):
                 pass
             else:
-                files = get_nei2016_files(
+                files = get_nei2019_files(
                     src_dir=src_dir, current_month=month, sector=i, version=version
                 )
-                dates = get_nei2016_dates(files)
+                dates = get_nei2019_dates(files)
                 fname = get_closest_file(d, dates, files)
                 target_name = create_target_name(work_dir, fname, month, d, version=version)
                 print(fname, target_name)
