@@ -152,7 +152,7 @@ if __name__ == "__main__":
         mo = d.month
         iwd = d.isoweekday()
 
-        print(f"date: {d}, month: {mo}, isoweekday: {iwd}")
+        print(f"date: {d.strftime('%Y-%m-%d')}, month: {mo}, isoweekday: {iwd}")
         src = file_map.get((mo, iwd))
         if src is None:
             print(f"error: no file found for month {mo}, iwd {iwd}")
