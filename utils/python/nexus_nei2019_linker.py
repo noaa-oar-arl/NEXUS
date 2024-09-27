@@ -7,7 +7,7 @@ if __name__ == "__main__":
     from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 
     parser = ArgumentParser(
-        description="Modify the start and end date of the NEXUS config script",
+        description="Link NEI2019 files to the work directory",
         formatter_class=ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
@@ -54,19 +54,12 @@ if __name__ == "__main__":
         month = d.strftime("%m")
 
         all_files = glob(f"{src_dir}/NEI2019/{version}/{month}/*.nc")
-        sectors = sorted(list({os.path.basename(i)[27:][:-3] for i in all_files}))
-        print(sectors)
-        for i in sectors:
-            print(i, month, src_dir)
-            if (i == "ptfire") | (i == "ptagfire"):
-                pass
-            else:
-                files = get_nei2019_files(
-                    src_dir=src_dir, current_month=month, sector=i, version=version
-                )
-                dates = get_nei2019_dates(files)
-                fname = get_closest_file(d, dates, files)
-                target_name = create_target_name(work_dir, fname, month, d, version=version)
-                print(fname, target_name)
-                link_file(fname, target_name)
+
+        print(d, month)
+        files = get_nei2019_files(src_dir=src_dir, current_month=month, version=version)
+        dates = get_nei2019_dates(files)
+        fname = get_closest_file(d, dates, files)
+        target_name = create_target_name(work_dir, fname, month, d, version=version)
+        print(fname, target_name)
+        link_file(fname, target_name)
 
