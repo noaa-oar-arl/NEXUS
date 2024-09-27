@@ -20,7 +20,7 @@ if __name__ == "__main__":
         type=str,
         required=True,
     )
-    parser.add_argument("-d", "--date", help="date for file: format %Y-%m-%d", required=False)
+    parser.add_argument("-d", "--date", help=r"date for file: format %Y-%m-%d", required=False)
     parser.add_argument("-w", "--work_dir", help="work directory in the workflow", required=True)
     parser.add_argument(
         "-t", "--read_hemco_time", help="Read HEMCO time file", default=True, required=False
@@ -40,7 +40,7 @@ if __name__ == "__main__":
     src_dir = args.src_dir
     work_dir = args.work_dir
     version = args.nei_version
-    d = datetime.strptime(args.date, "%Y%m%d")
+    d = datetime.strptime(args.date, r"%Y-%m-%d")
 
     # ensure directory exists
     if args.read_hemco_time:
@@ -49,6 +49,8 @@ if __name__ == "__main__":
         else:
             hemco_time_file = args.time_file_path
         dates = get_hemco_simulation_time(hemco_time_file)
+    else:
+        dates = [d]
 
     for d in dates:
         month = d.strftime("%m")
