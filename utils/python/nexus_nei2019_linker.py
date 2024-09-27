@@ -76,6 +76,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-s",
         "--src_dir",
+        "--src-dir",
         help=(
             "Source Directory to Emission files "
             "e.g., /scratch1/RDARCH/rda-arl-gpu/Barry.Baker/emissions/nexus on Hera."
@@ -86,6 +87,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-w",
         "--work_dir",
+        "--work-dir",
         help="work directory in the workflow",
         required=True,
     )
@@ -98,6 +100,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-t",
         "--read_hemco_time",
+        "--read-hemco-time",
         help="Read HEMCO time file",
         action="store_true",
         default=True,
@@ -105,12 +108,14 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--no_read_hemco_time",
+        "--no-read-hemco-time",
         action="store_false",
         dest="read_hemco_time",
     )
     parser.add_argument(
         "-tf",
         "--time_file_path",
+        "--time-file-path",
         help="Location of the HEMCO Time File",
         default=None,
         required=False,
@@ -118,6 +123,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-v",
         "--nei_version",
+        "--nei-version",
         help="NEI VERSION",
         default="v2023-03",
         required=False,
