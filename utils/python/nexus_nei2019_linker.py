@@ -134,6 +134,10 @@ if __name__ == "__main__":
     work_dir = args.work_dir.rstrip("/")
     version = args.nei_version
 
+    if not os.path.isdir(work_dir):
+        print(f"error: work dir setting {work_dir!r} does not exist or is not a directory")
+        raise SystemExit(2)
+
     if args.read_hemco_time:
         if args.time_file_path is None:
             hemco_time_file = os.path.join(args.work_dir, "../HEMCO_sa_Time.rc")
@@ -154,6 +158,7 @@ if __name__ == "__main__":
         raise SystemExit(1)
 
     print("src dir:", src_dir)
+    print("work dir:", work_dir)
     for d in dates:
         mo = d.month
         iwd = d.isoweekday()
