@@ -20,10 +20,24 @@ if __name__ == "__main__":
         type=str,
         required=True,
     )
-    parser.add_argument("-d", "--date", help=r"date for file: format %Y-%m-%d", required=False)
-    parser.add_argument("-w", "--work_dir", help="work directory in the workflow", required=True)
     parser.add_argument(
-        "-t", "--read_hemco_time", help="Read HEMCO time file", default=True, required=False
+        "-d",
+        "--date",
+        help=r"date for file: format %Y-%m-%d",
+        required=False,
+    )
+    parser.add_argument(
+        "-w",
+        "--work_dir",
+        help="work directory in the workflow",
+        required=True,
+    )
+    parser.add_argument(
+        "-t",
+        "--read_hemco_time",
+        help="Read HEMCO time file",
+        default=True,
+        required=False,
     )
     parser.add_argument(
         "-tf",
@@ -33,7 +47,11 @@ if __name__ == "__main__":
         required=False,
     )
     parser.add_argument(
-        "-v", "--nei_version", help="NEI VERSION", default="v2023-03", required=False
+        "-v",
+        "--nei_version",
+        help="NEI VERSION",
+        default="v2023-03",
+        required=False,
     )
     args = parser.parse_args()
 
@@ -64,4 +82,3 @@ if __name__ == "__main__":
         target_name = create_target_name(work_dir, fname, month, d, version=version)
         print(fname, target_name)
         link_file(fname, target_name)
-
