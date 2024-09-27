@@ -3,6 +3,64 @@ from datetime import datetime, timedelta
 from glob import glob
 
 
+def get_hemco_simulation_time(file_path):
+    with open(file_path) as reader:
+        lines = reader.readlines()
+    for L in lines:
+        if L.startswith("START"):
+            start_base = datetime.strptime(L.split()[1], "%Y-%m-%d")  # noqa: F841
+            start_time = datetime.strptime(L, "START:   %Y-%m-%d %H:00:00\n")
+        if L.startswith("END"):
+            end_time = datetime.strptime(L, "END:     %Y-%m-%d %H:00:00\n")
+        if L.startswith("TS_EMIS"):
+            ts_emis = float(L.split()[1].strip("\n"))  # noqa: F841
+        # skip the first three comment lines
+    dates = []
+    currtime = start_time
+    print(currtime, end_time)
+    while currtime <= end_time:
+        print(currtime)
+        dates.append(currtime)
+        currtime = currtime + timedelta(days=1)
+    return dates
+
+
+def get_file_map(src_dir, version):
+    """Mapping of month and day-of-week to the date and combined file path."""
+    files = [
+        fp
+        for fp in glob(f"{src_dir}/NEMO/NEI2019/{version}/??/NEI2019*_all.nc")
+        if not os.path.islink(fp)
+    ]
+    file_map = {}
+    for fp in files:
+        sd = os.path.basename(fp).split("_")[-2]
+        d = datetime.strptime(sd, r"%Y%m%d")
+        key = (d.month, d.isoweekday())
+        if key in file_map:
+            print(f"warning: possible duplicate files for key {key}: {file_map[key]}, {fp}")
+        file_map[key] = (d, fp)
+
+    # The files are Mon, Tue, Sat, Sun
+    # Use Tue for Wed--Fri
+    for mo in range(1, 13):
+        tue = file_map.get((mo, 2))
+        for iwd in [3, 4, 5]:  # Wed, Thu, Fri
+            key = (mo, iwd)
+            if key in file_map:
+                print(f"warning: unexpected existing file for key {key}: {file_map[key]}")
+            file_map[key] = tue
+
+    return file_map
+
+
+def link_file(src_file, tgt_file):
+    if os.path.exists(tgt_file) and os.path.islink(tgt_file):
+        print("target already linked:", tgt_file)
+    else:
+        os.symlink(src_file, tgt_file)
+
+
 if __name__ == "__main__":
     from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 
@@ -15,22 +73,22 @@ if __name__ == "__main__":
         "--src_dir",
         help=(
             "Source Directory to Emission files "
-            "e.g., /scratch1/RDARCH/rda-arl-gpu/Barry.Baker/emissions/nexus/NEMO on Hera."
+            "e.g., /scratch1/RDARCH/rda-arl-gpu/Barry.Baker/emissions/nexus/ on Hera."
         ),
         type=str,
         required=True,
-    )
-    parser.add_argument(
-        "-d",
-        "--date",
-        help=r"date for file: format %Y-%m-%d",
-        required=False,
     )
     parser.add_argument(
         "-w",
         "--work_dir",
         help="work directory in the workflow",
         required=True,
+    )
+    parser.add_argument(
+        "-d",
+        "--date",
+        help=r"date for file: format YYYYMMDD",
+        required=False,
     )
     parser.add_argument(
         "-t",
@@ -58,27 +116,44 @@ if __name__ == "__main__":
     src_dir = args.src_dir
     work_dir = args.work_dir
     version = args.nei_version
-    d = datetime.strptime(args.date, r"%Y-%m-%d")
 
-    # ensure directory exists
     if args.read_hemco_time:
         if args.time_file_path is None:
             hemco_time_file = os.path.join(args.work_dir, "../HEMCO_sa_Time.rc")
         else:
             hemco_time_file = args.time_file_path
         dates = get_hemco_simulation_time(hemco_time_file)
-    else:
+    elif args.date is not None:
+        d = datetime.strptime(args.date, r"%Y%m%d")
         dates = [d]
+    else:
+        print("error: date info not specified")
+        raise SystemExit(2)
 
+    file_map = get_file_map(src_dir, version)
+    if not file_map:
+        print(f"error: no files found in {src_dir} for version {version!r}")
+        raise SystemExit(1)
+
+    print("src dir:", src_dir)
     for d in dates:
-        month = d.strftime("%m")
+        mo = d.month
+        iwd = d.isoweekday()
 
-        all_files = glob(f"{src_dir}/NEI2019/{version}/{month}/*.nc")
+        print(f"date: {d}, month: {mo}, iwd: {iwd}")
+        src = file_map.get((mo, iwd))
+        if src is None:
+            print(f"error: no file found for month {mo}, iwd {iwd}")
+            raise SystemExit(1)
+        src_d, src_fp = src
 
-        print(d, month)
-        files = get_nei2019_files(src_dir=src_dir, current_month=month, version=version)
-        dates = get_nei2019_dates(files)
-        fname = get_closest_file(d, dates, files)
-        target_name = create_target_name(work_dir, fname, month, d, version=version)
-        print(fname, target_name)
-        link_file(fname, target_name)
+        # Form target file path, with same relative directory structure but updated date in file name
+        tgt_fn = os.path.basename(src_fp).replace(src_d.strftime(r"%Y%m%d"), d.strftime(r"%Y%m%d"))
+        tgt_fp = os.path.join(
+            work_dir,
+            os.path.dirname(os.path.relpath(src_fp, src_dir)),
+            tgt_fn,
+        )
+
+        print("linking", src_fp, "to", tgt_fp)
+        link_file(src_fp, tgt_fp)
