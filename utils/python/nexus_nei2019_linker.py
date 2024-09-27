@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+"""
+Simple utility to link the appropriate NEI2019 date for the workflow.
+"""
+
 import os
 from datetime import datetime, timedelta
 from glob import glob
