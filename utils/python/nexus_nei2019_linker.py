@@ -92,7 +92,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-d",
         "--date",
-        help=r"date for file: format YYYYMMDD",
+        help=r"date for file: format YYYYMMDD or YYYY-MM-DD",
         required=False,
     )
     parser.add_argument(
@@ -135,7 +135,7 @@ if __name__ == "__main__":
             hemco_time_file = args.time_file_path
         dates = get_hemco_simulation_time(hemco_time_file)
     elif args.date is not None:
-        d = datetime.strptime(args.date, r"%Y%m%d")
+        d = datetime.strptime(args.date.replace("-", ""), r"%Y%m%d")
         dates = [d]
     else:
         print("error: date info not specified")
