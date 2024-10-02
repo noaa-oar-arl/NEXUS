@@ -693,6 +693,7 @@ Cap time shift              : true
 (((NEMO-NEI2019_AR
 # SURFACE ALL INVENTORY
 0 NEI2019_ALL_CO             $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          CO            2019/1-12/1-31/$HH C xy  kg/m2/s CO           1007     1 50
+0 NEI2019_ALL_CL2            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          CL2           2019/1-12/1-31/$HH C xy  kg/m2/s CL2          1007     1 50
 0 NEI2019_ALL_SO2            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          SO2           2019/1-12/1-31/$HH C xy  kg/m2/s SO2          1007     1 50
 0 NEI2019_ALL_NO             $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          NO            2019/1-12/1-31/$HH C xy  kg/m2/s NOT          1007     1 50
 0 NEI2019_ALL_NO2            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          NO2           2019/1-12/1-31/$HH C xy  kg/m2/s NO2          1007     1 50
