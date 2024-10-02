@@ -694,10 +694,12 @@ Cap time shift              : true
 # SURFACE ALL INVENTORY
 0 NEI2019_ALL_CO             $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          CO            2019/1-12/1-31/$HH C xy  kg/m2/s CO           1007     1 50
 0 NEI2019_ALL_CL2            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          CL2           2019/1-12/1-31/$HH C xy  kg/m2/s CL2          1007     1 50
+0 NEI2019_ALL_HCL            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          HCL           2019/1-12/1-31/$HH C xy  kg/m2/s HCL          1007     1 50
 0 NEI2019_ALL_SO2            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          SO2           2019/1-12/1-31/$HH C xy  kg/m2/s SO2          1007     1 50
 0 NEI2019_ALL_NO             $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          NO            2019/1-12/1-31/$HH C xy  kg/m2/s NOT          1007     1 50
 0 NEI2019_ALL_NO2            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          NO2           2019/1-12/1-31/$HH C xy  kg/m2/s NO2          1007     1 50
 0 NEI2019_ALL_HONO           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          HONO          2019/1-12/1-31/$HH C xy  kg/m2/s HONO         1007     1 50
+0 NEI2019_ALL_SULF           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          SULF          2019/1-12/1-31/$HH C xy  kg/m2/s SULF         1007     1 50
 0 NEI2019_ALL_NH3            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          NH3           2019/1-12/1-31/$HH C xy  kg/m2/s NH3          1007     1 50
 0 NEI2019_ALL_CH4            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          CH4           2019/1-12/1-31/$HH C xy  kg/m2/s CH4          1007     1 50
 0 NEI2019_ALL_ACROLEIN       $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          ACROLEIN      2019/1-12/1-31/$HH C xy  kg/m2/s ACROLEIN     1007     1 50
@@ -725,6 +727,7 @@ Cap time shift              : true
 0 NEI2019_ALL_ALD2_PRIMARY   $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          ALD2_PRIMARY  2019/1-12/1-31/$HH C xy  kg/m2/s ALD2_PRIMARY 1007     1 50
 0 NEI2019_ALL_FORM_PRIMARY   $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          FORM_PRIMARY  2019/1-12/1-31/$HH C xy  kg/m2/s FORM_PRIMARY 1007     1 50
 0 NEI2019_ALL_SOAALK         $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          SOAALK        2019/1-12/1-31/$HH C xy  kg/m2/s SOAALK       1007     1 50
+0 NEI2019_ALL_VOC_INV        $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          VOC_INV       2019/1-12/1-31/$HH C xy  kg/m2/s VOC_INV      1007     1 50
 0 NEI2019_ALL_PEC            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PEC           2019/1-12/1-31/$HH C xy  kg/m2/s PEC          1007     1 50
 0 NEI2019_ALL_POC            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          POC           2019/1-12/1-31/$HH C xy  kg/m2/s POC          1007     1 50
 0 NEI2019_ALL_PAL            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PAL           2019/1-12/1-31/$HH C xy  kg/m2/s PAL          1007     1 50
@@ -744,6 +747,8 @@ Cap time shift              : true
 0 NEI2019_ALL_PSI            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PSI           2019/1-12/1-31/$HH C xy  kg/m2/s PSI          1007     1 50
 0 NEI2019_ALL_PMC            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PMC           2019/1-12/1-31/$HH C xy  kg/m2/s PMC          1007     1 50
 0 NEI2019_ALL_PSO4           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PSO4          2019/1-12/1-31/$HH C xy  kg/m2/s PSO4         1007     1 50
+0 NEI2019_ALL_UNR            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          UNR           2019/1-12/1-31/$HH C xy  kg/m2/s UNR          1007     1 50
+0 NEI2019_ALL_UNK            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          UNK           2019/1-12/1-31/$HH C xy  kg/m2/s UNK          1007     1 50
 )))NEMO-NEI2019_AR
 
 #### MEGAN EMISSION
