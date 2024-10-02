@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Combine/reassign HEMCO species in order to get:
-CMAQv5.2.1 CB6 Emission Species w/biogenics
+CMAQv5.4 CB6 Emission Species w/biogenics
 """
 
 SPECIES = [
@@ -15,10 +15,8 @@ SPECIES = [
     "BENZ",
     "BUTADIENE13",
     "CH4",
-    "CH4_INV",
     "CL2",
     "CO",
-    "CO2_INV",
     "ETH",
     "ETHA",
     "ETHY",
