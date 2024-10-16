@@ -2,11 +2,13 @@
 cmake_minimum_required(VERSION 3.5)
 
 # set compiler
-if(NOT DEFINED ENV{CMAKE_Fortran_COMPILER})
+if(NOT DEFINED ENV{FC})
   message(FATAL_ERROR "CMAKE_Fortran_COMPILER is not defined")
 endif()
 
-set(CMAKE_Fortran_COMPILER $ENV{CMAKE_Fortran_COMPILER})
+set(CMAKE_Fortran_COMPILER $ENV{FC})
+set(CMAKE_C_COMPILER $ENV{CC})
+set(CMAKE_CXX_COMPILER $ENV{CXX})
 
 # set the project name and version
 project(NEXUS
