@@ -26,14 +26,6 @@ contains
 
     rc = ESMF_SUCCESS
 
-    ! Add custom variable
-    ! Example fd here: https://github.com/ESCOMP/NUOPCFieldDictionary/blob/master/fd.yaml
-    call NUOPC_FieldDictionaryAddEntry("the_best_variable_of_all", "1", rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
-
     ! derive from NUOPC_Driver
     call NUOPC_CompDerive(driver, driverSS, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &

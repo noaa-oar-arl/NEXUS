@@ -6,12 +6,12 @@ program app
 
   use ESMF
 
-  use nexus_cap, only: init_cap => init, finalize_cap => finalize
+  use nexus_cap, only: init_cap => nxs_init, finalize_cap => nxs_finalize
   use nexus_driver, only: driverSS => SetServices
 
   implicit none
 
-  character(len=*), parameter :: NEXUS_options(11,2) = reshape( &
+  character(len=*), parameter :: NEXUS_options(12,2) = reshape( &
     (/ &
     "-c           ", "c:           ", &
     "--config     ", "c:           ", &
@@ -20,16 +20,17 @@ program app
     "--regrid-to  ", "r:           ", &
     "-d           ", "d            ", &
     "--debug      ", "d            ", &
+    "--wr         ", "wr           ", &
     "-o           ", "o:           ", &
     "--output     ", "o:           ", &
     "-h           ", "h            ", &
     "--help       ", "h            " &
-    /), (/ 11, 2 /), order=(/ 2, 1 /))
+    /), (/ 12, 2 /), order=(/ 2, 1 /))
 
   character(len=*), parameter :: usage = &
     "Usage: nexus &
     [-c|--config-file <file>] [-r|--regrid-to <file>] [-o|--output <file>] &
-    [-d|--debug] [-h|--help]"
+    [-d|--debug] [--wr] [-h|--help]"
 
   character(1), parameter :: newline = new_line('a')
   character(len=*), parameter :: description = &
@@ -42,6 +43,7 @@ program app
   integer :: localPet, petCount
   integer :: idx, ind, item
   integer :: debugLevel
+  logical :: writeRestart
   integer :: ibuf(2)
   character(ESMF_MAXSTR) :: ConfigFile
   character(ESMF_MAXSTR) :: ReGridFile
@@ -89,6 +91,7 @@ program app
   OutputFile = ""
 
   debugLevel = 0
+  writeRestart = .false.
 
   localrc = ESMF_SUCCESS
 
@@ -117,6 +120,8 @@ program app
           OutputFile = optarg
          case ("d")
           debugLevel = 1
+         case ("wr")
+          writeRestart = .true.
          case ("h")
           print "(a)", usage
           stop
@@ -165,7 +170,7 @@ program app
 
   !-----------------------------------------------------------------------------
 
-  call init_cap(ConfigFile, ReGridFile, OutputFile, debugLevel, rc=rc)
+  call init_cap(ConfigFile, ReGridFile, OutputFile, debugLevel, writeRestart, rc=rc)
 
   ! -> CREATE THE DRIVER
   drvComp = ESMF_GridCompCreate(name="driver", rc=rc)
@@ -232,6 +237,8 @@ program app
 
   ! Finalize ESMF
   call ESMF_Finalize()
+
+  print "('NEXUS: ', a)", "Done"
 
 contains
 

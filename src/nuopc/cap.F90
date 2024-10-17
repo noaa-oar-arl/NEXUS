@@ -53,6 +53,8 @@ module nexus_cap
   !! True if `debugLevel` passed to `init` is greater than zero.
   logical :: do_NEXUS  = .false.
   !! True if either `do_Regrid` or `do_Debug` is true.
+  logical :: alwaysWriteRestartFile = .false.
+  !! Even in NEXUS mode (`do_NEXUS`)
 
   ! Start and end time of simulation
   integer :: T_YY(2), T_MM(2), T_DD(2)
@@ -78,8 +80,9 @@ module nexus_cap
   private
 
   public SetServices, &
-    init, finalize, &
-    T_YY, T_MM, T_DD, T_H, T_M, T_S, HcoState
+    nxs_init, nxs_finalize, &
+    T_YY, T_MM, T_DD, T_H, T_M, T_S, &
+    HcoState
 
 contains
 
@@ -122,11 +125,19 @@ contains
   end subroutine
 
   subroutine Advertise(model, rc)
+    use HCO_TYPES_MOD, only: DiagnCont
+    use HCO_Diagn_Mod, only: Diagn_Get
+
     type(ESMF_GridComp)  :: model
     integer, intent(out) :: rc
 
     ! Local variables
     type(ESMF_State) :: importState, exportState
+    integer :: localrc
+    integer :: flag
+    logical :: EOI
+    type(DiagnCont), pointer :: thisDiagn
+    character(len=:), allocatable :: name, long_name, units
 
     rc = ESMF_SUCCESS
 
@@ -138,14 +149,50 @@ contains
       file=__FILE__)) &
       return  ! bail out
 
-    ! TODO: advertise NEXUS output variables
-    ! exportable field
-    call NUOPC_Advertise(exportState, &
-      StandardName="the_best_variable_of_all", name="best", rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+    ! Advertise NEXUS output variables
+    EOI = .false.
+    nullify(thisDiagn)
+    call Diagn_Get(HcoState, EOI, thisDiagn, flag, localrc)
+    if (nxs_error_log(localrc, msg='Error encountered in routine "Diagn_Get!"', &
       line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
+    do while (flag == HCO_SUCCESS)
+
+      name = trim(thisDiagn % cName)
+      long_name = trim(thisDiagn % long_name)
+      units = trim(thisDiagn % OutUnit)
+
+      print "('NEXUS: Advertising ''', a, ''' (long_name=''', a, ''', units=''', a, ''')')", &
+        name, long_name, units
+
+      ! Add to field dictionary
+      call NUOPC_FieldDictionaryAddEntry(long_name, units, rc=rc)
+      if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__, &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+
+      ! Advertise field
+      call NUOPC_Advertise(exportState, &
+        name = name, &
+        StandardName = long_name, &
+        LongName = long_name, &
+        Units = units, &
+        rc=rc)
+      if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__, &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+
+      ! Next
+      call Diagn_Get(HcoState, EOI, thisDiagn, flag, localrc)
+      if (nxs_error_log(localrc, msg='Error encountered in routine "Diagn_Get!"', &
+        line=__LINE__, &
+        file=__FILE__, &
+        rcToReturn=rc)) return
+    end do
 
   end subroutine
 
@@ -156,8 +203,11 @@ contains
     ! Local variables
     type(ESMF_State)        :: importState, exportState
     type(ESMF_Field)        :: field
-    type(ESMF_Grid)         :: gridIn
-    type(ESMF_Grid)         :: gridOut
+    ! type(ESMF_Grid)         :: gridIn
+    ! type(ESMF_Grid)         :: gridOut
+    integer :: item, itemCount, localrc, stat
+    character(len=ESMF_MAXSTR), allocatable :: itemNameList(:)
+    type(ESMF_StateItem_Flag),  allocatable :: itemTypeList(:)
 
     rc = ESMF_SUCCESS
 
@@ -169,32 +219,44 @@ contains
       file=__FILE__)) &
       return  ! bail out
 
-    ! TODO: use the real grids/states
+    ! Note: grids and fields were already created as part of the `init` routine
+    call ESMF_StateGet(exportState, itemCount=itemCount, rc=localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
 
-    ! Create a Grid object for Fields
-    gridIn = ESMF_GridCreateNoPeriDimUfrm(maxIndex=(/10, 100/), &
-      minCornerCoord=(/10._ESMF_KIND_R8, 20._ESMF_KIND_R8/), &
-      maxCornerCoord=(/100._ESMF_KIND_R8, 200._ESMF_KIND_R8/), &
-      coordSys=ESMF_COORDSYS_CART, staggerLocList=(/ESMF_STAGGERLOC_CENTER/), &
-      rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
-    gridOut = gridIn ! for now out same as in
+    allocate(itemNameList(itemCount), itemTypeList(itemCount), stat=stat)
+    if (ESMF_LogFoundAllocError(statusToCheck=stat, &
+      msg="Unable to allocate memory", &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
 
-    ! Exportable field
-    field = ESMF_FieldCreate(name="best", grid=gridOut, &
-      typekind=ESMF_TYPEKIND_R8, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
-    call NUOPC_Realize(exportState, field=field, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
+    call ESMF_StateGet(exportState, itemNameList=itemNameList, &
+      itemTypeList=itemTypeList, rc=localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
+
+    do item = 1, itemCount
+      if (itemTypeList(item) /= ESMF_STATEITEM_FIELD) cycle
+
+      call ESMF_StateGet(exportState, itemNameList(item), field, rc=localrc)
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__,  &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+
+      print "('NEXUS: Realizing ''', a, '''')", trim(itemNameList(item))
+      call NUOPC_Realize(exportState, field=field, rc=localrc)
+      if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__, &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+
+    end do
 
   end subroutine
 
@@ -235,7 +297,7 @@ contains
     ! Get some Clock info
     call ESMF_ClockGet(clock, advanceCount=advanceCount, currTime=time)
 
-    print "('ESMF Clock advanceCount: ', i0)", advanceCount
+    print "('NEXUS: ESMF Clock advanceCount: ', i0)", advanceCount
     timeSlice = advanceCount + 1
 
     ! Because of the way that the internal Clock was set by default,
@@ -281,7 +343,7 @@ contains
       "('Calculate emissions at ', i0.4, '-', i0.2, '-', i0.2, ' ', i2.2, ':', i0.2, ':', i0.2)") &
       yy, mm, dd, h, m, s
     call ESMF_LogWrite(msg)
-    print "(a)", trim(msg)
+    print "('NEXUS: ', a)", trim(msg)
 
     ! ================================================================
     ! Reset all emission and deposition values
@@ -415,9 +477,9 @@ contains
   !-----------------------------------------------------------------------------
   ! Cap routines
 
-  !> Cap initialization
+  !> NEXUS initialization
   !> (read HEMCO config, initialize HEMCO state, create grid objects, etc.)
-  subroutine init(ConfigFile, ReGridFile, OutputFile, debugLevel, rc)
+  subroutine nxs_init(ConfigFile, ReGridFile, OutputFile, debugLevel, writeRestart, rc)
     use HCO_Config_Mod,  only: Config_ReadFile
     use HCO_Driver_Mod,  only: HCO_Init
     use HCO_EXTLIST_Mod, only: GetExtOpt, CoreNr
@@ -430,6 +492,7 @@ contains
     character(len=*),  intent(in)  :: ReGridFile
     character(len=*),  intent(in)  :: OutputFile
     integer,           intent(in)  :: debugLevel
+    logical,           intent(in)  :: writeRestart
     integer, optional, intent(out) :: rc
 
     integer :: localrc
@@ -460,12 +523,13 @@ contains
     do_Regrid = (len_trim(ReGridFile) > 0)
     do_Debug  = (debugLevel > 0)
     do_NEXUS  = (do_Debug .or. do_Regrid)
+    alwaysWriteRestartFile = writeRestart
 
     if (len_trim(OutputFile) > 0) ExptFile = OutputFile
 
     if ( am_I_Root ) then
-      if ( do_Debug  ) print "(a)", 'Writing debug emissions to: '//trim(DiagFile)
-      if ( do_Regrid ) print "(a)", 'Writing regridded emissions to: '//trim(ExptFile)
+      if ( do_Debug  ) print "('NEXUS: ', a)", 'Writing debug emissions to: '//trim(DiagFile)
+      if ( do_Regrid ) print "('NEXUS: ', a)", 'Writing regridded emissions to: '//trim(ExptFile)
     end if
 
     !=======================================================================
@@ -683,13 +747,17 @@ contains
       end if
     end if
 
-  end subroutine init
+  end subroutine nxs_init
 
-  subroutine finalize( rc )
+  !> NEXUS finalization
+  !> (write last restart file, clean up HEMCO and grid objects, etc.)
+  subroutine nxs_finalize( rc )
 
+    use HCO_Clock_Mod,   only : HcoClock_Increase
     use HCO_Driver_Mod,  only : HCO_Final
     use HCOX_Driver_Mod, only : HCOX_Final
     use HCO_State_Mod,   only : HcoState_Final
+    use HCOIO_DIAGN_MOD, only : HcoDiagn_Write
     use HCO_Diagn_Mod,   only : DiagnBundle_Cleanup
 
     integer, optional, intent(out) :: rc
@@ -700,6 +768,21 @@ contains
 
     ! -- begin
     if (present(rc)) rc = ESMF_SUCCESS
+
+    ! Advance HEMCO clock to last timestamp
+    call HcoClock_Increase ( HcoState, HcoState%TS_EMIS, .TRUE., RC=localrc )
+    if (nxs_error_log(localrc, msg='Error encountered in routine "HcoClock_Increase"!', &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
+    if (do_NEXUS .and. alwaysWriteRestartFile) then
+      call HcoDiagn_Write( HcoState, .TRUE.,  localrc )
+      if (nxs_error_log(localrc, msg='Error encountered in routine "HcoDiagn_Write"!', &
+        line=__LINE__, &
+        file=__FILE__, &
+        rcToReturn=rc)) return
+    end if
 
     ! Cleanup HCO core
     call HCO_FINAL( HcoState, .FALSE., localrc )
@@ -807,7 +890,7 @@ contains
         rcToReturn=rc)) return  ! bail out
     end if
 
-  end subroutine finalize
+  end subroutine nxs_finalize
 
   !-----------------------------------------------------------------------------
   ! Selected HEMCO standalone routines
@@ -2495,7 +2578,7 @@ contains
     ! -- begin
     if (present(rc)) rc = ESMF_SUCCESS
 
-    print "('Input grid nc fn:', x, a)", trim(filename)
+    print "('NEXUS: Input grid nc fn:', x, a)", trim(filename)
     ncerr = nf90_open(fileName, NF90_NOWRITE, ncid)
     if (ESMF_LogFoundNetCDFError(ncerrToCheck=ncerr, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__,  &
@@ -2618,7 +2701,7 @@ contains
       rcToReturn=rc)) return
 
     do while (flag == HCO_SUCCESS)
-      print "('Initializing Diag variable ''', a, '''')", trim(thisDiagn%cName)
+      print "('NEXUS: Initializing Diag variable ''', a, '''')", trim(thisDiagn%cName)
       select case ( thisDiagn % spaceDim )
        case (2)
         field = ESMF_FieldCreate( HcoGrid, ESMF_TYPEKIND_R4, &
@@ -2762,7 +2845,7 @@ contains
       rcToReturn=rc)) return  ! bail out
 
     do item = 1, itemCount
-      print "('Initializing Expt variable ''', a, '''')", trim(itemNameList(item))
+      print "('NEXUS: Initializing Expt variable ''', a, '''')", trim(itemNameList(item))
       if (itemTypeList(item) == ESMF_STATEITEM_FIELD) then
         call ESMF_StateGet( importState, itemNameList(item), srcfield, rc=localrc )
         if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &

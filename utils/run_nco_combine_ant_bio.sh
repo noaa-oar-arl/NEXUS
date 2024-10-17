@@ -1,10 +1,12 @@
 #!/bin/bash
 
+set -x
+
 #CMAQv5.2.1 CB6 Emission Species w/biogenics
 declare -a species=( "AACD" "ACET" "ACROLEIN" "ALD2" "ALD2_PRIMARY" "ALDX" "APIN" "BENZ" "BUTADIENE13" "CH4" "CH4_INV" "CL2" "CO" "CO2_INV" "ETH" "ETHA" "ETHY" "ETOH" "FACD" "FORM" "FORM_PRIMARY" "HCL" "HONO" "IOLE" "ISOP" "KET" "MEOH" "NAPH" "NH3" "NH3_FERT" "NO" "NO2" "OLE" "PAL" "PAR" "PCA" "PCL" "PEC" "PFE" "PH2O" "PK" "PMC" "PMG" "PMN" "PMOTHR" "PNA" "PNCOM" "PNH4" "PNO3" "POC" "PRPA" "PSI" "PSO4" "PTI" "SESQ" "SO2" "SOAALK" "SULF" "TERP" "TOL" "UNK" "UNR" "VOC_INV" "XYLMN" )
 
 
-# expect arguments 
+# expect arguments
 if [ $# -lt 2 ]; then
   echo "Expected two arguments (input and output paths)"
   echo "Got: $@"
@@ -12,7 +14,7 @@ if [ $# -lt 2 ]; then
 fi
 
 #Set input and output files
-input=$1 
+input=$1
 output=$2
 rm -f $output
 
@@ -23,7 +25,7 @@ do
 echo ${specie}
 
 #1.Use HEMCO MEGANv2.1 instantaneous diagnostic for some bio-only species
-if [ ${specie} == "AACD" ] 
+if [ ${specie} == "AACD" ]
 then
 ncap2 -A -v -s "${specie} = InvMEGAN_AAXX" $input $output
 elif [ ${specie} == "FACD" ]

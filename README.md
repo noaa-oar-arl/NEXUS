@@ -12,8 +12,14 @@ or
 ```
 git clone -b develop --recurse-submodules git@github.com:noaa-oar-arl/NEXUS.git
 ```
-(Replace `noaa-oar-arl` with your fork if desired.)
+(Replace `noaa-oar-arl/NEXUS` with your fork if desired.)
 
+To install the pre-commit hooks, first [install `pre-commit`](https://pre-commit.com/#install),
+e.g. to your Conda environment.
+Then, run
+```
+pre-commit install --install-hooks
+```
 
 ### Setup
 
@@ -36,16 +42,7 @@ Input data:
 #### GMU Hopper
 
 ```
-module reset
-module load gnu10/10.3.0-ya
-module load openmpi/4.1.2-4a
-module load xerces-c/3.2.3-jn
-module load hdf5/1.12.1-z2
-module load netcdf-c/4.8.1-l3
-module load netcdf-fortran/4.5.3-4p
-module load esmf/8.2.0-zq
-# module load esmf/8.3.0b09-ou
-export CMAKE_Fortran_COMPILER=mpifort
+. /groups/ESS3/zmoon/nexus/env5
 ```
 
 Input data:
