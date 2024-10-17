@@ -1,6 +1,10 @@
 # Check environment
 cmake_minimum_required(VERSION 3.5)
 
+# set the project name and version
+project(NEXUS
+        VERSION 0.2.0
+        LANGUAGES Fortran)
 
 # set compiler
 if(NOT DEFINED ENV{FC})
@@ -10,11 +14,6 @@ endif()
 set(CMAKE_Fortran_COMPILER $ENV{FC})
 set(CMAKE_C_COMPILER $ENV{CC})
 set(CMAKE_CXX_COMPILER $ENV{CXX})
-
-# set the project name and version
-project(NEXUS
-        VERSION 0.2.0
-        LANGUAGES Fortran)
 
 # Include local macros
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
