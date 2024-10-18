@@ -1,0 +1,1598 @@
+#------------------------------------------------------------------------------
+#                  Harvard-NASA Emissions Component (HEMCO)                   !
+#------------------------------------------------------------------------------
+#BOP
+#
+# !MODULE: HEMCO_Config.rc
+#
+# !DESCRIPTION: Contains configuration information for HEMCO. Define the
+#  emissions inventories and corresponding file paths here. Entire
+#  configuration files can be inserted into this configuration file with
+#  an '>>>include' statement, e.g. '>>>include HEMCO\_Config\_test.rc'
+#  The settings of include-files will be ignored.
+#\\
+#\\
+# !REMARKS:
+#  The following tokens will be replaced:
+#  (1) ROOT    : Filepath to HEMCO root directory
+#  (2) CFDIR   : Filepath to directory of this configuration file.
+#  (3) MET     : Met field type (from G-C compilation command)
+#  (4) GRID    : Horizontal grid type (from G-C compilation command)
+#  (5) SIM     : Simulation type (from G-C compilation command)
+#  (6) NEST    : Nested-grid type (CH, EU, NA, SE)
+#  (7) LNOX    : String for OTD/LIS lightning NOx files:
+#                (a) For GEOS-5 this is either "geos5.1.0" or "geos5.2.0".
+#                (b) For other met fields, this is the same as MET.
+#  (8) LEVRED  : String w/ the # of levels in the reduced GEOS-Chem grid
+#                as used in some filenames (e.g. "23L", "30L", "47L")
+#  (9) LEVFULL : String w/ the # of levels in the full GEOS-Chem grid
+#                as used in some filenames (e.g. "55L", "72L")
+#
+# !REVISION HISTORY:
+#  09 Mar 2021 - P. Campbell - Initial UFS-CMAQ HEMCO Configuration File for
+#                              CEDS2019-NEI2016v1-OMI-HTAP2019-EDGAR-HTAP2010
+#  15 Jun 2022 - P. Campbell - Added MEGANv2.1 sa extension calcultaions
+#  04 Oct 2022 - B. Baker    - Remove point sources
+#  30 Aug 2024 - P. Campbell - Change to NEMO/NEI2019
+#  18 Oct 2024 - P. Campbell - Updated to 2018 HTAPv3 PMC and PM2.5 emissions 
+#  18 Oct 2024 - P. Campbell - Updated to using CAMS-TEMPO weights for global emissions
+
+#------------------------------------------------------------------------------
+#BOC
+###############################################################################
+### BEGIN SECTION SETTINGS
+###############################################################################
+
+ROOT                        : input
+GridFile                    : HEMCO_sa_Grid.rc
+SpecFile                    : HEMCO_sa_Spec.rc
+TimeFile                    : HEMCO_sa_Time.rc
+DiagnFile                   : HEMCO_sa_Diagn.rc
+DiagnPrefix                 : output/NEXUS.merged_nei2019_meganv21_pre
+DiagnFreq                   : Hourly
+Logfile                     : NEXUS.log
+Unit tolerance              : 2
+Negative values             : 1
+Verbose                     : 10
+Warnings                    : 1
+Mask fractions              : true
+MET                         : geosfp
+RES                         : 4x5
+PBL dry deposition          : False
+SINTOK                      : 0.5
+Cap time shift              : true
+#
+
+### END SECTION SETTINGS ###
+
+###############################################################################
+### BEGIN SECTION EXTENSION SWITCHES
+###############################################################################
+###
+### This section lists all emission extensions available to HEMCO and whether
+### they shall be used or not. Extension 'base' must have extension number
+### zero, all other extension numbers can be freely chosen. Data fields in
+### section 'base emissions' will only be read if the corresponding extension
+### (identified by ExtNr) is enabled. Similarly, fields grouped into data
+### collections ('(((CollectionName', ')))CollectionName') are only considered
+### if the corresponding data collection is enabled in this section. Data
+### listed within a disabled extension are always ignored, even if they are
+### grouped in an enabled collection (e.g. GFED-4 data will never be considered
+### if the GFED extension is disabled, even if the GFED4 option is set to true).
+###
+### It is possible to define collections that are only evaluated if a
+### collection name is *not* enabled. This is achieved by leading the
+### collection name with '.not.', e.g. '(((.not.FINN_daily' ...
+### '))).not.FINN_daily' for FINN monthly data (only used if daily data is
+### not being used).
+###
+### The ExtNr provided in this section must match with the ExtNr assigned to
+### the data listed in the base emissions sections. Otherwise, the listed
+### files won't be read!
+###
+### NOTES:
+### --> You can only select one biomass burning option (GFED, QFED, FINN).
+###
+### --> BOND_BIOMASS must be set to false if GFED, QFED, or FINN is enabled.
+###
+### --> The biomass burning POA scale factor is the same as for the biofuel
+###     and anthro sources.
+###
+### --> The NAP scale factor is determined as in the original simulation:
+###     Obtain NAP emissions using scale factor from Hays 2002 ES&T
+###     (0.0253 g NAP/kg DM) and Andreae and Merlet 2001 GBC (92 g CO/kg DM)
+###############################################################################
+# ExtNr ExtName           on/off  Species
+0       Base              : on    *
+    --> HEMCO_RESTART     :       true
+    --> AEIC              :       false
+    --> BIOFUEL           :       false
+    --> BOND              :       false
+    --> BRAVO             :       false
+    --> CAC               :       false
+    --> C2H6              :       false
+    --> EDGAR             :       false
+    --> HTAP              :  on   true
+    --> EMEP              :       false
+    --> GEIA              :       false
+    --> LIANG_BROMOCARB   :       false
+    --> NEI2005           :       false
+    --> NEMO-NEI2019_AR   :  on   true
+    --> RETRO             :       false
+    --> SHIP              :       false
+    --> MIX               :       false
+    --> STREETS           :       false
+    --> VOLCANO           :       false
+    --> RCP_3PD           :       false
+    --> RCP_45            :       false
+    --> RCP_60            :       false
+    --> RCP_85            :       false
+    --> QFED2             :       false
+    --> +UValbedo+        :       false
+    --> +TOMS_SBUV_O3+    :       false
+    --> +LinStratChem+    :       false
+    --> CEDS              :  on   true
+    --> OMI_HTAP_SO2      :  on   true
+    --> Yuan_XLAI         :  on   false
+    --> MODIS_XLAI        :       false
+    --> OFFLINE_SOILNOX   :  on   true
+# -----------------------------------------------------------------------------
+100     Custom            : off   -
+101     SeaFlux           : off   DMS/ACET
+102     ParaNOx           : off   NO/NO2/O3/HNO3
+    --> LUT data format   :       nc
+    --> LUT source dir    :       $ROOT/PARANOX/v2015-02
+103     LightNOx          : off   NO
+    --> OTD-LIS factors   :       true
+    --> CDF table         :       $ROOT/LIGHTNOX/v2014-07/light_dist.ott2010.dat
+104     SoilNOx           : off   NO
+    --> Use fertilizer NOx:       true
+105     DustDead          : off   DST1/DST2/DST3/DST4
+106     DustGinoux        : off   DST1/DST2/DST3/DST4
+107     SeaSalt           : off   SALA/SALC/Br2
+    --> SALA lower radius :       0.01
+    --> SALA upper radius :       0.5
+    --> SALC lower radius :       0.5
+    --> SALC upper radius :       8.0
+    --> Emit Br2          :       true
+    --> Br2 scaling       :       1.0
+108     MEGAN             : on    ISOP/ACET/PRPE/C2H4/ALD2/EOH/MOH/MTPA/MTPO/LIMO/SESQ
+    --> Isoprene scaling  :       1.0
+    --> CO2 inhibition    :       true
+    --> CO2 conc (ppmv)   :       411.0
+    --> Isoprene to SOAP  :       0.015
+    --> Isoprene to SOAS  :       0.015
+110     MEGAN_SOA         : off   MTPA/MTPO/LIMO/SESQ
+111     GFED              : off   NO/CO/ALK4/ACET/MEK/ALD2/PRPE/C3H8/CH2O/C2H6/SO2/NH3/BCPO/BCPI/OCPO/OCPI/POA1/NAP
+    --> GFED3             :       false
+    --> GFED4             :       true
+    --> GFED_daily        :       false
+    --> GFED_3hourly      :       false
+    --> CO scale factor   :       1.05
+    --> POA scale factor  :       1.27
+    --> NAP scale factor  :       2.75e-4
+    --> hydrophilic BC    :       0.2
+    --> hydrophilic OC    :       0.5
+114     FINN              : off   NO/CO/ALK4/ACET/MEK/ALD2/PRPE/C3H8/CH2O/C2H6/SO2/NH3/BCPI/BCPO/OCPI/OCPO/GLYC/HAC
+    --> FINN_daily        :       false
+    --> CO scale factor   :       1.0
+    --> hydrophilic BC    :       0.2
+    --> hydrophilic OC    :       0.5
+
+### END SECTION EXTENSION SWITCHES ###
+
+###############################################################################
+### BEGIN SECTION BASE EMISSIONS
+###############################################################################
+
+# ExtNr	Name sourceFile	sourceVar sourceTime C/R/E SrcDim SrcUnit Species ScalIDs Cat Hier
+0 UNIFORM 1.0 - * C xy kg/m2/s NO - 1 5
+
+
+#=============================================================================
+# --- Offline SOILNOX ---
+#=============================================================================
+(((OFFLINE_SOILNOX
+0 SOILNOX_NO  $ROOT/OFFLINE_SOILNOX/v2021-12/0.25x0.3125/spring_only/2021/$MM/soilnox_025.2021$MM$DD.nc SOIL_NOx 1980-2021/1-12/1-31/$HH C xy kg/m2/s NOT - 2 1
+)))OFFLINE_SOILNOX
+
+#==============================================================================
+# --- NOAA GMD monthly mean surface CH4 ---
+#==============================================================================
+* NOAA_GMD_CH4 $ROOT/NOAA_GMD/v2018-01/monthly.gridded.surface.methane.1979-2020.1x1.nc SFC_CH4 1979-2020/1-12/1/0 C xy ppbv * - 1 1
+
+#==============================================================================
+# --- CEDS ---
+#==============================================================================
+(((CEDS
+0 CEDS_PEC__A $ROOT/CEDS/v2021-06/2019/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc BC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s PEC 25     1 1
+0 CEDS_PEC__B $ROOT/CEDS/v2021-06/2019/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc BC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s PEC 35/44     1 1
+0 CEDS_PEC__C $ROOT/CEDS/v2021-06/2019/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc BC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s PEC 25     1 1
+0 CEDS_PEC__D $ROOT/CEDS/v2021-06/2019/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc BC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s PEC 28/46     1 1
+0 CEDS_PEC__E $ROOT/CEDS/v2021-06/2019/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc BC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s PEC 37/48     1 1
+0 CEDS_PEC__F $ROOT/CEDS/v2021-06/2019/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc BC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s PEC 25     1 1
+0 CEDS_PEC__G $ROOT/CEDS/v2021-06/2019/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc BC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s PEC 25     1 1
+0 CEDS_PEC__H $ROOT/CEDS/v2021-06/2019/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc BC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s PEC 25     1 1
+
+0 CEDS_POC__A $ROOT/CEDS/v2021-06/2019/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc OC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s POC 25     1 1
+0 CEDS_POC__B $ROOT/CEDS/v2021-06/2019/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc OC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s POC 35/44     1 1
+0 CEDS_POC__C $ROOT/CEDS/v2021-06/2019/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc OC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s POC 25     1 1
+0 CEDS_POC__D $ROOT/CEDS/v2021-06/2019/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc OC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s POC 28/46     1 1
+0 CEDS_POC__E $ROOT/CEDS/v2021-06/2019/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc OC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s POC 37/48     1 1
+0 CEDS_POC__F $ROOT/CEDS/v2021-06/2019/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc OC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s POC 25     1 1
+0 CEDS_POC__G $ROOT/CEDS/v2021-06/2019/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc OC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s POC 25     1 1
+0 CEDS_POC__H $ROOT/CEDS/v2021-06/2019/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc OC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s POC 25     1 1
+
+0 CEDS_SO2__A $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 25/1008     1 1
+0 CEDS_SO2__B $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 36/45/1008     1 1
+0 CEDS_SO2__C $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 25/1008     1 1
+0 CEDS_SO2__D $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 28/47/1008     1 1
+0 CEDS_SO2__E $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 37/48/1008     1 1
+0 CEDS_SO2__F $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 25/1008     1 1
+0 CEDS_SO2__G $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 25/1008     1 1
+0 CEDS_SO2__H $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 25/1008     1 1
+
+0 CEDS_SULF__A $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SULF 25/1099     1 1
+0 CEDS_SULF__B $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SULF 36/45/1098     1 1
+0 CEDS_SULF__C $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SULF 25/1097     1 1
+0 CEDS_SULF__D $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SULF 28/47/1096     1 1
+0 CEDS_SULF__E $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SULF 37/48/1095     1 1
+0 CEDS_SULF__F $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SULF 25/1094     1 1
+0 CEDS_SULF__G $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SULF 25/1097     1 1
+0 CEDS_SULF__H $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SULF 25/1097     1 1
+
+0 CEDS_CO__A $ROOT/CEDS/v2021-06/2019/CO-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc CO_em_anthro 2019/1-12/1/0 C xyz kg/m2/s CO 25     1 1
+0 CEDS_CO__B $ROOT/CEDS/v2021-06/2019/CO-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc CO_em_anthro 2019/1-12/1/0 C xyz kg/m2/s CO 30/39     1 1
+0 CEDS_CO__C $ROOT/CEDS/v2021-06/2019/CO-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc CO_em_anthro 2019/1-12/1/0 C xyz kg/m2/s CO 25     1 1
+0 CEDS_CO__D $ROOT/CEDS/v2021-06/2019/CO-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc CO_em_anthro 2019/1-12/1/0 C xyz kg/m2/s CO 28/47     1 1
+0 CEDS_CO__E $ROOT/CEDS/v2021-06/2019/CO-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc CO_em_anthro 2019/1-12/1/0 C xyz kg/m2/s CO 37/48     1 1
+0 CEDS_CO__F $ROOT/CEDS/v2021-06/2019/CO-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc CO_em_anthro 2019/1-12/1/0 C xyz kg/m2/s CO 25     1 1
+0 CEDS_CO__G $ROOT/CEDS/v2021-06/2019/CO-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc CO_em_anthro 2019/1-12/1/0 C xyz kg/m2/s CO 25     1 1
+0 CEDS_CO__H $ROOT/CEDS/v2021-06/2019/CO-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc CO_em_anthro 2019/1-12/1/0 C xyz kg/m2/s CO 25     1 1
+
+0 CEDS_NH3__A $ROOT/CEDS/v2021-06/2019/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc NH3_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NH3 25     1 1
+0 CEDS_NH3__B $ROOT/CEDS/v2021-06/2019/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc NH3_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NH3 25     1 1
+0 CEDS_NH3__C $ROOT/CEDS/v2021-06/2019/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc NH3_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NH3 25     1 1
+0 CEDS_NH3__D $ROOT/CEDS/v2021-06/2019/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc NH3_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NH3 28/47     1 1
+0 CEDS_NH3__E $ROOT/CEDS/v2021-06/2019/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc NH3_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NH3 37/48     1 1
+0 CEDS_NH3__F $ROOT/CEDS/v2021-06/2019/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc NH3_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NH3 25     1 1
+0 CEDS_NH3__G $ROOT/CEDS/v2021-06/2019/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc NH3_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NH3 25     1 1
+0 CEDS_NH3__H $ROOT/CEDS/v2021-06/2019/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc NH3_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NH3 25     1 1
+
+0 CEDS_NH3_FERT__A $ROOT/CEDS/v2021-06/2019/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc NH3_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NH3_FERT 25/1093     1 1
+0 CEDS_NH3_FERT__B $ROOT/CEDS/v2021-06/2019/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc NH3_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NH3_FERT 25/1092     1 1
+0 CEDS_NH3_FERT__C $ROOT/CEDS/v2021-06/2019/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc NH3_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NH3_FERT 25/1091     1 1
+0 CEDS_NH3_FERT__D $ROOT/CEDS/v2021-06/2019/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc NH3_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NH3_FERT 28/47/1090     1 1
+0 CEDS_NH3_FERT__E $ROOT/CEDS/v2021-06/2019/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc NH3_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NH3_FERT 37/48/1089     1 1
+0 CEDS_NH3_FERT__F $ROOT/CEDS/v2021-06/2019/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc NH3_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NH3_FERT 25/1088     1 1
+0 CEDS_NH3_FERT__G $ROOT/CEDS/v2021-06/2019/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc NH3_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NH3_FERT 25/1091     1 1
+0 CEDS_NH3_FERT__H $ROOT/CEDS/v2021-06/2019/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc NH3_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NH3_FERT 25/1091     1 1
+
+0 CEDS_NO__A $ROOT/CEDS/v2021-06/2019/NOx-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc NOx_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NOT 25/999     1 1
+0 CEDS_NO__B $ROOT/CEDS/v2021-06/2019/NOx-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc NOx_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NOT 33/42/999     1 1
+0 CEDS_NO__C $ROOT/CEDS/v2021-06/2019/NOx-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc NOx_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NOT 25/999     1 1
+0 CEDS_NO__D $ROOT/CEDS/v2021-06/2019/NOx-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc NOx_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NOT 28/47/999     1 1
+0 CEDS_NO__E $ROOT/CEDS/v2021-06/2019/NOx-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc NOx_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NOT 37/48/999     1 1
+0 CEDS_NO__F $ROOT/CEDS/v2021-06/2019/NOx-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc NOx_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NOT 25/999     1 1
+0 CEDS_NO__G $ROOT/CEDS/v2021-06/2019/NOx-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc NOx_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NOT 25/999     1 1
+0 CEDS_NO__H $ROOT/CEDS/v2021-06/2019/NOx-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc NOx_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NOT 25/999     1 1
+
+0 CEDS_NO2__A $ROOT/CEDS/v2021-06/2019/NOx-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc NOx_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NO2 25/998     1 1
+0 CEDS_NO2__B $ROOT/CEDS/v2021-06/2019/NOx-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc NOx_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NO2 33/42/998     1 1
+0 CEDS_NO2__C $ROOT/CEDS/v2021-06/2019/NOx-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc NOx_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NO2 25/998     1 1
+0 CEDS_NO2__D $ROOT/CEDS/v2021-06/2019/NOx-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc NOx_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NO2 28/47/998     1 1
+0 CEDS_NO2__E $ROOT/CEDS/v2021-06/2019/NOx-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc NOx_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NO2 37/48/998     1 1
+0 CEDS_NO2__F $ROOT/CEDS/v2021-06/2019/NOx-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc NOx_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NO2 25/998    1 1
+0 CEDS_NO2__G $ROOT/CEDS/v2021-06/2019/NOx-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc NOx_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NO2 25/998     1 1
+0 CEDS_NO2__H $ROOT/CEDS/v2021-06/2019/NOx-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc NOx_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NO2 25/998     1 1
+
+0 CEDS_VOC_INV__A $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s VOC_INV 26     1 1
+0 CEDS_VOC_INV__B $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s VOC_INV 32/41     1 1
+0 CEDS_VOC_INV__C $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s VOC_INV 26     1 1
+0 CEDS_VOC_INV__D $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s VOC_INV 28/47     1 1
+0 CEDS_VOC_INV__E $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s VOC_INV 37/48     1 1
+0 CEDS_VOC_INV__F $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s VOC_INV 26    1 1
+0 CEDS_VOC_INV__G $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s VOC_INV 26     1 1
+0 CEDS_VOC_INV__H $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s VOC_INV 26     1 1
+
+0 CEDS_ACET__A $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ACET 26/997     1 1
+0 CEDS_ACET__B $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ACET 32/41/996     1 1
+0 CEDS_ACET__C $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ACET 26/995     1 1
+0 CEDS_ACET__D $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ACET 28/47/994     1 1
+0 CEDS_ACET__E $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ACET 37/48/993     1 1
+0 CEDS_ACET__F $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ACET 26/992    1 1
+0 CEDS_ACET__G $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ACET 26/995     1 1
+0 CEDS_ACET__H $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ACET 26/995     1 1
+
+0 CEDS_ALD2__A $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ALD2 26/991     1 1
+0 CEDS_ALD2__B $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ALD2 32/41/990     1 1
+0 CEDS_ALD2__C $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ALD2 26/989     1 1
+0 CEDS_ALD2__D $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ALD2 28/47/988     1 1
+0 CEDS_ALD2__E $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ALD2 37/48/987     1 1
+0 CEDS_ALD2__F $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ALD2 26/986    1 1
+0 CEDS_ALD2__G $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ALD2 26/989     1 1
+0 CEDS_ALD2__H $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ALD2 26/989     1 1
+
+0 CEDS_ALD2_PRIMARY__A $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ALD2_PRIMARY 26/991     1 1
+0 CEDS_ALD2_PRIMARY__B $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ALD2_PRIMARY 32/41/990     1 1
+0 CEDS_ALD2_PRIMARY__C $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ALD2_PRIMARY 26/989     1 1
+0 CEDS_ALD2_PRIMARY__D $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ALD2_PRIMARY 28/47/988     1 1
+0 CEDS_ALD2_PRIMARY__E $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ALD2_PRIMARY 37/48/987     1 1
+0 CEDS_ALD2_PRIMARY__F $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ALD2_PRIMARY 26/986    1 1
+0 CEDS_ALD2_PRIMARY__G $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ALD2_PRIMARY 26/989     1 1
+0 CEDS_ALD2_PRIMARY__H $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ALD2_PRIMARY 26/989     1 1
+
+0 CEDS_ALDX__A $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ALDX 26/985     1 1
+0 CEDS_ALDX__B $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ALDX 32/41/984     1 1
+0 CEDS_ALDX__C $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ALDX 26/983     1 1
+0 CEDS_ALDX__D $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ALDX 28/47/982     1 1
+0 CEDS_ALDX__E $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ALDX 37/48/981     1 1
+0 CEDS_ALDX__F $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ALDX 26/980    1 1
+0 CEDS_ALDX__G $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ALDX 26/983     1 1
+0 CEDS_ALDX__H $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ALDX 26/983     1 1
+
+0 CEDS_BENZ__A $ROOT/CEDS/v2021-06/2019/VOC13-benzene-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc VOC13_benzene_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s BENZ 26 1 1
+0 CEDS_BENZ__B $ROOT/CEDS/v2021-06/2019/VOC13-benzene-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc VOC13_benzene_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s BENZ 32/41 1 1
+0 CEDS_BENZ__C $ROOT/CEDS/v2021-06/2019/VOC13-benzene-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc VOC13_benzene_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s BENZ 26 1 1
+0 CEDS_BENZ__D $ROOT/CEDS/v2021-06/2019/VOC13-benzene-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc VOC13_benzene_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s BENZ 28/47 1 1
+0 CEDS_BENZ__E $ROOT/CEDS/v2021-06/2019/VOC13-benzene-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc VOC13_benzene_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s BENZ 37/48 1 1
+0 CEDS_BENZ__F $ROOT/CEDS/v2021-06/2019/VOC13-benzene-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc VOC13_benzene_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s BENZ 26 1 1
+0 CEDS_BENZ__G $ROOT/CEDS/v2021-06/2019/VOC13-benzene-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc VOC13_benzene_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s BENZ 26 1 1
+0 CEDS_BENZ__H $ROOT/CEDS/v2021-06/2019/VOC13-benzene-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc VOC13_benzene_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s BENZ 26 1 1
+
+0 CEDS_ETH__A $ROOT/CEDS/v2021-06/2019/VOC07-ethene-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc VOC07_ethene_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETH 26 1 1
+0 CEDS_ETH__B $ROOT/CEDS/v2021-06/2019/VOC07-ethene-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc VOC07_ethene_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETH 32/41 1 1
+0 CEDS_ETH__C $ROOT/CEDS/v2021-06/2019/VOC07-ethene-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc VOC07_ethene_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETH 26 1 1
+0 CEDS_ETH__D $ROOT/CEDS/v2021-06/2019/VOC07-ethene-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc VOC07_ethene_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETH 28/47 1 1
+0 CEDS_ETH__E $ROOT/CEDS/v2021-06/2019/VOC07-ethene-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc VOC07_ethene_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETH 37/48 1 1
+0 CEDS_ETH__F $ROOT/CEDS/v2021-06/2019/VOC07-ethene-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc VOC07_ethene_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETH 26 1 1
+0 CEDS_ETH__G $ROOT/CEDS/v2021-06/2019/VOC07-ethene-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc VOC07_ethene_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETH 26 1 1
+0 CEDS_ETH__H $ROOT/CEDS/v2021-06/2019/VOC07-ethene-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc VOC07_ethene_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETH 26 1 1
+
+0 CEDS_ETHA__A $ROOT/CEDS/v2021-06/2019/VOC02-ethane-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc VOC02_ethane_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETHA 26 1 1
+0 CEDS_ETHA__B $ROOT/CEDS/v2021-06/2019/VOC02-ethane-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc VOC02_ethane_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETHA 32/41 1 1
+0 CEDS_ETHA__C $ROOT/CEDS/v2021-06/2019/VOC02-ethane-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc VOC02_ethane_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETHA 26 1 1
+0 CEDS_ETHA__D $ROOT/CEDS/v2021-06/2019/VOC02-ethane-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc VOC02_ethane_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETHA 28/47 1 1
+0 CEDS_ETHA__E $ROOT/CEDS/v2021-06/2019/VOC02-ethane-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc VOC02_ethane_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETHA 37/48 1 1
+0 CEDS_ETHA__F $ROOT/CEDS/v2021-06/2019/VOC02-ethane-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc VOC02_ethane_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETHA 26 1 1
+0 CEDS_ETHA__G $ROOT/CEDS/v2021-06/2019/VOC02-ethane-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc VOC02_ethane_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETHA 26 1 1
+0 CEDS_ETHA__H $ROOT/CEDS/v2021-06/2019/VOC02-ethane-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc VOC02_ethane_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETHA 26 1 1
+
+0 CEDS_ETHY__A $ROOT/CEDS/v2021-06/2019/VOC09-ethyne-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc VOC09_ethyne_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETHY 26 1 1
+0 CEDS_ETHY__B $ROOT/CEDS/v2021-06/2019/VOC09-ethyne-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc VOC09_ethyne_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETHY 32/41 1 1
+0 CEDS_ETHY__C $ROOT/CEDS/v2021-06/2019/VOC09-ethyne-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc VOC09_ethyne_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETHY 26 1 1
+0 CEDS_ETHY__D $ROOT/CEDS/v2021-06/2019/VOC09-ethyne-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc VOC09_ethyne_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETHY 28/47 1 1
+0 CEDS_ETHY__E $ROOT/CEDS/v2021-06/2019/VOC09-ethyne-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc VOC09_ethyne_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETHY 37/48 1 1
+0 CEDS_ETHY__F $ROOT/CEDS/v2021-06/2019/VOC09-ethyne-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc VOC09_ethyne_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETHY 26 1 1
+0 CEDS_ETHY__G $ROOT/CEDS/v2021-06/2019/VOC09-ethyne-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc VOC09_ethyne_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETHY 26 1 1
+0 CEDS_ETHY__H $ROOT/CEDS/v2021-06/2019/VOC09-ethyne-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc VOC09_ethyne_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETHY 26 1 1
+
+0 CEDS_ETOH__A $ROOT/CEDS/v2021-06/2019/VOC01-alcohols-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc VOC01_alcohols_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETOH 26 1 1
+0 CEDS_ETOH__B $ROOT/CEDS/v2021-06/2019/VOC01-alcohols-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc VOC01_alcohols_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETOH 32/41 1 1
+0 CEDS_ETOH__C $ROOT/CEDS/v2021-06/2019/VOC01-alcohols-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc VOC01_alcohols_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETOH 26 1 1
+0 CEDS_ETOH__D $ROOT/CEDS/v2021-06/2019/VOC01-alcohols-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc VOC01_alcohols_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETOH 28/47 1 1
+0 CEDS_ETOH__E $ROOT/CEDS/v2021-06/2019/VOC01-alcohols-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc VOC01_alcohols_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETOH 37/48 1 1
+0 CEDS_ETOH__F $ROOT/CEDS/v2021-06/2019/VOC01-alcohols-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc VOC01_alcohols_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETOH 26 1 1
+0 CEDS_ETOH__G $ROOT/CEDS/v2021-06/2019/VOC01-alcohols-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc VOC01_alcohols_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETOH 26 1 1
+0 CEDS_ETOH__H $ROOT/CEDS/v2021-06/2019/VOC01-alcohols-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc VOC01_alcohols_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s ETOH 26 1 1
+
+0 CEDS_FORM__A $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s FORM 26/979     1 1
+0 CEDS_FORM__B $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s FORM 32/41/978     1 1
+0 CEDS_FORM__C $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s FORM 26/977     1 1
+0 CEDS_FORM__D $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s FORM 28/47/976     1 1
+0 CEDS_FORM__E $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s FORM 37/48/975     1 1
+0 CEDS_FORM__F $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s FORM 26/974    1 1
+0 CEDS_FORM__G $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s FORM 26/977     1 1
+0 CEDS_FORM__H $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s FORM 26/977     1 1
+
+0 CEDS_FORM_PRIMARY__A $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s FORM_PRIMARY 26/979     1 1
+0 CEDS_FORM_PRIMARY__B $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s FORM_PRIMARY 32/41/978     1 1
+0 CEDS_FORM_PRIMARY__C $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s FORM_PRIMARY 26/977     1 1
+0 CEDS_FORM_PRIMARY__D $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s FORM_PRIMARY 28/47/976     1 1
+0 CEDS_FORM_PRIMARY__E $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s FORM_PRIMARY 37/48/975     1 1
+0 CEDS_FORM_PRIMARY__F $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s FORM_PRIMARY 26/974    1 1
+0 CEDS_FORM_PRIMARY__G $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s FORM_PRIMARY 26/977     1 1
+0 CEDS_FORM_PRIMARY__H $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s FORM_PRIMARY 26/977     1 1
+
+0 CEDS_IOLE__A $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s IOLE 26/973     1 1
+0 CEDS_IOLE__B $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s IOLE 32/41/972     1 1
+0 CEDS_IOLE__C $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s IOLE 26/971     1 1
+0 CEDS_IOLE__D $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s IOLE 28/47/970     1 1
+0 CEDS_IOLE__E $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s IOLE 37/48/969     1 1
+0 CEDS_IOLE__F $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s IOLE 26/968    1 1
+0 CEDS_IOLE__G $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s IOLE 26/971     1 1
+0 CEDS_IOLE__H $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s IOLE 26/971     1 1
+
+0 CEDS_ISOP__A $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ISOP 26/967     1 1
+0 CEDS_ISOP__B $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ISOP 32/41/966     1 1
+0 CEDS_ISOP__C $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ISOP 26/965     1 1
+0 CEDS_ISOP__D $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ISOP 28/47/964     1 1
+0 CEDS_ISOP__E $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ISOP 37/48/963     1 1
+0 CEDS_ISOP__F $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ISOP 26/962    1 1
+0 CEDS_ISOP__G $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ISOP 26/965     1 1
+0 CEDS_ISOP__H $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ISOP 26/965     1 1
+
+0 CEDS_KET__A $ROOT/CEDS/v2021-06/2019/VOC23-ketones-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc VOC23_ketones_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s KET 26 1 1
+0 CEDS_KET__B $ROOT/CEDS/v2021-06/2019/VOC23-ketones-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc VOC23_ketones_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s KET 32/41 1 1
+0 CEDS_KET__C $ROOT/CEDS/v2021-06/2019/VOC23-ketones-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc VOC23_ketones_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s KET 26 1 1
+0 CEDS_KET__D $ROOT/CEDS/v2021-06/2019/VOC23-ketones-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc VOC23_ketones_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s KET 28/47 1 1
+0 CEDS_KET__E $ROOT/CEDS/v2021-06/2019/VOC23-ketones-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc VOC23_ketones_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s KET 37/48 1 1
+0 CEDS_KET__F $ROOT/CEDS/v2021-06/2019/VOC23-ketones-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc VOC23_ketones_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s KET 26 1 1
+0 CEDS_KET__G $ROOT/CEDS/v2021-06/2019/VOC23-ketones-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc VOC23_ketones_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s KET 26 1 1
+0 CEDS_KET__H $ROOT/CEDS/v2021-06/2019/VOC23-ketones-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc VOC23_ketones_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s KET 26 1 1
+
+0 CEDS_MEOH__A $ROOT/CEDS/v2021-06/2019/VOC21-methanal-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc VOC21_methanal_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s MEOH 26 1 1
+0 CEDS_MEOH__B $ROOT/CEDS/v2021-06/2019/VOC21-methanal-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc VOC21_methanal_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s MEOH 32/41 1 1
+0 CEDS_MEOH__C $ROOT/CEDS/v2021-06/2019/VOC21-methanal-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc VOC21_methanal_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s MEOH 26 1 1
+0 CEDS_MEOH__D $ROOT/CEDS/v2021-06/2019/VOC21-methanal-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc VOC21_methanal_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s MEOH 28/47 1 1
+0 CEDS_MEOH__E $ROOT/CEDS/v2021-06/2019/VOC21-methanal-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc VOC21_methanal_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s MEOH  37/48 1 1
+0 CEDS_MEOH__F $ROOT/CEDS/v2021-06/2019/VOC21-methanal-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc VOC21_methanal_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s MEOH 26 1 1
+0 CEDS_MEOH__G $ROOT/CEDS/v2021-06/2019/VOC21-methanal-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc VOC21_methanal_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s MEOH 26 1 1
+0 CEDS_MEOH__H $ROOT/CEDS/v2021-06/2019/VOC21-methanal-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc VOC21_methanal_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s MEOH 26 1 1
+
+0 CEDS_NAPH__A $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NAPH 26/961     1 1
+0 CEDS_NAPH__B $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NAPH 32/41/960     1 1
+0 CEDS_NAPH__C $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NAPH 26/959     1 1
+0 CEDS_NAPH__D $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NAPH 28/47/958     1 1
+0 CEDS_NAPH__E $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NAPH 37/48/957     1 1
+0 CEDS_NAPH__F $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NAPH 26/956    1 1
+0 CEDS_NAPH__G $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NAPH 26/959     1 1
+0 CEDS_NAPH__H $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s NAPH 26/959     1 1
+
+0 CEDS_OLE__A $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s OLE 26/955     1 1
+0 CEDS_OLE__B $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s OLE 32/41/954     1 1
+0 CEDS_OLE__C $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s OLE 26/953     1 1
+0 CEDS_OLE__D $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s OLE 28/47/952     1 1
+0 CEDS_OLE__E $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s OLE 37/48/951     1 1
+0 CEDS_OLE__F $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s OLE 26/950    1 1
+0 CEDS_OLE__G $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s OLE 26/953     1 1
+0 CEDS_OLE__H $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s OLE 26/953     1 1
+
+0 CEDS_PAR__A $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s PAR 26/949     1 1
+0 CEDS_PAR__B $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s PAR 32/41/948     1 1
+0 CEDS_PAR__C $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s PAR 26/947     1 1
+0 CEDS_PAR__D $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s PAR 28/47/946     1 1
+0 CEDS_PAR__E $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s PAR 37/48/945     1 1
+0 CEDS_PAR__F $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s PAR 26/944    1 1
+0 CEDS_PAR__G $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s PAR 26/947     1 1
+0 CEDS_PAR__H $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s PAR 26/947     1 1
+
+0 CEDS_PRPA__A $ROOT/CEDS/v2021-06/2019/VOC03-propane-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc VOC03_propane_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s PRPA 26 1 1
+0 CEDS_PRPA__B $ROOT/CEDS/v2021-06/2019/VOC03-propane-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc VOC03_propane_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s PRPA 32/41 1 1
+0 CEDS_PRPA__C $ROOT/CEDS/v2021-06/2019/VOC03-propane-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc VOC03_propane_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s PRPA 26 1 1
+0 CEDS_PRPA__D $ROOT/CEDS/v2021-06/2019/VOC03-propane-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc VOC03_propane_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s PRPA 28/47 1 1
+0 CEDS_PRPA__E $ROOT/CEDS/v2021-06/2019/VOC03-propane-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc VOC03_propane_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s PRPA  37/48 1 1
+0 CEDS_PRPA__F $ROOT/CEDS/v2021-06/2019/VOC03-propane-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc VOC03_propane_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s PRPA 26 1 1
+0 CEDS_PRPA__G $ROOT/CEDS/v2021-06/2019/VOC03-propane-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc VOC03_propane_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s PRPA 26 1 1
+0 CEDS_PRPA__H $ROOT/CEDS/v2021-06/2019/VOC03-propane-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc VOC03_propane_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s PRPA 26 1 1
+
+0 CEDS_SOAALK__A $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SOAALK 26/943     1 1
+0 CEDS_SOAALK__B $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SOAALK 32/41/942     1 1
+0 CEDS_SOAALK__C $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SOAALK 26/941     1 1
+0 CEDS_SOAALK__D $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SOAALK 28/47/940     1 1
+0 CEDS_SOAALK__E $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SOAALK 37/48/939     1 1
+0 CEDS_SOAALK__F $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SOAALK 26/938    1 1
+0 CEDS_SOAALK__G $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SOAALK 26/941     1 1
+0 CEDS_SOAALK__H $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SOAALK 26/941     1 1
+
+0 CEDS_TOL__A $ROOT/CEDS/v2021-06/2019/VOC14-toluene-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc VOC14_toluene_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s TOL 26 1 1
+0 CEDS_TOL__B $ROOT/CEDS/v2021-06/2019/VOC14-toluene-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc VOC14_toluene_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s TOL 32/41 1 1
+0 CEDS_TOL__C $ROOT/CEDS/v2021-06/2019/VOC14-toluene-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc VOC14_toluene_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s TOL 26 1 1
+0 CEDS_TOL__D $ROOT/CEDS/v2021-06/2019/VOC14-toluene-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc VOC14_toluene_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s TOL 28/47 1 1
+0 CEDS_TOL__E $ROOT/CEDS/v2021-06/2019/VOC14-toluene-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc VOC14_toluene_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s TOL  37/48 1 1
+0 CEDS_TOL__F $ROOT/CEDS/v2021-06/2019/VOC14-toluene-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc VOC14_toluene_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s TOL 26 1 1
+0 CEDS_TOL__G $ROOT/CEDS/v2021-06/2019/VOC14-toluene-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc VOC14_toluene_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s TOL 26 1 1
+0 CEDS_TOL__H $ROOT/CEDS/v2021-06/2019/VOC14-toluene-em-speciated-VOC-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc VOC14_toluene_em_speciated_VOC_anthro 2019/1-12/1/0 C xyz kg/m2/s TOL 26 1 1
+
+0 CEDS_UNR__A $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s UNR 26/937     1 1
+0 CEDS_UNR__B $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s UNR 32/41/936     1 1
+0 CEDS_UNR__C $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s UNR 26/935     1 1
+0 CEDS_UNR__D $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s UNR 28/47/934     1 1
+0 CEDS_UNR__E $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s UNR 37/48/933     1 1
+0 CEDS_UNR__F $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s UNR 26/932    1 1
+0 CEDS_UNR__G $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s UNR 26/935     1 1
+0 CEDS_UNR__H $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s UNR 26/935     1 1
+
+0 CEDS_XYLMN__A $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s XYLMN 26/931     1 1
+0 CEDS_XYLMN__B $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s XYLMN 32/41/930     1 1
+0 CEDS_XYLMN__C $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s XYLMN 26/929     1 1
+0 CEDS_XYLMN__D $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s XYLMN 28/47/928     1 1
+0 CEDS_XYLMN__E $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s XYLMN 37/48/927     1 1
+0 CEDS_XYLMN__F $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s XYLMN 26/926    1 1
+0 CEDS_XYLMN__G $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s XYLMN 26/929     1 1
+0 CEDS_XYLMN__H $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s XYLMN 26/929     1 1
+
+0 CEDS_UNK__A $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s UNK 26/925     1 1
+0 CEDS_UNK__B $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s UNK 32/41/924    1 1
+0 CEDS_UNK__C $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s UNK 26/923     1 1
+0 CEDS_UNK__D $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s UNK 28/47/922     1 1
+0 CEDS_UNK__E $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s UNK 37/48/921     1 1
+0 CEDS_UNK__F $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s UNK 26/920    1 1
+0 CEDS_UNK__G $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s UNK 26/923     1 1
+0 CEDS_UNK__H $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s UNK 26/923     1 1
+
+0 CEDS_TERP__A $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s TERP 26/919     1 1
+0 CEDS_TERP__B $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s TERP 32/41/918    1 1
+0 CEDS_TERP__C $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s TERP 26/917     1 1
+0 CEDS_TERP__D $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s TERP 28/47/916     1 1
+0 CEDS_TERP__E $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s TERP 37/48/915     1 1
+0 CEDS_TERP__F $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s TERP 26/914    1 1
+0 CEDS_TERP__G $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s TERP 26/917     1 1
+0 CEDS_TERP__H $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s TERP 26/917     1 1
+
+0 CEDS_CH4__A $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s CH4 26/699     1 1
+0 CEDS_CH4__B $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s CH4 29/38/698    1 1
+0 CEDS_CH4__C $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s CH4 26/697     1 1
+0 CEDS_CH4__D $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s CH4 28/47/696     1 1
+0 CEDS_CH4__E $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s CH4 37/48/695     1 1
+0 CEDS_CH4__F $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s CH4 26/694    1 1
+0 CEDS_CH4__G $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s CH4 26/697     1 1
+0 CEDS_CH4__H $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s CH4 26/697     1 1
+
+0 CEDS_HONO__A $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s HONO 26/693     1 1
+0 CEDS_HONO__B $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s HONO 32/41/692    1 1
+0 CEDS_HONO__C $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s HONO 26/691     1 1
+0 CEDS_HONO__D $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s HONO 28/47/690     1 1
+0 CEDS_HONO__E $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s HONO 37/48/689     1 1
+0 CEDS_HONO__F $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s HONO 26/688    1 1
+0 CEDS_HONO__G $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s HONO 26/691     1 1
+0 CEDS_HONO__H $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s HONO 26/691     1 1
+
+0 CEDS_ACROLEIN__A $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ACROLEIN 26/687     1 1
+0 CEDS_ACROLEIN__B $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ACROLEIN 32/41/686    1 1
+0 CEDS_ACROLEIN__C $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ACROLEIN 26/685     1 1
+0 CEDS_ACROLEIN__D $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ACROLEIN 28/47/684     1 1
+0 CEDS_ACROLEIN__E $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ACROLEIN 37/48/683     1 1
+0 CEDS_ACROLEIN__F $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ACROLEIN 26/682    1 1
+0 CEDS_ACROLEIN__G $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ACROLEIN 26/685     1 1
+0 CEDS_ACROLEIN__H $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s ACROLEIN 26/685     1 1
+
+0 CEDS_BUTADIENE13__A $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s BUTADIENE13 26/681     1 1
+0 CEDS_BUTADIENE13__B $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s BUTADIENE13 32/41/680    1 1
+0 CEDS_BUTADIENE13__C $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s BUTADIENE13 26/679     1 1
+0 CEDS_BUTADIENE13__D $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s BUTADIENE13 28/47/678     1 1
+0 CEDS_BUTADIENE13__E $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s BUTADIENE13 37/48/677     1 1
+0 CEDS_BUTADIENE13__F $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s BUTADIENE13 26/676    1 1
+0 CEDS_BUTADIENE13__G $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s BUTADIENE13 26/679     1 1
+0 CEDS_BUTADIENE13__H $ROOT/CEDS/v2021-06/2019/NMVOC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc NMVOC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s BUTADIENE13 26/679     1 1
+
+)))CEDS
+
+#==============================================================================
+# --- OMI_HTAP_SO2---
+#==============================================================================
+(((OMI_HTAP_SO2
+0 OMI_HTAP_SO2__A $ROOT/OMI-HTAP_2019/htapv2.2.emisso2.surface.x3600y1800t12.2019.integrate_fixtime.nc4 sanl1 2019/1-12/1/0 C xy kg/m2/s SO2 36/45     1 1
+)))OMI_HTAP_SO2
+
+#==============================================================================
+# --- HTAP v3 ---
+#
+# %%% NOTE: This is an optional inventory. You may select either EDGAR or HTAP
+# for the global base emissions %%%
+# SHP (ships) and AIR_LTO (aircraft landing & take off < 1 km) sectors are included here.
+#==============================================================================
+(((HTAP
+0 HTAP_PMC_AIR_A    $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_2_1_Domestic_Aviation           2018/1-12/1/0 C xy kg/m2/s PMC   25  1 1
+0 HTAP_PMC_AIR_B    $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_2_2_International_Aviation      2018/1-12/1/0 C xy kg/m2/s PMC   25  1 1
+0 HTAP_PMC_SHP_A    $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_1_International_Shipping        2018/1-12/1/0 C xy kg/m2/s PMC   25  1 1
+0 HTAP_PMC_SHP_B    $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PMC   25  1 1
+0 HTAP_PMC_POW      $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PMC   34/43  1 1
+0 HTAP_PMC_IND      $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PMC   25  1 1
+0 HTAP_PMC_TRA_A    $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PMC   37/48  1 1
+0 HTAP_PMC_TRA_B    $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PMC   25  1 1
+0 HTAP_PMC_TRA_C    $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PMC   25  1 1
+0 HTAP_PMC_TRA_D    $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PMC   25  1 1
+0 HTAP_PMC_RES      $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PMC   28/46  1 1
+0 HTAP_PMC_WST      $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PMC   25  1 1
+0 HTAP_PMC_SOL      $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PMC   25  1 1
+0 HTAP_PMC_AGR_A    $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_8_2_Agriculture_livestock       2018/1-12/1/0 C xy kg/m2/s PMC   25  1 1
+0 HTAP_PMC_AGR_B    $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_8_3_Agriculture_crops           2018/1-12/1/0 C xy kg/m2/s PMC   25  1 1
+0 HTAP_PMC_AGR_C    $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_8_1_Agricultural_waste_burning  2018/1-12/1/0 C xy kg/m2/s PMC   25  1 1
+
+0 HTAP_PAL_AIR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_1_Domestic_Aviation           2018/1-12/1/0 C xy kg/m2/s PAL   25/899  1 1
+0 HTAP_PAL_AIR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_2_International_Aviation      2018/1-12/1/0 C xy kg/m2/s PAL   25/899  1 1
+0 HTAP_PAL_SHP_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_1_International_Shipping        2018/1-12/1/0 C xy kg/m2/s PAL   25/898  1 1
+0 HTAP_PAL_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PAL   25/898  1 1
+0 HTAP_PAL_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PAL   35/44/897  1 1
+0 HTAP_PAL_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PAL   25/896  1 1
+0 HTAP_PAL_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PAL   37/48/895  1 1
+0 HTAP_PAL_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PAL   25/895  1 1
+0 HTAP_PAL_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PAL   25/895  1 1
+0 HTAP_PAL_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PAL   25/895  1 1
+0 HTAP_PAL_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PAL   28/46/894  1 1
+0 HTAP_PAL_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PAL   25/896  1 1
+0 HTAP_PAL_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PAL   25/896  1 1
+0 HTAP_PAL_AGR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_2_Agriculture_livestock       2018/1-12/1/0 C xy kg/m2/s PAL   25/599  1 1
+0 HTAP_PAL_AGR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_3_Agriculture_crops           2018/1-12/1/0 C xy kg/m2/s PAL   25/599  1 1
+0 HTAP_PAL_AGR_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_1_Agricultural_waste_burning  2018/1-12/1/0 C xy kg/m2/s PAL   25/599  1 1
+
+
+0 HTAP_PCA_AIR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_1_Domestic_Aviation           2018/1-12/1/0 C xy kg/m2/s PCA   25/893  1 1
+0 HTAP_PCA_AIR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_2_International_Aviation      2018/1-12/1/0 C xy kg/m2/s PCA   25/893  1 1
+0 HTAP_PCA_SHP_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_1_International_Shipping        2018/1-12/1/0 C xy kg/m2/s PCA   25/892  1 1
+0 HTAP_PCA_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PCA   25/892  1 1
+0 HTAP_PCA_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PCA   35/44/891  1 1
+0 HTAP_PCA_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PCA   25/890  1 1
+0 HTAP_PCA_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PCA   37/48/889  1 1
+0 HTAP_PCA_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PCA   25/889  1 1
+0 HTAP_PCA_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PCA   25/889  1 1
+0 HTAP_PCA_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PCA   25/889  1 1
+0 HTAP_PCA_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PCA   28/46/888  1 1
+0 HTAP_PCA_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PCA   25/890  1 1
+0 HTAP_PCA_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PCA   25/890  1 1
+0 HTAP_PCA_AGR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_2_Agriculture_livestock       2018/1-12/1/0 C xy kg/m2/s PCA   25/598  1 1
+0 HTAP_PCA_AGR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_3_Agriculture_crops           2018/1-12/1/0 C xy kg/m2/s PCA   25/598  1 1
+0 HTAP_PCA_AGR_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_1_Agricultural_waste_burning  2018/1-12/1/0 C xy kg/m2/s PCA   25/598  1 1
+0 HTAP_PCL_AIR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_1_Domestic_Aviation           2018/1-12/1/0 C xy kg/m2/s PCL   25/887  1 1
+0 HTAP_PCL_AIR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_2_International_Aviation      2018/1-12/1/0 C xy kg/m2/s PCL   25/887  1 1
+0 HTAP_PCL_SHP_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_1_International_Shipping        2018/1-12/1/0 C xy kg/m2/s PCL   25/886  1 1
+0 HTAP_PCL_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PCL   25/886  1 1
+0 HTAP_PCL_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PCL   35/44/885  1 1
+0 HTAP_PCL_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PCL   25/884  1 1
+0 HTAP_PCL_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PCL   37/48/883  1 1
+0 HTAP_PCL_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PCL   25/883  1 1
+0 HTAP_PCL_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PCL   25/883  1 1
+0 HTAP_PCL_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PCL   25/883  1 1
+0 HTAP_PCL_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PCL   28/46/882  1 1
+0 HTAP_PCL_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PCL   25/884  1 1
+0 HTAP_PCL_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PCL   25/884  1 1
+0 HTAP_PCL_AGR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_2_Agriculture_livestock       2018/1-12/1/0 C xy kg/m2/s PCL   25/597  1 1
+0 HTAP_PCL_AGR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_3_Agriculture_crops           2018/1-12/1/0 C xy kg/m2/s PCL   25/597  1 1
+0 HTAP_PCL_AGR_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_1_Agricultural_waste_burning  2018/1-12/1/0 C xy kg/m2/s PCL   25/597  1 1
+
+0 HTAP_PFE_AIR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_1_Domestic_Aviation           2018/1-12/1/0 C xy kg/m2/s PFE   25/881  1 1
+0 HTAP_PFE_AIR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_2_International_Aviation      2018/1-12/1/0 C xy kg/m2/s PFE   25/881  1 1
+0 HTAP_PFE_SHP_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_1_International_Shipping        2018/1-12/1/0 C xy kg/m2/s PFE   25/880  1 1
+0 HTAP_PFE_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PFE   25/880  1 1
+0 HTAP_PFE_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PFE   35/44/879  1 1
+0 HTAP_PFE_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PFE   25/878  1 1
+0 HTAP_PFE_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PFE   37/48/877  1 1
+0 HTAP_PFE_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PFE   25/877  1 1
+0 HTAP_PFE_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PFE   25/877  1 1
+0 HTAP_PFE_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PFE   25/877  1 1
+0 HTAP_PFE_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PFE   28/46/876  1 1
+0 HTAP_PFE_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PFE   25/878  1 1
+0 HTAP_PFE_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PFE   25/878  1 1
+0 HTAP_PFE_AGR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_2_Agriculture_livestock       2018/1-12/1/0 C xy kg/m2/s PFE   25/596  1 1
+0 HTAP_PFE_AGR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_3_Agriculture_crops           2018/1-12/1/0 C xy kg/m2/s PFE   25/596  1 1
+0 HTAP_PFE_AGR_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_1_Agricultural_waste_burning  2018/1-12/1/0 C xy kg/m2/s PFE   25/596  1 1
+
+0 HTAP_PH2O_AIR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_1_Domestic_Aviation           2018/1-12/1/0 C xy kg/m2/s PH2O   25/875  1 1
+0 HTAP_PH2O_AIR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_2_International_Aviation      2018/1-12/1/0 C xy kg/m2/s PH2O   25/875  1 1
+0 HTAP_PH2O_SHP_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_1_International_Shipping        2018/1-12/1/0 C xy kg/m2/s PH2O   25/874  1 1
+0 HTAP_PH2O_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PH2O   25/874  1 1
+0 HTAP_PH2O_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PH2O   35/44/873  1 1
+0 HTAP_PH2O_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PH2O   25/872  1 1
+0 HTAP_PH2O_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PH2O   37/48/871  1 1
+0 HTAP_PH2O_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PH2O   25/871  1 1
+0 HTAP_PH2O_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PH2O   25/871  1 1
+0 HTAP_PH2O_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PH2O   25/871  1 1
+0 HTAP_PH2O_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PH2O   28/46/870  1 1
+0 HTAP_PH2O_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PH2O   25/872  1 1
+0 HTAP_PH2O_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PH2O   25/872  1 1
+0 HTAP_PH2O_AGR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_2_Agriculture_livestock       2018/1-12/1/0 C xy kg/m2/s PH2O   25/595  1 1
+0 HTAP_PH2O_AGR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_3_Agriculture_crops           2018/1-12/1/0 C xy kg/m2/s PH2O   25/595  1 1
+0 HTAP_PH2O_AGR_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_1_Agricultural_waste_burning  2018/1-12/1/0 C xy kg/m2/s PH2O   25/595  1 1
+
+0 HTAP_PK_AIR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_1_Domestic_Aviation           2018/1-12/1/0 C xy kg/m2/s PK   25/869  1 1
+0 HTAP_PK_AIR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_2_International_Aviation      2018/1-12/1/0 C xy kg/m2/s PK   25/869  1 1
+0 HTAP_PK_SHP_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_1_International_Shipping        2018/1-12/1/0 C xy kg/m2/s PK   25/868  1 1
+0 HTAP_PK_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PK   25/868  1 1
+0 HTAP_PK_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PK   35/44/867  1 1
+0 HTAP_PK_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PK   25/866  1 1
+0 HTAP_PK_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PK   37/48/865  1 1
+0 HTAP_PK_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PK   25/865  1 1
+0 HTAP_PK_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PK   25/865  1 1
+0 HTAP_PK_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PK   25/865  1 1
+0 HTAP_PK_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PK   28/46/864  1 1
+0 HTAP_PK_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PK   25/866  1 1
+0 HTAP_PK_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PK   25/866  1 1
+0 HTAP_PK_AGR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_2_Agriculture_livestock       2018/1-12/1/0 C xy kg/m2/s PK   25/594  1 1
+0 HTAP_PK_AGR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_3_Agriculture_crops           2018/1-12/1/0 C xy kg/m2/s PK   25/594  1 1
+0 HTAP_PK_AGR_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_1_Agricultural_waste_burning  2018/1-12/1/0 C xy kg/m2/s PK   25/594  1 1
+
+0 HTAP_PMG_AIR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_1_Domestic_Aviation           2018/1-12/1/0 C xy kg/m2/s PMG   25/863  1 1
+0 HTAP_PMG_AIR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_2_International_Aviation      2018/1-12/1/0 C xy kg/m2/s PMG   25/863  1 1
+0 HTAP_PMG_SHP_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_1_International_Shipping        2018/1-12/1/0 C xy kg/m2/s PMG   25/862  1 1
+0 HTAP_PMG_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PMG   25/862  1 1
+0 HTAP_PMG_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PMG   35/44/861  1 1
+0 HTAP_PMG_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PMG   25/860  1 1
+0 HTAP_PMG_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PMG   37/48/859  1 1
+0 HTAP_PMG_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PMG   25/859  1 1
+0 HTAP_PMG_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PMG   25/859  1 1
+0 HTAP_PMG_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PMG   25/859  1 1
+0 HTAP_PMG_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PMG   28/46/858  1 1
+0 HTAP_PMG_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PMG   25/860  1 1
+0 HTAP_PMG_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PMG   25/860  1 1
+0 HTAP_PMG_AGR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_2_Agriculture_livestock       2018/1-12/1/0 C xy kg/m2/s PMG   25/593  1 1
+0 HTAP_PMG_AGR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_3_Agriculture_crops           2018/1-12/1/0 C xy kg/m2/s PMG   25/593  1 1
+0 HTAP_PMG_AGR_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_1_Agricultural_waste_burning  2018/1-12/1/0 C xy kg/m2/s PMG   25/593  1 1
+
+0 HTAP_PMN_AIR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_1_Domestic_Aviation           2018/1-12/1/0 C xy kg/m2/s PMN   25/857  1 1
+0 HTAP_PMN_AIR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_2_International_Aviation      2018/1-12/1/0 C xy kg/m2/s PMN   25/857  1 1
+0 HTAP_PMN_SHP_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_1_International_Shipping        2018/1-12/1/0 C xy kg/m2/s PMN   25/856  1 1
+0 HTAP_PMN_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PMN   25/856  1 1
+0 HTAP_PMN_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PMN   35/44/855  1 1
+0 HTAP_PMN_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PMN   25/854  1 1
+0 HTAP_PMN_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PMN   37/48/853  1 1
+0 HTAP_PMN_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PMN   25/853  1 1
+0 HTAP_PMN_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PMN   25/853  1 1
+0 HTAP_PMN_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PMN   25/853  1 1
+0 HTAP_PMN_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PMN   28/46/858  1 1
+0 HTAP_PMN_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PMN   25/854  1 1
+0 HTAP_PMN_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PMN   25/854  1 1
+0 HTAP_PMN_AGR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_2_Agriculture_livestock       2018/1-12/1/0 C xy kg/m2/s PMN   25/592  1 1
+0 HTAP_PMN_AGR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_3_Agriculture_crops           2018/1-12/1/0 C xy kg/m2/s PMN   25/592  1 1
+0 HTAP_PMN_AGR_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_1_Agricultural_waste_burning  2018/1-12/1/0 C xy kg/m2/s PMN   25/592  1 1
+
+0 HTAP_PMOTHR_AIR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_1_Domestic_Aviation           2018/1-12/1/0 C xy kg/m2/s PMOTHR   25/851  1 1
+0 HTAP_PMOTHR_AIR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_2_International_Aviation      2018/1-12/1/0 C xy kg/m2/s PMOTHR   25/851  1 1
+0 HTAP_PMOTHR_SHP_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_1_International_Shipping        2018/1-12/1/0 C xy kg/m2/s PMOTHR   25/850  1 1
+0 HTAP_PMOTHR_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PMOTHR   25/850  1 1
+0 HTAP_PMOTHR_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PMOTHR   35/44/849  1 1
+0 HTAP_PMOTHR_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PMOTHR   25/848  1 1
+0 HTAP_PMOTHR_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PMOTHR   37/48/847  1 1
+0 HTAP_PMOTHR_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PMOTHR   25/847  1 1
+0 HTAP_PMOTHR_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PMOTHR   25/847  1 1
+0 HTAP_PMOTHR_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PMOTHR   25/847  1 1
+0 HTAP_PMOTHR_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PMOTHR   28/46/846  1 1
+0 HTAP_PMOTHR_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PMOTHR   25/848  1 1
+0 HTAP_PMOTHR_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PMOTHR   25/848  1 1
+0 HTAP_PMOTHR_AGR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_2_Agriculture_livestock       2018/1-12/1/0 C xy kg/m2/s PMOTHR   25/591  1 1
+0 HTAP_PMOTHR_AGR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_3_Agriculture_crops           2018/1-12/1/0 C xy kg/m2/s PMOTHR   25/591  1 1
+0 HTAP_PMOTHR_AGR_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_1_Agricultural_waste_burning  2018/1-12/1/0 C xy kg/m2/s PMOTHR   25/591  1 1
+
+0 HTAP_PNA_AIR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_1_Domestic_Aviation           2018/1-12/1/0 C xy kg/m2/s PNA   25/845  1 1
+0 HTAP_PNA_AIR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_2_International_Aviation      2018/1-12/1/0 C xy kg/m2/s PNA   25/845  1 1
+0 HTAP_PNA_SHP_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_1_International_Shipping        2018/1-12/1/0 C xy kg/m2/s PNA   25/844  1 1
+0 HTAP_PNA_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PNA   25/844  1 1
+0 HTAP_PNA_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PNA   35/44/843  1 1
+0 HTAP_PNA_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PNA   25/842  1 1
+0 HTAP_PNA_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PNA   37/48/841  1 1
+0 HTAP_PNA_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PNA   25/841  1 1
+0 HTAP_PNA_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PNA   25/841  1 1
+0 HTAP_PNA_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PNA   25/841  1 1
+0 HTAP_PNA_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PNA   28/46/840  1 1
+0 HTAP_PNA_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PNA   25/842  1 1
+0 HTAP_PNA_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PNA   25/842  1 1
+0 HTAP_PNA_AGR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_2_Agriculture_livestock       2018/1-12/1/0 C xy kg/m2/s PNA   25/590  1 1
+0 HTAP_PNA_AGR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_3_Agriculture_crops           2018/1-12/1/0 C xy kg/m2/s PNA   25/590  1 1
+0 HTAP_PNA_AGR_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_1_Agricultural_waste_burning  2018/1-12/1/0 C xy kg/m2/s PNA   25/590  1 1
+
+0 HTAP_PNCOM_AIR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_1_Domestic_Aviation           2018/1-12/1/0 C xy kg/m2/s PNCOM   25/839  1 1
+0 HTAP_PNCOM_AIR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_2_International_Aviation      2018/1-12/1/0 C xy kg/m2/s PNCOM   25/839  1 1
+0 HTAP_PNCOM_SHP_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_1_International_Shipping        2018/1-12/1/0 C xy kg/m2/s PNCOM   25/838  1 1
+0 HTAP_PNCOM_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PNCOM   25/838  1 1
+0 HTAP_PNCOM_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PNCOM   35/44/837  1 1
+0 HTAP_PNCOM_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PNCOM   25/836  1 1
+0 HTAP_PNCOM_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PNCOM   37/48/835  1 1
+0 HTAP_PNCOM_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PNCOM   25/835  1 1
+0 HTAP_PNCOM_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PNCOM   25/835  1 1
+0 HTAP_PNCOM_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PNCOM   25/835  1 1
+0 HTAP_PNCOM_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PNCOM   28/46/834  1 1
+0 HTAP_PNCOM_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PNCOM   25/836  1 1
+0 HTAP_PNCOM_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PNCOM   25/836  1 1
+0 HTAP_PNCOM_AGR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_2_Agriculture_livestock       2018/1-12/1/0 C xy kg/m2/s PNCOM   25/589  1 1
+0 HTAP_PNCOM_AGR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_3_Agriculture_crops           2018/1-12/1/0 C xy kg/m2/s PNCOM   25/589  1 1
+0 HTAP_PNCOM_AGR_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_1_Agricultural_waste_burning  2018/1-12/1/0 C xy kg/m2/s PNCOM   25/589  1 1
+
+0 HTAP_PNH4_AIR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_1_Domestic_Aviation           2018/1-12/1/0 C xy kg/m2/s PNH4   25/833  1 1
+0 HTAP_PNH4_AIR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_2_International_Aviation      2018/1-12/1/0 C xy kg/m2/s PNH4   25/833  1 1
+0 HTAP_PNH4_SHP_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_1_International_Shipping        2018/1-12/1/0 C xy kg/m2/s PNH4   25/832  1 1
+0 HTAP_PNH4_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PNH4   25/832  1 1
+0 HTAP_PNH4_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PNH4   35/44/831  1 1
+0 HTAP_PNH4_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PNH4   25/830  1 1
+0 HTAP_PNH4_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PNH4   37/48/829  1 1
+0 HTAP_PNH4_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PNH4   25/829  1 1
+0 HTAP_PNH4_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PNH4   25/829  1 1
+0 HTAP_PNH4_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PNH4   25/829  1 1
+0 HTAP_PNH4_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PNH4   28/46/828  1 1
+0 HTAP_PNH4_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PNH4   25/830  1 1
+0 HTAP_PNH4_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PNH4   25/830  1 1
+0 HTAP_PNH4_AGR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_2_Agriculture_livestock       2018/1-12/1/0 C xy kg/m2/s PNH4   25/588  1 1
+0 HTAP_PNH4_AGR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_3_Agriculture_crops           2018/1-12/1/0 C xy kg/m2/s PNH4   25/588  1 1
+0 HTAP_PNH4_AGR_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_1_Agricultural_waste_burning  2018/1-12/1/0 C xy kg/m2/s PNH4   25/588  1 1
+
+0 HTAP_PNO3_AIR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_1_Domestic_Aviation           2018/1-12/1/0 C xy kg/m2/s PNO3   25/827  1 1
+0 HTAP_PNO3_AIR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_2_International_Aviation      2018/1-12/1/0 C xy kg/m2/s PNO3   25/827  1 1
+0 HTAP_PNO3_SHP_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_1_International_Shipping        2018/1-12/1/0 C xy kg/m2/s PNO3   25/826  1 1
+0 HTAP_PNO3_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PNO3   25/826  1 1
+0 HTAP_PNO3_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PNO3   35/44/825  1 1
+0 HTAP_PNO3_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PNO3   25/824  1 1
+0 HTAP_PNO3_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PNO3   37/48/823  1 1
+0 HTAP_PNO3_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PNO3   25/823  1 1
+0 HTAP_PNO3_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PNO3   25/823  1 1
+0 HTAP_PNO3_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PNO3   25/823  1 1
+0 HTAP_PNO3_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PNO3   28/46/822  1 1
+0 HTAP_PNO3_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PNO3   25/824  1 1
+0 HTAP_PNO3_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PNO3   25/824  1 1
+0 HTAP_PNO3_AGR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_2_Agriculture_livestock       2018/1-12/1/0 C xy kg/m2/s PNO3   25/587  1 1
+0 HTAP_PNO3_AGR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_3_Agriculture_crops           2018/1-12/1/0 C xy kg/m2/s PNO3   25/587  1 1
+0 HTAP_PNO3_AGR_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_1_Agricultural_waste_burning  2018/1-12/1/0 C xy kg/m2/s PNO3   25/587  1 1
+
+0 HTAP_PSI_AIR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_1_Domestic_Aviation           2018/1-12/1/0 C xy kg/m2/s PSI   25/821  1 1
+0 HTAP_PSI_AIR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_2_International_Aviation      2018/1-12/1/0 C xy kg/m2/s PSI   25/821  1 1
+0 HTAP_PSI_SHP_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_1_International_Shipping        2018/1-12/1/0 C xy kg/m2/s PSI   25/820  1 1
+0 HTAP_PSI_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PSI   25/820  1 1
+0 HTAP_PSI_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PSI   35/44/819  1 1
+0 HTAP_PSI_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PSI   25/818  1 1
+0 HTAP_PSI_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PSI   37/48/817  1 1
+0 HTAP_PSI_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PSI   25/817  1 1
+0 HTAP_PSI_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PSI   25/817  1 1
+0 HTAP_PSI_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PSI   25/817  1 1
+0 HTAP_PSI_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PSI   28/46/816  1 1
+0 HTAP_PSI_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PSI   25/818  1 1
+0 HTAP_PSI_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PSI   25/818  1 1
+0 HTAP_PSI_AGR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_2_Agriculture_livestock       2018/1-12/1/0 C xy kg/m2/s PSI   25/586  1 1
+0 HTAP_PSI_AGR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_3_Agriculture_crops           2018/1-12/1/0 C xy kg/m2/s PSI   25/586  1 1
+0 HTAP_PSI_AGR_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_1_Agricultural_waste_burning  2018/1-12/1/0 C xy kg/m2/s PSI   25/586  1 1
+
+0 HTAP_PSO4_AIR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_1_Domestic_Aviation           2018/1-12/1/0 C xy kg/m2/s PSO4   25/815  1 1
+0 HTAP_PSO4_AIR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_2_International_Aviation      2018/1-12/1/0 C xy kg/m2/s PSO4   25/815  1 1
+0 HTAP_PSO4_SHP_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_1_International_Shipping        2018/1-12/1/0 C xy kg/m2/s PSO4   25/814  1 1
+0 HTAP_PSO4_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PSO4   25/814  1 1
+0 HTAP_PSO4_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PSO4   35/44/813  1 1
+0 HTAP_PSO4_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PSO4   25/812  1 1
+0 HTAP_PSO4_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PSO4   37/48/811  1 1
+0 HTAP_PSO4_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PSO4   25/811  1 1
+0 HTAP_PSO4_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PSO4   25/811  1 1
+0 HTAP_PSO4_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PSO4   25/811  1 1
+0 HTAP_PSO4_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PSO4   28/46/810  1 1
+0 HTAP_PSO4_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PSO4   25/812  1 1
+0 HTAP_PSO4_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PSO4   25/812  1 1
+0 HTAP_PSO4_AGR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_2_Agriculture_livestock       2018/1-12/1/0 C xy kg/m2/s PSO4   25/585  1 1
+0 HTAP_PSO4_AGR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_3_Agriculture_crops           2018/1-12/1/0 C xy kg/m2/s PSO4   25/585  1 1
+0 HTAP_PSO4_AGR_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_1_Agricultural_waste_burning  2018/1-12/1/0 C xy kg/m2/s PSO4   25/585  1 1
+
+0 HTAP_PTI_AIR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_1_Domestic_Aviation           2018/1-12/1/0 C xy kg/m2/s PTI   25/809  1 1
+0 HTAP_PTI_AIR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_2_International_Aviation      2018/1-12/1/0 C xy kg/m2/s PTI   25/809  1 1
+0 HTAP_PTI_SHP_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_1_International_Shipping        2018/1-12/1/0 C xy kg/m2/s PTI   25/808  1 1
+0 HTAP_PTI_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PTI   25/808  1 1
+0 HTAP_PTI_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PTI   35/44/807  1 1
+0 HTAP_PTI_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PTI   25/806  1 1
+0 HTAP_PTI_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PTI   37/48/805  1 1
+0 HTAP_PTI_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PTI   25/805  1 1
+0 HTAP_PTI_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PTI   25/805  1 1
+0 HTAP_PTI_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PTI   25/805  1 1
+0 HTAP_PTI_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PTI   28/46/804  1 1
+0 HTAP_PTI_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PTI   25/806  1 1
+0 HTAP_PTI_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PTI   25/806  1 1
+0 HTAP_PTI_AGR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_2_Agriculture_livestock       2018/1-12/1/0 C xy kg/m2/s PTI   25/584  1 1
+0 HTAP_PTI_AGR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_3_Agriculture_crops           2018/1-12/1/0 C xy kg/m2/s PTI   25/584  1 1
+0 HTAP_PTI_AGR_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_1_Agricultural_waste_burning  2018/1-12/1/0 C xy kg/m2/s PTI   25/584  1 1
+)))HTAP
+
+#==============================================================================
+# --- GMU-NEI 2019 (1-km NEMO: USA/CAN/MEX) ---
+#==============================================================================
+(((NEMO-NEI2019_AR
+# SURFACE ALL INVENTORY
+0 NEI2019_ALL_CO             $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          CO            2019/1-12/1-31/$HH C xy  kg/m2/s CO           1007     1 50
+0 NEI2019_ALL_CL2            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          CL2           2019/1-12/1-31/$HH C xy  kg/m2/s CL2          1007     1 50
+0 NEI2019_ALL_HCL            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          HCL           2019/1-12/1-31/$HH C xy  kg/m2/s HCL          1007     1 50
+0 NEI2019_ALL_SO2            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          SO2           2019/1-12/1-31/$HH C xy  kg/m2/s SO2          1007     1 50
+0 NEI2019_ALL_NO             $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          NO            2019/1-12/1-31/$HH C xy  kg/m2/s NOT          1007     1 50
+0 NEI2019_ALL_NO2            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          NO2           2019/1-12/1-31/$HH C xy  kg/m2/s NO2          1007     1 50
+0 NEI2019_ALL_HONO           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          HONO          2019/1-12/1-31/$HH C xy  kg/m2/s HONO         1007     1 50
+0 NEI2019_ALL_SULF           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          SULF          2019/1-12/1-31/$HH C xy  kg/m2/s SULF         1007     1 50
+0 NEI2019_ALL_NH3            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          NH3           2019/1-12/1-31/$HH C xy  kg/m2/s NH3          1007     1 50
+0 NEI2019_ALL_CH4            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          CH4           2019/1-12/1-31/$HH C xy  kg/m2/s CH4          1007     1 50
+0 NEI2019_ALL_ACROLEIN       $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          ACROLEIN      2019/1-12/1-31/$HH C xy  kg/m2/s ACROLEIN     1007     1 50
+0 NEI2019_ALL_BUTADIENE13    $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          BUTADIENE13   2019/1-12/1-31/$HH C xy  kg/m2/s BUTADIENE13  1009     1 50
+0 NEI2019_ALL_ETHY           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          ETHY          2019/1-12/1-31/$HH C xy  kg/m2/s ETHY         1007     1 50
+0 NEI2019_ALL_TERP           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          TERP          2019/1-12/1-31/$HH C xy  kg/m2/s TERP         1007     1 50
+0 NEI2019_ALL_FORM           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          FORM          2019/1-12/1-31/$HH C xy  kg/m2/s FORM         1007     1 50
+0 NEI2019_ALL_PAR            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PAR           2019/1-12/1-31/$HH C xy  kg/m2/s PAR          1007     1 50
+0 NEI2019_ALL_IOLE           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          IOLE          2019/1-12/1-31/$HH C xy  kg/m2/s IOLE         1007     1 50
+0 NEI2019_ALL_OLE            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          OLE           2019/1-12/1-31/$HH C xy  kg/m2/s OLE          1007     1 50
+0 NEI2019_ALL_ETH            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          ETH           2019/1-12/1-31/$HH C xy  kg/m2/s ETH          1007     1 50
+0 NEI2019_ALL_ETHA           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          ETHA          2019/1-12/1-31/$HH C xy  kg/m2/s ETHA         1007     1 50
+0 NEI2019_ALL_ETOH           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          ETOH          2019/1-12/1-31/$HH C xy  kg/m2/s ETOH         1007     1 50
+0 NEI2019_ALL_MEOH           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          MEOH          2019/1-12/1-31/$HH C xy  kg/m2/s MEOH         1007     1 50
+0 NEI2019_ALL_BENZ           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          BENZ          2019/1-12/1-31/$HH C xy  kg/m2/s BENZ         1007     1 50
+0 NEI2019_ALL_TOL            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          TOL           2019/1-12/1-31/$HH C xy  kg/m2/s TOL          1007     1 50
+0 NEI2019_ALL_XYLMN          $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          XYLMN         2019/1-12/1-31/$HH C xy  kg/m2/s XYLMN        1007     1 50
+0 NEI2019_ALL_NAPH           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          NAPH          2019/1-12/1-31/$HH C xy  kg/m2/s NAPH         1007     1 50
+0 NEI2019_ALL_ALD2           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          ALD2          2019/1-12/1-31/$HH C xy  kg/m2/s ALD2         1007     1 50
+0 NEI2019_ALL_ALDX           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          ALDX          2019/1-12/1-31/$HH C xy  kg/m2/s ALDX         1007     1 50
+0 NEI2019_ALL_ISOP           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          ISOP          2019/1-12/1-31/$HH C xy  kg/m2/s ISOP         1007     1 50
+0 NEI2019_ALL_PRPA           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PRPA          2019/1-12/1-31/$HH C xy  kg/m2/s PRPA         1007     1 50
+0 NEI2019_ALL_ACET           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          ACET          2019/1-12/1-31/$HH C xy  kg/m2/s ACET         1007     1 50
+0 NEI2019_ALL_KET            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          KET           2019/1-12/1-31/$HH C xy  kg/m2/s KET          1007     1 50
+0 NEI2019_ALL_ALD2_PRIMARY   $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          ALD2_PRIMARY  2019/1-12/1-31/$HH C xy  kg/m2/s ALD2_PRIMARY 1007     1 50
+0 NEI2019_ALL_FORM_PRIMARY   $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          FORM_PRIMARY  2019/1-12/1-31/$HH C xy  kg/m2/s FORM_PRIMARY 1007     1 50
+0 NEI2019_ALL_SOAALK         $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          SOAALK        2019/1-12/1-31/$HH C xy  kg/m2/s SOAALK       1007     1 50
+0 NEI2019_ALL_VOC_INV        $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          VOC_INV       2019/1-12/1-31/$HH C xy  kg/m2/s VOC_INV      1007     1 50
+0 NEI2019_ALL_PEC            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PEC           2019/1-12/1-31/$HH C xy  kg/m2/s PEC          1007     1 50
+0 NEI2019_ALL_POC            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          POC           2019/1-12/1-31/$HH C xy  kg/m2/s POC          1007     1 50
+0 NEI2019_ALL_PAL            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PAL           2019/1-12/1-31/$HH C xy  kg/m2/s PAL          1007     1 50
+0 NEI2019_ALL_PCA            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PCA           2019/1-12/1-31/$HH C xy  kg/m2/s PCA          1007     1 50
+0 NEI2019_ALL_PCL            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PCL           2019/1-12/1-31/$HH C xy  kg/m2/s PCL          1007     1 50
+0 NEI2019_ALL_PFE            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PFE           2019/1-12/1-31/$HH C xy  kg/m2/s PFE          1007     1 50
+0 NEI2019_ALL_PH2O           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PH2O          2019/1-12/1-31/$HH C xy  kg/m2/s PH2O         1007     1 50
+0 NEI2019_ALL_PK             $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PK            2019/1-12/1-31/$HH C xy  kg/m2/s PK           1007     1 50
+0 NEI2019_ALL_PMG            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PMG           2019/1-12/1-31/$HH C xy  kg/m2/s PMG          1007     1 50
+0 NEI2019_ALL_PMN            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PMN           2019/1-12/1-31/$HH C xy  kg/m2/s PMN          1007     1 50
+0 NEI2019_ALL_PMOTHR         $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PMOTHR        2019/1-12/1-31/$HH C xy  kg/m2/s PMOTHR       1007     1 50
+0 NEI2019_ALL_PNA            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PNA           2019/1-12/1-31/$HH C xy  kg/m2/s PNA          1007     1 50
+0 NEI2019_ALL_PNCOM          $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PNCOM         2019/1-12/1-31/$HH C xy  kg/m2/s PNCOM        1007     1 50
+0 NEI2019_ALL_PNH4           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PNH4          2019/1-12/1-31/$HH C xy  kg/m2/s PNH4         1007     1 50
+0 NEI2019_ALL_PNO3           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PNO3          2019/1-12/1-31/$HH C xy  kg/m2/s PNO3         1007     1 50
+0 NEI2019_ALL_PTI            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PTI           2019/1-12/1-31/$HH C xy  kg/m2/s PTI          1007     1 50
+0 NEI2019_ALL_PSI            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PSI           2019/1-12/1-31/$HH C xy  kg/m2/s PSI          1007     1 50
+0 NEI2019_ALL_PMC            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PMC           2019/1-12/1-31/$HH C xy  kg/m2/s PMC          1007     1 50
+0 NEI2019_ALL_PSO4           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PSO4          2019/1-12/1-31/$HH C xy  kg/m2/s PSO4         1007     1 50
+0 NEI2019_ALL_UNR            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          UNR           2019/1-12/1-31/$HH C xy  kg/m2/s UNR          1007     1 50
+0 NEI2019_ALL_UNK            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          UNK           2019/1-12/1-31/$HH C xy  kg/m2/s UNK          1007     1 50
+)))NEMO-NEI2019_AR
+
+#### MEGAN EMISSION
+108  MEGAN_AEF_ISOP               $ROOT/MEGAN/v2020-02/MEGAN2.1_EF.geos.025x03125.nc      AEF_ISOPRENE            1985/1/1/0        C xy kgC/m2/s * 61 1 1
+108  MEGAN_AEF_MBOX               $ROOT/MEGAN/v2020-02/MEGAN2.1_EF.geos.025x03125.nc      AEF_MBO                 1985/1/1/0        C xy kgC/m2/s * 64 1 1
+#108 MEGAN_AEF_APIN               $ROOT/MEGAN/v2020-02/MEGAN2.1_EF.geos.025x03125.nc      AEF_ALPHA_PINENE        1985/1/1/0        C xy kgC/m2/s * 62 1 1
+108  MEGAN_AEF_BPIN               $ROOT/MEGAN/v2020-02/MEGAN2.1_EF.geos.025x03125.nc      AEF_BETA_PINENE         1985/1/1/0        C xy kgC/m2/s * 62 1 1
+108  MEGAN_AEF_CARE               $ROOT/MEGAN/v2020-02/MEGAN2.1_EF.geos.025x03125.nc      AEF_CARENE              1985/1/1/0        C xy kgC/m2/s * 62 1 1
+108  MEGAN_AEF_LIMO               $ROOT/MEGAN/v2020-02/MEGAN2.1_EF.geos.025x03125.nc      AEF_LIMONENE            1985/1/1/0        C xy kgC/m2/s * 62 1 1
+#108 MEGAN_AEF_MYRC               $ROOT/MEGAN/v2020-02/MEGAN2.1_EF.geos.025x03125.nc      AEF_MYRCENE             1985/1/1/0        C xy kgC/m2/s * 62 1 1
+108  MEGAN_AEF_OCIM               $ROOT/MEGAN/v2020-02/MEGAN2.1_EF.geos.025x03125.nc      AEF_OCIMENE             1985/1/1/0        C xy kgC/m2/s * 62 1 1
+108  MEGAN_AEF_SABI               $ROOT/MEGAN/v2020-02/MEGAN2.1_EF.geos.025x03125.nc      AEF_SABINENE            1985/1/1/0        C xy kgC/m2/s * 62 1 1
+108  CLM4_PFT_BARE                $ROOT/MEGAN/v2018-05/CLM4_PFT.geos.025x03125.v201805.nc PFT_BARE                2000/1/1/0        C xy 1        * - 1 1
+108  CLM4_PFT_NDLF_EVGN_TMPT_TREE $ROOT/MEGAN/v2018-05/CLM4_PFT.geos.025x03125.v201805.nc PFT_NDLF_EVGN_TMPT_TREE 2000/1/1/0        C xy 1        * - 1 1
+108  CLM4_PFT_NDLF_EVGN_BORL_TREE $ROOT/MEGAN/v2018-05/CLM4_PFT.geos.025x03125.v201805.nc PFT_NDLF_EVGN_BORL_TREE 2000/1/1/0        C xy 1        * - 1 1
+108  CLM4_PFT_NDLF_DECD_BORL_TREE $ROOT/MEGAN/v2018-05/CLM4_PFT.geos.025x03125.v201805.nc PFT_NDLF_DECD_BORL_TREE 2000/1/1/0        C xy 1        * - 1 1
+108  CLM4_PFT_BDLF_EVGN_TROP_TREE $ROOT/MEGAN/v2018-05/CLM4_PFT.geos.025x03125.v201805.nc PFT_BDLF_EVGN_TROP_TREE 2000/1/1/0        C xy 1        * - 1 1
+108  CLM4_PFT_BDLF_EVGN_TMPT_TREE $ROOT/MEGAN/v2018-05/CLM4_PFT.geos.025x03125.v201805.nc PFT_BDLF_EVGN_TMPT_TREE 2000/1/1/0        C xy 1        * - 1 1
+108  CLM4_PFT_BDLF_DECD_TROP_TREE $ROOT/MEGAN/v2018-05/CLM4_PFT.geos.025x03125.v201805.nc PFT_BDLF_DECD_TROP_TREE 2000/1/1/0        C xy 1        * - 1 1
+108  CLM4_PFT_BDLF_DECD_TMPT_TREE $ROOT/MEGAN/v2018-05/CLM4_PFT.geos.025x03125.v201805.nc PFT_BDLF_DECD_TMPT_TREE 2000/1/1/0        C xy 1        * - 1 1
+108  CLM4_PFT_BDLF_DECD_BORL_TREE $ROOT/MEGAN/v2018-05/CLM4_PFT.geos.025x03125.v201805.nc PFT_BDLF_DECD_BORL_TREE 2000/1/1/0        C xy 1        * - 1 1
+108  CLM4_PFT_BDLF_EVGN_SHRB      $ROOT/MEGAN/v2018-05/CLM4_PFT.geos.025x03125.v201805.nc PFT_BDLF_EVGN_SHRB      2000/1/1/0        C xy 1        * - 1 1
+108  CLM4_PFT_BDLF_DECD_TMPT_SHRB $ROOT/MEGAN/v2018-05/CLM4_PFT.geos.025x03125.v201805.nc PFT_BDLF_DECD_TMPT_SHRB 2000/1/1/0        C xy 1        * - 1 1
+108  CLM4_PFT_BDLF_DECD_BORL_SHRB $ROOT/MEGAN/v2018-05/CLM4_PFT.geos.025x03125.v201805.nc PFT_BDLF_DECD_BORL_SHRB 2000/1/1/0        C xy 1        * - 1 1
+108  CLM4_PFT_C3_ARCT_GRSS        $ROOT/MEGAN/v2018-05/CLM4_PFT.geos.025x03125.v201805.nc PFT_C3_ARCT_GRSS        2000/1/1/0        C xy 1        * - 1 1
+108  CLM4_PFT_C3_NARC_GRSS        $ROOT/MEGAN/v2018-05/CLM4_PFT.geos.025x03125.v201805.nc PFT_C3_NARC_GRSS        2000/1/1/0        C xy 1        * - 1 1
+108  CLM4_PFT_C4_GRSS             $ROOT/MEGAN/v2018-05/CLM4_PFT.geos.025x03125.v201805.nc PFT_C4_GRSS             2000/1/1/0        C xy 1        * - 1 1
+108  CLM4_PFT_CROP                $ROOT/MEGAN/v2018-05/CLM4_PFT.geos.025x03125.v201805.nc PFT_CROP                2000/1/1/0        C xy 1        * - 1 1
+108  MEGAN_ORVC                   $ROOT/SOA/v2014-07/NVOC.geos.1x1.nc                     OCPI                    1990/1-12/1/0     C xy kgC/m2/s * - 1 1
+
+#==============================================================================
+# --- Olson land map masks ---
+#==============================================================================
+* LANDTYPE00 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE00 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE01 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE01 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE02 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE02 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE03 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE03 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE04 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE04 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE05 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE05 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE06 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE06 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE07 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE07 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE08 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE08 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE09 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE09 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE10 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE10 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE11 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE11 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE12 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE12 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE13 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE13 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE14 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE14 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE15 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE15 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE16 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE16 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE17 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE17 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE18 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE18 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE19 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE19 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE20 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE20 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE21 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE21 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE22 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE22 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE23 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE23 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE24 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE24 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE25 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE25 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE26 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE26 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE27 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE27 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE28 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE28 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE29 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE29 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE30 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE30 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE31 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE31 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE32 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE32 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE33 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE33 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE34 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE34 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE35 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE35 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE36 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE36 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE37 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE37 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE38 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE38 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE39 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE39 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE40 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE40 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE41 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE41 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE42 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE42 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE43 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE43 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE44 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE44 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE45 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE45 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE46 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE46 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE47 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE47 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE48 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE48 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE49 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE49 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE50 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE50 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE51 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE51 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE52 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE52 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE53 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE53 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE54 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE54 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE55 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE55 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE56 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE56 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE57 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE57 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE58 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE58 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE59 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE59 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE60 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE60 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE61 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE61 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE62 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE62 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE63 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE63 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE64 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE64 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE65 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE65 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE66 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE66 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE67 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE67 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE68 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE68 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE69 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE69 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE70 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE70 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE71 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE71 1985/1/1/0 C xy 1 * - 1 1
+* LANDTYPE72 $ROOT/OLSON_MAP/v2019-02/Olson_2001_Land_Type_Masks.025x025.generic.nc LANDTYPE72 1985/1/1/0 C xy 1 * - 1 1
+
+#==============================================================================
+# --- MODIS "XLAI" leaf area index data ---
+#
+# NOTES:
+# (1) LAI data corresponding to each Olson land type is stored in
+#      separate netCDF variables (XLAI00, XLAI01, ... XLAI72).
+#      The "XLAI" denotes that the files are prepared in this way.
+# (2) These files were created from the data in the folder
+#      ExtData/CHEM_INPUTS/MODIS_LAI_201707.
+# (3) Units are "cm2 leaf/cm2 grid box".
+# (4) Data is timestamped on the 15th of each month.
+# (5) Do not turn on MODIS_XLAI and Yuan_XLAI at the same time!
+#==============================================================================
+(((MODIS_XLAI
+(((.not.Yuan_XLAI
+* XLAI00 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI00 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI01 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI01 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI02 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI02 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI03 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI03 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI04 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI04 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI05 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI05 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI06 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI06 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI07 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI07 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI08 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI08 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI09 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI09 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI10 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI10 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI11 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI11 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI12 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI12 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI13 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI13 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI14 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI14 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI15 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI15 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI16 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI16 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI17 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI17 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI18 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI18 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI19 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI19 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI20 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI20 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI21 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI21 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI22 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI22 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI23 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI23 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI24 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI24 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI25 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI25 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI26 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI26 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI27 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI27 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI28 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI28 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI29 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI29 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI30 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI30 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI31 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI31 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI32 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI32 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI33 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI33 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI34 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI34 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI35 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI35 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI36 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI36 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI37 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI37 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI38 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI38 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI39 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI39 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI40 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI40 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI41 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI41 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI42 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI42 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI43 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI43 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI44 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI44 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI45 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI45 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI46 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI46 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI47 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI47 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI48 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI48 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI49 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI49 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI50 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI50 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI51 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI51 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI52 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI52 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI53 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI53 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI54 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI54 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI55 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI55 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI56 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI56 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI57 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI57 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI58 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI58 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI59 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI59 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI60 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI60 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI61 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI61 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI62 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI62 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI63 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI63 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI64 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI64 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI65 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI65 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI66 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI66 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI67 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI67 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI68 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI68 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI69 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI69 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI70 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI70 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI71 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI71 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI72 $ROOT/MODIS_XLAI/v2017-07/$YYYY/MODIS_XLAI.025x025.$YYYY$MM.nc XLAI72 2005-2011/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+))).not.Yuan_XLAI
+)))MODIS_XLAI
+
+#==============================================================================
+# --- Yuan processed MODIS leaf area index data ---
+#
+# Source: Yuan et al 2011, doi:10.1016/j.rse.2011.01.001
+#         http://globalchange.bnu.edu.cn/research/lai
+#
+# NOTES:
+# (1) LAI data corresponding to each Olson land type is stored in
+#      separate netCDF variables (XLAI00, XLAI01, ... XLAI72).
+#      The "XLAI" denotes that the files are prepared in this way.
+# (2) Units are "cm2 leaf/cm2 grid box".
+# (3) Data is timestamped every 8 days, starting from the 2nd of the month.
+# (4) Do not turn on MODIS_XLAI and Yuan_XLAI at the same time!
+#==============================================================================
+(((Yuan_XLAI
+(((.not.MODIS_XLAI
+* XLAI00 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI00 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI01 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI01 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI02 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI02 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI03 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI03 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI04 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI04 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI05 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI05 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI06 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI06 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI07 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI07 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI08 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI08 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI09 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI09 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI10 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI10 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI11 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI11 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI12 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI12 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI13 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI13 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI14 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI14 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI15 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI15 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI16 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI16 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI17 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI17 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI18 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI18 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI19 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI19 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI20 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI20 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI21 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI21 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI22 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI22 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI23 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI23 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI24 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI24 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI25 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI25 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI26 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI26 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI27 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI27 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI28 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI28 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI29 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI29 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI30 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI30 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI31 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI31 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI32 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI32 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI33 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI33 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI34 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI34 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI35 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI35 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI36 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI36 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI37 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI37 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI38 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI38 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI39 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI39 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI40 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI40 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI41 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI41 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI42 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI42 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI43 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI43 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI44 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI44 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI45 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI45 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI46 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI46 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI47 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI47 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI48 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI48 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI49 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI49 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI50 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI50 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI51 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI51 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI52 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI52 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI53 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI53 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI54 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI54 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI55 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI55 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI56 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI56 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI57 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI57 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI58 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI58 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI59 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI59 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI60 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI60 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI61 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI61 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI62 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI62 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI63 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI63 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI64 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI64 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI65 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI65 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI66 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI66 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI67 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI67 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI68 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI68 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI69 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI69 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI70 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI70 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI71 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI71 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+* XLAI72 $ROOT/Yuan_XLAI/v2021-06/Yuan_proc_MODIS_XLAI.025x025.$YYYY.nc XLAI72 2005-2016/1-12/1-31/0 I xy cm2/cm2 * - 1 1
+))).not.MODIS_XLAI
+)))Yuan_XLAI
+
+#####################################################################
+# Met fields for stand-alone/offline GFS MEGANv2.1 use
+#####################################################################
+* LAI      $ROOT/GEOS_0.5x0.625/MERRA2/2019/$MM/MERRA2.2019$MM$DD.A1.05x0625.nc4   LAI      2014-2019/1-12/1-31/0-23 C xy  count * - 1 1
+* T2M      $ROOT/../GFS_SFC_MEGAN_INPUT.nc   T2M      2014-2019/1-12/1-31/0-23 C xy  K     * - 1 1
+* GWETROOT $ROOT/../GFS_SFC_MEGAN_INPUT.nc   GWETROOT 2014-2019/1-12/1-31/0-23 C xy  1    * - 1 1
+* PARDR    $ROOT/../GFS_SFC_MEGAN_INPUT.nc   PARDR    2014-2019/1-12/1-31/0-23 C xy  W/m2 * - 1 1
+* PARDF    $ROOT/../GFS_SFC_MEGAN_INPUT.nc   PARDF    2014-2019/1-12/1-31/0-23 C xy  W/m2 * - 1 1
+
+
+
+###############################################################################
+### NON-EMISSIONS DATA (subsection of BASE EMISSIONS SECTION)
+###
+### Non-emissions data. The following fields are read through HEMCO but do
+### not contain emissions data. The extension number is set to wildcard
+### character denoting that these fields will not be considered for emission
+### calculation. A given entry is only read if the assigned species name is
+### an HEMCO species.
+###############################################################################
+
+#==============================================================================
+# --- Time zones (offset to UTC) ---
+#==============================================================================
+* TIMEZONES $ROOT/TIMEZONES/v2015-02/timezones_voronoi_1x1.nc UTC_OFFSET 2000/1/1/0 C xy count * - 1 1
+
+### END SECTION BASE EMISSIONS ###
+
+###############################################################################
+### BEGIN SECTION SCALE FACTORS
+###############################################################################
+
+# ScalID Name sourceFile sourceVar sourceTime C/R/E SrcDim SrcUnit Oper
+
+# Units carbon to species conversions for MEGANv2.1
+# Factor = # carbon atoms * MW carbon) / MW species
+61 CtoISOP_bio MATH:68.13/(5.0*12.0)   - - - xy unitless 1
+62 CtoMTPA_bio MATH:136.26/(10.0*12.0) - - - xy unitless 1
+64 CtoMBOX_bio MATH:86.13/(5.0*12.0)   - - - xy unitless 1
+
+#==============================================================================
+# --- annual scale factors ---
+#==============================================================================
+1  TOTFUEL_THISYR    $ROOT/AnnualScalar/v2014-07/AnnualScalar.geos.1x1.nc NOxscalar 1985-2010/1/1/0 C xy 1  1
+27 TOTFUEL_2008_2010 $ROOT/AnnualScalar/v2014-07/AnnualScalar.geos.1x1.nc NOxscalar 2008-2010/1/1/0 C xy 1 -1
+
+#==============================================================================
+# --- diurnal scale factors ---
+#==============================================================================
+25 EDGAR_TODNOX $ROOT/EDGARv42/v2015-02/NO/EDGAR_hourly_NOxScal.nc NOXscale 2000/1/1/HH C xy unitless 1
+26 GEIA_TOD_FOSSIL 0.45/0.45/0.6/0.6/0.6/0.6/1.45/1.45/1.45/1.45/1.4/1.4/1.4/1.4/1.45/1.45/1.45/1.45/0.65/0.65/0.65/0.65/0.45/0.45 - - - xy unitless 1
+
+#==============================================================================
+# --- CAMS-TEMPO daily weights (Year Dependent) ---
+#==============================================================================
+
+28 CAMS_DAILY_RES $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_daily.nc FD_res 2011-2021/1/DD/0 C xy 1 -1
+
+#==============================================================================
+# --- CAMS-TEMPO weekly (DOW) weights ---
+#==============================================================================
+
+29 CAMS_WEEKLY_ENE_CH4 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_ch4 2017/1/WD/0 C xy 1 -1
+30 CAMS_WEEKLY_ENE_CO $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_co 2017/1/WD/0 C xy 1 -1
+31 CAMS_WEEKLY_ENE_CO2 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_co2 2017/1/WD/0 C xy 1 -1
+32 CAMS_WEEKLY_ENE_NMVOC $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_nmvoc 2017/1/WD/0 C xy 1 -1
+33 CAMS_WEEKLY_ENE_NOX $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_nox 2017/1/WD/0 C xy 1 -1
+34 CAMS_WEEKLY_ENE_PM10 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_pm10 2017/1/WD/0 C xy 1 -1
+35 CAMS_WEEKLY_ENE_PM25 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_pm25 2017/1/WD/0 C xy 1 -1
+36 CAMS_WEEKLY_ENE_SOX $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_sox 2017/1/WD/0 C xy 1 -1
+37 CAMS_WEEKLY_TRO $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_tro 2017/1/WD/0 C xy 1 -1
+
+#==============================================================================
+# --- CAMS-TEMPO hourly weights ---
+#==============================================================================
+
+38 CAMS_HOURLY_ENE_CH4 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_ch4 2017/1/1/HH C xy 1 -1
+39 CAMS_HOURLY_ENE_CO $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_co 2017/1/1/HH C xy 1 -1
+40 CAMS_HOURLY_ENE_CO2 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_co2 2017/1/1/HH C xy 1 -1
+41 CAMS_HOURLY_ENE_NMVOC $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_nmvoc 2017/1/1/HH C xy 1 -1
+42 CAMS_HOURLY_ENE_NOX $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_nox 2017/1/1/HH C xy 1 -1
+43 CAMS_HOURLY_ENE_PM10 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_pm10 2017/1/1/HH C xy 1 -1
+44 CAMS_HOURLY_ENE_PM25 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_pm25 2017/1/1/HH C xy 1 -1
+45 CAMS_HOURLY_ENE_SOX $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_sox 2017/1/1/HH C xy 1 -1
+46 CAMS_HOURLY_RES_PM10_PM25 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_res_pm10_pm25 2017/1/1/HH C xy 1 -1
+47 CAMS_HOURLY_RES_OTHERS $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_res_others 2017/1/1/HH C xy 1 -1
+48 CAMS_HOURLY_TRO_WEEKDAY $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_dow_tro 2017/1/1/HH C xy 1 -1
+
+#==============================================================================
+# --- CEDS-2019 to CB6 speciations ---
+#==============================================================================
+1099 SO2_to_SULF_ag           0.0               - - - xy unitless 1
+1098 SO2_to_SULF_ene          0.0218      	- - - xy unitless 1
+1097 SO2_to_SULF_ind          0.00919       	- - - xy unitless 1
+1096 SO2_to_SULF_res          0.0148            - - - xy unitless 1
+1095 SO2_to_SULF_road         0.0               - - - xy unitless 1
+1094 SO2_to_SULF_shp          0.0               - - - xy unitless 1
+1093 NH3_to_NH3_FERT_ag       0.0               - - - xy unitless 1
+1092 NH3_to_NH3_FERT_ene      0.0               - - - xy unitless 1
+1091 NH3_to_NH3_FERT_ind      0.0               - - - xy unitless 1
+1090 NH3_to_NH3_FERT_res      0.0               - - - xy unitless 1
+1089 NH3_to_NH3_FERT_road     0.0               - - - xy unitless 1
+1088 NH3_to_NH3_FERT_shp      0.0               - - - xy unitless 1
+999 NOx_to_NO            0.9                    - - - xy unitless 1
+998 NOx_to_NO2           0.1                    - - - xy unitless 1
+997 VOC_to_ACET_ag       0.0575823632326        - - - xy unitless 1
+996 VOC_to_ACET_ene      0.00957147100992       - - - xy unitless 1
+995 VOC_to_ACET_ind      0.0440082728517        - - - xy unitless 1
+994 VOC_to_ACET_res      0.039774498589         - - - xy unitless 1
+993 VOC_to_ACET_road     0.0                    - - - xy unitless 1
+992 VOC_to_ACET_shp      3.54169342618E-7       - - - xy unitless 1
+991 VOC_to_ALD2_ag       0.0024776888701        - - - xy unitless 1
+990 VOC_to_ALD2_ene      3.67097186616E-4       - - - xy unitless 1
+989 VOC_to_ALD2_ind      1.18207932284E-4       - - - xy unitless 1
+988 VOC_to_ALD2_res      0.0900358729371        - - - xy unitless 1
+987 VOC_to_ALD2_road     0.0710218819724        - - - xy unitless 1
+986 VOC_to_ALD2_shp      5.77462568672E-7       - - - xy unitless 1
+985 VOC_to_ALDX_ag       0.00615197195977       - - - xy unitless 1
+984 VOC_to_ALDX_ene      1.4815546365E-4        - - - xy unitless 1
+983 VOC_to_ALDX_ind      1.52329140684E-4       - - - xy unitless 1
+982 VOC_to_ALDX_res      0.121784661698         - - - xy unitless 1
+981 VOC_to_ALDX_road     0.0378120320473        - - - xy unitless 1
+980 VOC_to_ALDX_shp      3.45438108579E-7       - - - xy unitless 1
+979 VOC_to_FORM_ag       0.00168908099317       - - - xy unitless 1
+978 VOC_to_FORM_ene      0.190191796147         - - - xy unitless 1
+977 VOC_to_FORM_ind      5.08434064797E-4       - - - xy unitless 1
+976 VOC_to_FORM_res      0.0699150378122        - - - xy unitless 1
+975 VOC_to_FORM_road     0.0767629895289        - - - xy unitless 1
+974 VOC_to_FORM_shp      2.40224428567E-6       - - - xy unitless 1
+973 VOC_to_IOLE_ag       6.13586542275E-4       - - - xy unitless 1
+972 VOC_to_IOLE_ene      0.0100938655016        - - - xy unitless 1
+971 VOC_to_IOLE_ind      0.00210508962472       - - - xy unitless 1
+970 VOC_to_IOLE_res      0.0167276365371        - - - xy unitless 1
+969 VOC_to_IOLE_road     0.0171861597827        - - - xy unitless 1
+968 VOC_to_IOLE_shp      0.00958760317986       - - - xy unitless 1
+967 VOC_to_ISOP_ag       1.30612223916E-4       - - - xy unitless 1
+966 VOC_to_ISOP_ene      6.71074811105E-6       - - - xy unitless 1
+965 VOC_to_ISOP_ind      1.38464049137E-5       - - - xy unitless 1
+964 VOC_to_ISOP_res      0.00246868096823       - - - xy unitless 1
+963 VOC_to_ISOP_road     1.38464049137E-5       - - - xy unitless 1
+962 VOC_to_ISOP_shp      0.00770121315844       - - - xy unitless 1
+961 VOC_to_NAPH_ag       1.36778227179E-7       - - - xy unitless 1
+960 VOC_to_NAPH_ene      3.63847016452E-6       - - - xy unitless 1
+959 VOC_to_NAPH_ind      1.71060575861E-4       - - - xy unitless 1
+958 VOC_to_NAPH_res      0.0113561249025        - - - xy unitless 1
+957 VOC_to_NAPH_road     5.08575514881E-4       - - - xy unitless 1
+956 VOC_to_NAPH_shp      1.000704134E-7         - - - xy unitless 1
+955 VOC_to_OLE_ag        0.00102971199434       - - - xy unitless 1
+954 VOC_to_OLE_ene       0.02805903042          - - - xy unitless 1
+953 VOC_to_OLE_ind       0.00325858013981       - - - xy unitless 1
+952 VOC_to_OLE_res       0.0440245481697        - - - xy unitless 1
+951 VOC_to_OLE_road      0.0623650472659        - - - xy unitless 1
+950 VOC_to_OLE_shp       0.0248284779534        - - - xy unitless 1
+949 VOC_to_PAR_ag        0.165014699643         - - - xy unitless 1
+948 VOC_to_PAR_ene       0.181952615336         - - - xy unitless 1
+947 VOC_to_PAR_ind       0.312372770111         - - - xy unitless 1
+946 VOC_to_PAR_res       0.158460274763         - - - xy unitless 1
+945 VOC_to_PAR_road      0.286623860228         - - - xy unitless 1
+944 VOC_to_PAR_shp       0.449394617725         - - - xy unitless 1
+943 VOC_to_SOAALK_ag     0.116369356197         - - - xy unitless 1
+942 VOC_to_SOAALK_ene    0.0995650083185        - - - xy unitless 1
+941 VOC_to_SOAALK_ind    0.220986628827         - - - xy unitless 1
+940 VOC_to_SOAALK_res    0.0354072771973        - - - xy unitless 1
+939 VOC_to_SOAALK_road   0.127159971449         - - - xy unitless 1
+938 VOC_to_SOAALK_shp    0.180587474592         - - - xy unitless 1
+937 VOC_to_UNR_ag        0.0115783145045        - - - xy unitless 1
+936 VOC_to_UNR_ene       4.45694884816E-4       - - - xy unitless 1
+935 VOC_to_UNR_ind       0.0712742545987        - - - xy unitless 1
+934 VOC_to_UNR_res       0.0658999221508        - - - xy unitless 1
+933 VOC_to_UNR_road      0.0132928995912        - - - xy unitless 1
+932 VOC_to_UNR_shp       0.0459610428361        - - - xy unitless 1
+931 VOC_to_XYLMN_ag      2.21417065285E-4       - - - xy unitless 1
+930 VOC_to_XYLMN_ene     0.159655662765         - - - xy unitless 1
+929 VOC_to_XYLMN_ind     0.025809019216         - - - xy unitless 1
+928 VOC_to_XYLMN_res     0.034488840395         - - - xy unitless 1
+927 VOC_to_XYLMN_road    0.0251811446047        - - - xy unitless 1
+926 VOC_to_XYLMN_shp     0.0931580521465        - - - xy unitless 1
+925 VOC_to_UNK_ag        0.0		        - - - xy unitless 1
+924 VOC_to_UNK_ene       0.0     	        - - - xy unitless 1
+923 VOC_to_UNK_ind       3.29606019021E-7      	- - - xy unitless 1
+922 VOC_to_UNK_res       0.0      	        - - - xy unitless 1
+921 VOC_to_UNK_road      0.0      	        - - - xy unitless 1
+920 VOC_to_UNK_shp       0.0      	        - - - xy unitless 1
+919 VOC_to_TERP_ag       2.95982508732E-6       - - - xy unitless 1
+918 VOC_to_TERP_ene      1.10815091251E-5       - - - xy unitless 1
+917 VOC_to_TERP_ind      0.00628459340814       - - - xy unitless 1
+916 VOC_to_TERP_res      9.36241391846E-4       - - - xy unitless 1
+915 VOC_to_TERP_road     7.80032315049E-4       - - - xy unitless 1
+914 VOC_to_TERP_shp      0.0                    - - - xy unitless 1
+
+699 CEDS_to_CH4_ag       	0.0                    - - - xy unitless 1
+698 CEDS_to_CH4_ene      	0.0       		- - - xy unitless 1
+697 CEDS_to_CH4_ind      	0.0       		- - - xy unitless 1
+696 CEDS_to_CH4_res      	0.0       		- - - xy unitless 1
+695 CEDS_to_CH4_road     	0.0       		- - - xy unitless 1
+694 CEDS_to_CH4_shp      	0.0                    - - - xy unitless 1
+693 CEDS_to_HONO_ag      	0.0                    - - - xy unitless 1
+692 CEDS_to_HONO_ene     	0.0                    - - - xy unitless 1
+691 CEDS_to_HONO_ind     	0.0                    - - - xy unitless 1
+690 CEDS_to_HONO_res     	0.0                    - - - xy unitless 1
+689 CEDS_to_HONO_road    	0.0                    - - - xy unitless 1
+688 CEDS_to_HONO_shp     	0.0                    - - - xy unitless 1
+687 CEDS_to_ACROLEIN_ag         0.0                    - - - xy unitless 1
+686 CEDS_to_ACROLEIN_ene        0.0                    - - - xy unitless 1
+685 CEDS_to_ACROLEIN_ind        0.0                    - - - xy unitless 1
+684 CEDS_to_ACROLEIN_res        0.0                    - - - xy unitless 1
+683 CEDS_to_ACROLEIN_road       0.0                    - - - xy unitless 1
+682 CEDS_to_ACROLEIN_shp        0.0                    - - - xy unitless 1
+681 CEDS_to_BUTADIENE13_ag      0.0                    - - - xy unitless 1
+680 CEDS_to_BUTADIENE13_ene     0.0                    - - - xy unitless 1
+679 CEDS_to_BUTADIENE13_ind     0.0                    - - - xy unitless 1
+678 CEDS_to_BUTADIENE13_res     0.0                    - - - xy unitless 1
+677 CEDS_to_BUTADIENE13_road    0.0                    - - - xy unitless 1
+676 CEDS_to_BUTADIENE13_shp     0.0                    - - - xy unitless 1
+
+#==============================================================================
+# --- HTAP to CB6 speciations ---
+#==============================================================================
+899 HTAP_PM25_to_PAL_AIR 7.844959120632102E-5  - - - xy unitless 1
+898 HTAP_PM25_to_PAL_SHP 0.008597279966335107  - - - xy unitless 1
+897 HTAP_PM25_to_PAL_POW 0.05023462620436187   - - - xy unitless 1
+896 HTAP_PM25_to_PAL_IND 0.030837976232004703  - - - xy unitless 1
+895 HTAP_PM25_to_PAL_TRA 0.005602119588710436  - - - xy unitless 1
+894 HTAP_PM25_to_PAL_RES 9.059984890153869E-4  - - - xy unitless 1
+893 HTAP_PM25_to_PCA_AIR 0.011056515213864316  - - - xy unitless 1
+892 HTAP_PM25_to_PCA_SHP 0.0030705537853290207  - - - xy unitless 1
+891 HTAP_PM25_to_PCA_POW 0.034628121559832664   - - - xy unitless 1
+890 HTAP_PM25_to_PCA_IND 0.04691978993604533  - - - xy unitless 1
+889 HTAP_PM25_to_PCA_TRA 0.0333032298061885  - - - xy unitless 1
+888 HTAP_PM25_to_PCA_RES 0.0034297278364788506  - - - xy unitless 1
+887 HTAP_PM25_to_PCL_AIR 0.0038466343065978784  - - - xy unitless 1
+886 HTAP_PM25_to_PCL_SHP 6.452852556356916E-5  - - - xy unitless 1
+885 HTAP_PM25_to_PCL_POW 0.001151793879901178   - - - xy unitless 1
+884 HTAP_PM25_to_PCL_IND 0.005622635954552769  - - - xy unitless 1
+883 HTAP_PM25_to_PCL_TRA 0.0091794527310865  - - - xy unitless 1
+882 HTAP_PM25_to_PCL_RES 0.026757569821944986  - - - xy unitless 1
+881 HTAP_PM25_to_PFE_AIR 0.00498606554275781  - - - xy unitless 1
+880 HTAP_PM25_to_PFE_SHP 0.005950030993980087  - - - xy unitless 1
+879 HTAP_PM25_to_PFE_POW 0.025103697649528918   - - - xy unitless 1
+878 HTAP_PM25_to_PFE_IND 0.029830933564959652  - - - xy unitless 1
+877 HTAP_PM25_to_PFE_TRA 0.062219609556697524  - - - xy unitless 1
+876 HTAP_PM25_to_PFE_RES 6.747975186045601E-4  - - - xy unitless 1
+875 HTAP_PM25_to_PH2O_AIR 2.116862509530467E-5  - - - xy unitless 1
+874 HTAP_PM25_to_PH2O_SHP 0.41224337928074206  - - - xy unitless 1
+873 HTAP_PM25_to_PH2O_POW 3.952198796631878E-5   - - - xy unitless 1
+872 HTAP_PM25_to_PH2O_IND 0.007782126502007649  - - - xy unitless 1
+871 HTAP_PM25_to_PH2O_TRA 0.0037056954503465974  - - - xy unitless 1
+870 HTAP_PM25_to_PH2O_RES 2.8623111229696884E-5  - - - xy unitless 1
+869 HTAP_PM25_to_PK_AIR 7.406401364964016E-4  - - - xy unitless 1
+868 HTAP_PM25_to_PK_SHP 1.1961385226417698E-5  - - - xy unitless 1
+867 HTAP_PM25_to_PK_POW 0.0048438809096782495   - - - xy unitless 1
+866 HTAP_PM25_to_PK_IND 0.02063533585236529  - - - xy unitless 1
+865 HTAP_PM25_to_PK_TRA 0.0022756587444511174  - - - xy unitless 1
+864 HTAP_PM25_to_PK_RES 0.037723252780690636  - - - xy unitless 1
+863 HTAP_PM25_to_PMG_AIR 1.1819444589725378E-5  - - - xy unitless 1
+862 HTAP_PM25_to_PMG_SHP 0.0035445131419076345  - - - xy unitless 1
+861 HTAP_PM25_to_PMG_POW 4.588736423222851E-4   - - - xy unitless 1
+860 HTAP_PM25_to_PMG_IND 0.0014877457975388893  - - - xy unitless 1
+859 HTAP_PM25_to_PMG_TRA 0.0407291019544641  - - - xy unitless 1
+858 HTAP_PM25_to_PMG_RES 4.886475383743535E-4  - - - xy unitless 1
+857 HTAP_PM25_to_PMN_AIR 2.0326377227165874E-6  - - - xy unitless 1
+856 HTAP_PM25_to_PMN_SHP 0.0                    - - - xy unitless 1
+855 HTAP_PM25_to_PMN_POW 2.4849891826460237E-4   - - - xy unitless 1
+854 HTAP_PM25_to_PMN_IND 0.0013678183686060667  - - - xy unitless 1
+853 HTAP_PM25_to_PMN_TRA 4.997777955064257E-4  - - - xy unitless 1
+852 HTAP_PM25_to_PMN_RES 2.4839678574308852E-5  - - - xy unitless 1
+851 HTAP_PM25_to_PMOTHR_AIR 0.07877311697321937  - - - xy unitless 1
+850 HTAP_PM25_to_PMOTHR_SHP 0.07749732952480645  - - - xy unitless 1
+849 HTAP_PM25_to_PMOTHR_POW 0.5889290704763706   - - - xy unitless 1
+848 HTAP_PM25_to_PMOTHR_IND 0.5697048834417312  - - - xy unitless 1
+847 HTAP_PM25_to_PMOTHR_TRA 0.2643678647790108  - - - xy unitless 1
+846 HTAP_PM25_to_PMOTHR_RES 0.0753847334041736  - - - xy unitless 1
+845 HTAP_PM25_to_PNA_AIR 6.787211823468223E-7  - - - xy unitless 1
+844 HTAP_PM25_to_PNA_SHP 0.0                   - - - xy unitless 1
+843 HTAP_PM25_to_PNA_POW 1.1609404225005764E-4   - - - xy unitless 1
+842 HTAP_PM25_to_PNA_IND 0.010449730723527754  - - - xy unitless 1
+841 HTAP_PM25_to_PNA_TRA 0.002986272952331283  - - - xy unitless 1
+840 HTAP_PM25_to_PNA_RES 0.005562459454327978  - - - xy unitless 1
+839 HTAP_PM25_to_PNCOM_AIR 0.82333757834816  - - - xy unitless 1
+838 HTAP_PM25_to_PNCOM_SHP 0.06395637221508599  - - - xy unitless 1
+837 HTAP_PM25_to_PNCOM_POW 0.04390264380863414   - - - xy unitless 1
+836 HTAP_PM25_to_PNCOM_IND 0.07891155914607309  - - - xy unitless 1
+835 HTAP_PM25_to_PNCOM_TRA 0.3751065749747639  - - - xy unitless 1
+834 HTAP_PM25_to_PNCOM_RES 0.7932242255778433  - - - xy unitless 1
+833 HTAP_PM25_to_PNH4_AIR 9.25528885018394E-7  - - - xy unitless 1
+832 HTAP_PM25_to_PNH4_SHP 0.0  - - - xy unitless 1
+831 HTAP_PM25_to_PNH4_POW 0.003698874777325087   - - - xy unitless 1
+830 HTAP_PM25_to_PNH4_IND 0.0018193703309040423  - - - xy unitless 1
+829 HTAP_PM25_to_PNH4_TRA 0.04136881934732051  - - - xy unitless 1
+828 HTAP_PM25_to_PNH4_RES 0.006773223914233244  - - - xy unitless 1
+827 HTAP_PM25_to_PNO3_AIR 0.021401503789444387  - - - xy unitless 1
+826 HTAP_PM25_to_PNO3_SHP 3.5915701509051107E-4  - - - xy unitless 1
+825 HTAP_PM25_to_PNO3_POW 0.006200971191188791   - - - xy unitless 1
+824 HTAP_PM25_to_PNO3_IND 0.00444376674366932  - - - xy unitless 1
+823 HTAP_PM25_to_PNO3_TRA 0.016702731773643745  - - - xy unitless 1
+822 HTAP_PM25_to_PNO3_RES 0.006223289781278002  - - - xy unitless 1
+821 HTAP_PM25_to_PSI_AIR 2.53330477670749E-4  - - - xy unitless 1
+820 HTAP_PM25_to_PSI_SHP 1.1742900825471555E-9  - - - xy unitless 1
+819 HTAP_PM25_to_PSI_POW 0.07744371753307334   - - - xy unitless 1
+818 HTAP_PM25_to_PSI_IND 0.089134857153437  - - - xy unitless 1
+817 HTAP_PM25_to_PSI_TRA 0.043675932619087886  - - - xy unitless 1
+816 HTAP_PM25_to_PSI_RES 0.015033354681951088  - - - xy unitless 1
+815 HTAP_PM25_to_PSO4_AIR 0.05540843824020692  - - - xy unitless 1
+814 HTAP_PM25_to_PSO4_SHP 0.42464792533369367  - - - xy unitless 1
+813 HTAP_PM25_to_PSO4_POW 0.15912226512059632   - - - xy unitless 1
+812 HTAP_PM25_to_PSO4_IND 0.09694122781646801  - - - xy unitless 1
+811 HTAP_PM25_to_PSO4_TRA 0.0963104141025025  - - - xy unitless 1
+810 HTAP_PM25_to_PSO4_RES 0.027661957713335183  - - - xy unitless 1
+809 HTAP_PM25_to_PTI_AIR 8.110242290071871E-5  - - - xy unitless 1
+808 HTAP_PM25_to_PTI_SHP 5.6967657949396034E-5  - - - xy unitless 1
+807 HTAP_PM25_to_PTI_POW 0.003877348298705523   - - - xy unitless 1
+806 HTAP_PM25_to_PTI_IND 0.004110242436109103  - - - xy unitless 1
+805 HTAP_PM25_to_PTI_TRA 0.001966743823888066  - - - xy unitless 1
+804 HTAP_PM25_to_PTI_RES 1.0329869794470812E-4  - - - xy unitless 1
+599 HTAP_PM25_to_PAL_AGR 0.07782217933346339   - - - xy unitless 1
+598 HTAP_PM25_to_PCA_AGR 0.025949431048340296   - - - xy unitless 1
+597 HTAP_PM25_to_PCL_AGR 0.024721615210852258 - - - xy unitless 1
+596 HTAP_PM25_to_PFE_AGR 0.05080998398656086 - - - xy unitless 1
+595 HTAP_PM25_to_PH2O_AGR 6.521872385342215E-4 - - - xy unitless 1
+594 HTAP_PM25_to_PK_AGR 0.03624689493388408 - - - xy unitless 1
+593 HTAP_PM25_to_PMG_AGR 8.880176485280753E-4 - - - xy unitless 1
+592 HTAP_PM25_to_PMN_AGR 0.0011609338761214578 - - - xy unitless 1
+591 HTAP_PM25_to_PMOTHR_AGR 0.45889283799984476 - - - xy unitless 1
+590 HTAP_PM25_to_PNA_AGR 0.0029745022081615097 - - - xy unitless 1
+589 HTAP_PM25_to_PNCOM_AGR 0.08853036229324952 - - - xy unitless 1
+588 HTAP_PM25_to_PNH4_AGR 0.005449324972084484 - - - xy unitless 1
+587 HTAP_PM25_to_PNO3_AGR 0.002419944855826468 - - - xy unitless 1
+586 HTAP_PM25_to_PSI_AGR 0.21225258915274595 - - - xy unitless 1
+585 HTAP_PM25_to_PSO4_AGR 0.006621951802154443  - - - xy unitless 1
+584 HTAP_PM25_to_PTI_AGR 0.004607243439648119 - - - xy unitless 1
+
+==============================================================================
+# Units carbon to species conversions
+# Factor = # carbon atoms * MW carbon) / MW species
+==============================================================================
+440 CtoACET MATH:58.1/(3.0*12.0)   - - - xy unitless 1
+441 CtoALD2 MATH:44.0/(2.0*12.0)   - - - xy unitless 1
+442 CtoALDX MATH:58.1/(4.3*12.0)   - - - xy unitless 1
+443 CtoBENZ MATH:78.1/(6.0*12.0)   - - - xy unitless 1
+445 CtoETHA MATH:30.1/(2.0*12.0)   - - - xy unitless 1
+446 CtoPRPA MATH:44.1/(3.0*12.0)   - - - xy unitless 1
+447 CtoETOH MATH:46.1/(2.0*12.0)   - - - xy unitless 1
+448 CtoKET  MATH:72.1/(4.0*12.0)   - - - xy unitless 1
+449 CtoTOL  MATH:92.1/(7.0*12.0)   - - - xy unitless 1
+450 CtoXYLMN MATH:106.2/(8.0*12.0)  - - - xy unitless 1
+451 CtoETHY MATH:26.0/(2.0*12.0)   - - - xy unitless 1
+452 CtoISOP MATH:68.1/(5.0*12.0)   - - - xy unitless 1
+453 CtoACROLEIN MATH:56.1/(3.0*12.0)   - - - xy unitless 1
+454 CtoBUTADIENE13 MATH:54.0/(4.0*12.0)   - - - xy unitless 1
+455 CtoTERP MATH:136.2/(5.0*12.0)   - - - xy unitless 1
+456 CtoFORM MATH:30.0/(1.0*12.0)   - - - xy unitless 1
+457 CtoPAR MATH:72.1/(4.0*12.0)   - - - xy unitless 1
+458 CtoIOLE MATH:56.1/(4.0*12.0)   - - - xy unitless 1
+459 CtoOLE MATH:42.1/(2.0*12.0)   - - - xy unitless 1
+460 CtoETH MATH:28.0/(2.0*12.0)   - - - xy unitless 1
+461 CtoMEOH MATH:32.0/(1.0*12.0)   - - - xy unitless 1
+462 CtoNAPH MATH:128.2/(10.0*12.0)   - - - xy unitless 1
+463 CtoALD2_PRIMARY MATH:44.0/(2.0*12.0)   - - - xy unitless 1
+464 CtoFORM_PRIMARY MATH:30.0/(1.0*12.0)   - - - xy unitless 1
+465 CtoSOAALK MATH:112.0/(4.0*12.0)   - - - xy unitless 1
+
+### END SECTION SCALE FACTORS ###
+
+###############################################################################
+### BEGIN SECTION MASKS
+###############################################################################
+
+# ScalID Name sourceFile sourceVar sourceTime C/R/E SrcDim SrcUnit Oper Lon1/Lat1/Lon2/Lat2
+
+1008  OMI_HTAP_MASK_2019 $ROOT/MASKS/v2018-09/OMI_HTAP_ZEROMASK_2019.nc ZEROMASK 2019/1-12/1/0 C xy unitless 1 -180/-90/180/90
+
+#==============================================================================
+# Country/region masks
+#==============================================================================
+1007 NEI_MASK    $ROOT/MASKS/v2018-09/USA_LANDMASK_NEI2016Beta_0.1x0.1.20160921.corrected.nc LANDMASK 2011/1/1/0 C xy unitless 1 -165/10/-40/90
+1009 CONUS_MASK    $ROOT/MASKS/v2018-09/CONUS_Mask.01x01.nc MASK 2000/1/1/0 C xy unitless 1 -165/10/-40/90
+
+### END SECTION MASKS ###
+
+### END OF HEMCO INPUT FILE ###
+#EOC
