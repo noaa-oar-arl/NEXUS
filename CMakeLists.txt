@@ -6,6 +6,17 @@ project(NEXUS
         VERSION 0.2.0
         LANGUAGES Fortran)
 
+# FC should be used to set compiler
+if(NOT DEFINED ENV{FC})
+  message(WARNING "FC is not set. You may want to use it to specify a specific compiler.")
+else()
+  if("$ENV{FC}" STREQUAL "")
+    message(WARNING "FC is set to empty string. You may want to use it to specify a specific compiler.")
+  else()
+    message(STATUS "FC is set: '${FC}'")
+  endif()
+endif()
+
 # Include local macros
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
