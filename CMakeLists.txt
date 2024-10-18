@@ -1,7 +1,7 @@
 # Check environment
 cmake_minimum_required(VERSION 3.5)
 
-# set the project name and version
+# Set the project name and version
 project(NEXUS
         VERSION 0.2.0
         LANGUAGES Fortran)
