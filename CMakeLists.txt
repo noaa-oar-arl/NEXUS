@@ -11,10 +11,6 @@ if(NOT DEFINED ENV{FC})
   message(FATAL_ERROR "CMAKE_Fortran_COMPILER is not defined")
 endif()
 
-set(CMAKE_Fortran_COMPILER $ENV{FC})
-set(CMAKE_C_COMPILER $ENV{CC})
-set(CMAKE_CXX_COMPILER $ENV{CXX})
-
 # Include local macros
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
