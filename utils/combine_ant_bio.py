@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Combine/reassign HEMCO species in order to get:
-CMAQv5.2.1 CB6 Emission Species w/biogenics
+CMAQv5.2.1 or CMAQv5.4 CB6 Emission Species w/biogenics
 """
 
 SPECIES = [
@@ -161,6 +161,11 @@ def main(ifp, ofp, *, compress=True):
             ds_new["NO"][:] = ds["SOILNOX_NO"][:] + ds["NO_ant"][:]
         # 4. The remainder of species are just anthropogenic from HEMCO
         else:
+            # NEMO/NEI2019 doesn't have these
+            if spc in {"CH4_INV", "CO2_INV"} and f"{spc}_ant" not in ds.variables:
+                print(f"note: skipping {spc}")
+                continue
+
             ds_new[spc][:] = ds[f"{spc}_ant"][:]
 
     ds.close()
