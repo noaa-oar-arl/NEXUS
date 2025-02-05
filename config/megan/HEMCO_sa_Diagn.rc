@@ -73,3 +73,6 @@ MTPA_bio         MTPA         108    -1  -1   2   kg/m2/s TERP_emission_flux_fro
 MTPO_bio         MTPO         108    -1  -1   2   kg/m2/s TERP_emission_flux_from_biogenic_sources
 LIMO_bio         LIMO         108    -1  -1   2   kg/m2/s TERP_emission_flux_from_biogenic_sources
 SESQ_bio         SESQ         108    -1  -1   2   kg/m2/s SESQ_emission_flux_from_biogenic_sources
+InvMEGAN_AAXX    AAXX         108    -1  -1   2   kg/m2/s
+InvMEGAN_FAXX    FAXX         108    -1  -1   2   kg/m2/s
+InvMEGAN_APIN    APIN         108    -1  -1   2   kg/m2/s
