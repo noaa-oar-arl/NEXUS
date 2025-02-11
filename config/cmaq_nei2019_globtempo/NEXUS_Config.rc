@@ -1587,7 +1587,7 @@ Cap time shift              : true
 #==============================================================================
 # Country/region masks
 #==============================================================================
-1007 NEI_MASK    $ROOT/MASKS/v2018-09/USA_LANDMASK_NEI2016Beta_0.1x0.1.20160921.corrected.nc LANDMASK 2011/1/1/0 C xy unitless 1 -165/10/-40/90
+1007 NEI_MASK    $ROOT/MASKS/v2018-09/USA_LANDMASK_GMU-NEI2019_0.1x0.1.20230719.corrected_new.nc LANDMASK 2011/1/1/0 C xy unitless 1 -165/10/-40/90
 1009 CONUS_MASK    $ROOT/MASKS/v2018-09/CONUS_Mask.01x01.nc MASK 2000/1/1/0 C xy unitless 1 -165/10/-40/90
 
 ### END SECTION MASKS ###

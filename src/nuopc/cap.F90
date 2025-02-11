@@ -168,18 +168,18 @@ contains
         name, long_name, units
 
       ! Add to field dictionary
-      call NUOPC_FieldDictionaryAddEntry(long_name, units, rc=rc)
+      call NUOPC_FieldDictionaryAddEntry(name, units, rc=rc)
       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
         line=__LINE__, &
-        file=__FILE__,  &
+        file=__FILE__, &
         rcToReturn=rc)) return  ! bail out
 
       ! Advertise field
       call NUOPC_Advertise(exportState, &
-        name = name, &
-        StandardName = long_name, &
-        LongName = long_name, &
-        Units = units, &
+        name=name, &
+        StandardName=name, &
+        LongName=long_name, &
+        Units=units, &
         rc=rc)
       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
         line=__LINE__, &
@@ -363,7 +363,7 @@ contains
     ! Set Extension number ExtNr to 0, indicating that the core
     ! module shall be executed.
     HcoState%Options%SpcMin = 1
-    HcoState%Options%SpcMax = 2  ! FIXME: nModelSpec
+    HcoState%Options%SpcMax = -1  ! all species above or equal to SpcMin are considered
     HcoState%Options%CatMin = 1
     HcoState%Options%CatMax = -1
     HcoState%Options%ExtNr  = 0
@@ -1730,20 +1730,6 @@ contains
       Name = 'TS'
       call ExtDat_Set( HcoState,     ExtState%TSKIN,                        &
         trim( Name ), RC,       FIRST=FIRST                 )
-      if ( RC /= HCO_SUCCESS ) then
-        ErrMsg = 'Could not find quantity "' // trim( Name )            // &
-          '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
-        call HCO_Leave( HcoState%Config%Err, RC )
-        return
-      end if
-    end if
-
-    !%%%%% Soil temperature %%%%%
-    IF ( ExtState%TSOIL1%DoUse ) THEN
-      Name = 'TSOIL1'
-      CALL ExtDat_Set( HcoState,     ExtState%TSOIL1,                       &
-      trim( Name ), RC,       FIRST=FIRST                 )
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
