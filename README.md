@@ -23,15 +23,19 @@ pre-commit install --install-hooks
 
 ### Setup
 
-#### NOAA Hera
+#### Supported UFS machines
 
-Use the official setup.
+UFS spack-stack module files are included for Hera, WCOSS2, Orion, etc.
 ```
 module use ./modulefiles
-module load hera.intel
 ```
 
-Input data:
+Then, on Hera, for example:
+```
+module load ufs_hera.intel
+```
+
+Hera input data:
 ```
 /scratch1/NCEPDEV/rstprod/nexus_emissions
 ```
@@ -41,6 +45,7 @@ Input data:
 
 #### GMU Hopper
 
+Custom modules.
 ```
 . /groups/ESS3/zmoon/nexus/env5
 ```
@@ -52,58 +57,10 @@ Input data:
 
 #### Ubuntu
 
-Tested with Ubuntu 22.04.
-Using GCC v12 available via `apt`.
+See https://github.com/noaa-oar-arl/gha-esmf for examples of how to build ESMF,
+or follow the steps to download and use a pre-built ESMF.
 
-Dependencies:
-```bash
-sudo apt install build-essential gfortran-12 libnetcdf-dev libnetcdff-dev liblapack-dev libopenblas-dev mpi-default-dev mpi-default-bin
-```
-
-Build ESMF and prepare for NEXUS build:
-```bash
-v="8.3.1"  # ESMF
-gcc="12"
-esmf_base=$HOME/esmf
-
-export ESMF_DIR=${esmf_base}/${v}-gcc-${gcc}
-cd $esmf_base
-mkdir -p $ESMF_DIR
-wget https://github.com/esmf-org/esmf/archive/refs/tags/v${v}.tar.gz
-tar xzvf v${v}.tar.gz --directory=/tmp && mv /tmp/esmf-${v}/* $ESMF_DIR
-
-export ESMF_COMPILER=gfortran
-export ESMF_LAPACK=netlib
-export ESMF_COMM=mpi
-export ESMF_PIO=internal
-export ESMF_NETCDF=nc-config
-
-export OMPI_FC=gfortran-${gcc}
-export OMPI_CC=gcc-${gcc}
-export OMPI_CXX=g++-${gcc}
-export ESMF_F90COMPILER=mpifort
-export ESMF_CCOMPILER=mpicc
-export ESMF_CXXCOMPILER=mpic++
-export ESMF_F90LINKER=/usr/bin/ld
-export ESMF_CLINKER=/usr/bin/ld
-export ESMF_CXXLINKER=/usr/bin/ld
-
-cd $ESMF_DIR
-make lib
-
-# Location of the corresponding `esmf.mk` is needed for CMake to find the lib later
-# You can find these with, e.g., `find . -name 'esmf.mk' -exec realpath {} \;`,
-# but it should be the following:
-ESMFMKFILE=${ESMF_DIR}/lib/libO/Linux.gfortran.64.mpi.default/esmf.mk
-
-# For NEXUS
-export CMAKE_Fortran_COMPILER=$ESMF_F90COMPILER
-```
-
-To build NEXUS, at least these env vars should be set:
-- `ESMFMKFILE`
-- `OMPI_FC`
-- `CMAKE_Fortran_COMPILER`
+Remember to set `ESMFMKFILE` to point to the `esmf.mk` file of your ESMF build.
 
 ### Build
 
@@ -119,3 +76,7 @@ To clean up, remove the build directory or use
 ```
 cmake --build build --target clean
 ```
+
+## Disclaimer
+
+This repository is a scientific product and is not official communication of the National Oceanic and Atmospheric Administration, or the United States Department of Commerce. All NOAA GitHub project code is provided on an "as is" basis and the user assumes responsibility for its use. Any claims against the Department of Commerce or Department of Commerce bureaus stemming from the use of this GitHub project will be governed by all applicable Federal law. Any reference to specific commercial products, processes, or services by service mark, trademark, manufacturer, or otherwise, does not constitute or imply their endorsement, recommendation or favoring by the Department of Commerce. The Department of Commerce seal and logo, or the seal and logo of a DOC bureau, shall not be used in any manner to imply endorsement of any commercial product or activity by DOC or the United States Government.

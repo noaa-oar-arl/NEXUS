@@ -18,8 +18,8 @@ jobs:
           fetch-depth: 0
 
       - name: Install dependencies
-        run: sudo apt-get install -y libnetcdf-dev libnetcdff-dev
-          liblapack-dev libopenblas-dev
+        run: sudo apt-get update && sudo apt-get install -y
+          libnetcdf-dev libnetcdff-dev liblapack-dev libopenblas-dev
 
       - name: Fetch pre-built ESMF
         run: |

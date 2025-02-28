@@ -168,18 +168,18 @@ contains
         name, long_name, units
 
       ! Add to field dictionary
-      call NUOPC_FieldDictionaryAddEntry(long_name, units, rc=rc)
+      call NUOPC_FieldDictionaryAddEntry(name, units, rc=rc)
       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
         line=__LINE__, &
-        file=__FILE__,  &
+        file=__FILE__, &
         rcToReturn=rc)) return  ! bail out
 
       ! Advertise field
       call NUOPC_Advertise(exportState, &
-        name = name, &
-        StandardName = long_name, &
-        LongName = long_name, &
-        Units = units, &
+        name=name, &
+        StandardName=name, &
+        LongName=long_name, &
+        Units=units, &
         rc=rc)
       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
         line=__LINE__, &
@@ -363,7 +363,7 @@ contains
     ! Set Extension number ExtNr to 0, indicating that the core
     ! module shall be executed.
     HcoState%Options%SpcMin = 1
-    HcoState%Options%SpcMax = 2  ! FIXME: nModelSpec
+    HcoState%Options%SpcMax = -1  ! all species above or equal to SpcMin are considered
     HcoState%Options%CatMin = 1
     HcoState%Options%CatMax = -1
     HcoState%Options%ExtNr  = 0
@@ -944,7 +944,8 @@ contains
     character(len=255)    :: LOC
     character(len=  1)    :: COL
     character(len=255)    :: MyGridFile, ThisLoc
-    character(len=4095)   :: DUM,        ErrMsg,  Msg
+    character(len=5500)   :: DUM
+    character(len=255)    :: ErrMsg, Msg
 
     !=================================================================
     ! SET_GRID begins here
@@ -1710,7 +1711,7 @@ contains
       end if
     end if
 
-    !%%%%% Air and skin temperature %%%%%
+    !%%%%% Air temperature %%%%%
     if ( ExtState%T2M%DoUse ) then
       Name = 'T2M'
       call ExtDat_Set( HcoState,     ExtState%T2M,                          &
@@ -1724,6 +1725,7 @@ contains
       end if
     end if
 
+    !%%%%% Skin temperature %%%%%
     if ( ExtState%TSKIN%DoUse ) then
       Name = 'TS'
       call ExtDat_Set( HcoState,     ExtState%TSKIN,                        &
