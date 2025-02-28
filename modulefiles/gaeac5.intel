@@ -1,0 +1,26 @@
+#%Module######################################################################
+##
+##    NEXUS Prerequisites: GAEA C6/Intel
+
+proc ModulesHelp {} {
+  puts stderr "\tcit - Loads libraries needed for building the UFS Weather Model on Gaea C6"
+}
+module-whatis "Loads libraries needed for building the UFS Weather Model on Gaea C6"
+
+module purge
+
+module use /ncrc/proj/epic/spack-stack/c6/spack-stack-1.6.0/envs/fms-2024.01/install/modulefiles/Core
+module load stack_intel/2023.2.0
+module load stack_cray_mpich/8.1.28
+module load stack-python/3.10.13
+module load cmake/3.23.1
+
+module load hdf5/1.14.0
+module load netcdf-c/4.9.2
+module load netcdf-fortran/4.6.1
+module load esmf/8.6.0
+
+setenv "CC" "cc"
+setenv "CXX" "CC"
+setenv "FC" "ftn"
+setenv "CMAKE_Platform" "gaeac5.intel"
