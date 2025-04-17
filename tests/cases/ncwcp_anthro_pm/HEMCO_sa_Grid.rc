@@ -1,0 +1,8 @@
+# Emission grid specifications:
+XMIN:  -77.100
+XMAX:  -76.800
+YMIN:   38.800
+YMAX:   39.100
+NX: 3
+NY: 3
+NZ: 1

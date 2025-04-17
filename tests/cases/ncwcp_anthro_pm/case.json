@@ -1,0 +1,15 @@
+{
+  "case_id": "ncwcp_anthro_pm",
+  "source": "x1e-zm:/home/zmoon/downloads/gocart-nexus",
+  "focus": [
+    38.9721,
+    -76.9245
+  ],
+  "nx": 3,
+  "ny": 3,
+  "dx": 0.1,
+  "dy": 0.1,
+  "ne": 1,
+  "fv3_res": "C384",
+  "fv3_tile": 5
+}
