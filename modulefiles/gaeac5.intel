@@ -1,11 +1,11 @@
 #%Module######################################################################
 ##
-##    NEXUS Prerequisites: GAEA C6/Intel
+##    NEXUS Prerequisites: GAEA C5/Intel
 
 proc ModulesHelp {} {
-  puts stderr "\tcit - Loads libraries needed for building the UFS Weather Model on Gaea C6"
+  puts stderr "\tcit - Loads libraries needed for building the UFS Weather Model on Gaea C5"
 }
-module-whatis "Loads libraries needed for building the UFS Weather Model on Gaea C6"
+module-whatis "Loads libraries needed for building the UFS Weather Model on Gaea C5"
 
 module purge
 
