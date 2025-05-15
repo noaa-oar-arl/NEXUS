@@ -1,0 +1,199 @@
+###############################################################################
+### BEGIN SECTION SETTINGS
+###############################################################################
+
+ROOT                        : input
+GridFile                    : HEMCO_sa_Grid.rc
+SpecFile                    : HEMCO_sa_Spec.rc
+TimeFile                    : HEMCO_sa_Time.rc
+DiagnFile                   : HEMCO_sa_Diagn.rc
+DiagnPrefix                 : output/NEXUS.merged_nei2019_meganv21_pre
+DiagnFreq                   : Hourly
+Logfile                     : NEXUS.log
+Unit tolerance              : 2
+Negative values             : 1
+Verbose                     : 10
+Warnings                    : 1
+Mask fractions              : true
+MET                         : geosfp
+RES                         : 4x5
+PBL dry deposition          : False
+SINTOK                      : 0.5
+Cap time shift              : true
+#
+
+### END SECTION SETTINGS ###
+
+###############################################################################
+### BEGIN SECTION EXTENSION SWITCHES
+###############################################################################
+###
+### This section lists all emission extensions available to HEMCO and whether
+### they shall be used or not. Extension 'base' must have extension number
+### zero, all other extension numbers can be freely chosen. Data fields in
+### section 'base emissions' will only be read if the corresponding extension
+### (identified by ExtNr) is enabled. Similarly, fields grouped into data
+### collections ('(((CollectionName', ')))CollectionName') are only considered
+### if the corresponding data collection is enabled in this section. Data
+### listed within a disabled extension are always ignored, even if they are
+### grouped in an enabled collection (e.g. GFED-4 data will never be considered
+### if the GFED extension is disabled, even if the GFED4 option is set to true).
+###
+### It is possible to define collections that are only evaluated if a
+### collection name is *not* enabled. This is achieved by leading the
+### collection name with '.not.', e.g. '(((.not.FINN_daily' ...
+### '))).not.FINN_daily' for FINN monthly data (only used if daily data is
+### not being used).
+###
+### The ExtNr provided in this section must match with the ExtNr assigned to
+### the data listed in the base emissions sections. Otherwise, the listed
+### files won't be read!
+###
+### NOTES:
+### --> You can only select one biomass burning option (GFED, QFED, FINN).
+###
+### --> BOND_BIOMASS must be set to false if GFED, QFED, or FINN is enabled.
+###
+### --> The biomass burning POA scale factor is the same as for the biofuel
+###     and anthro sources.
+###
+### --> The NAP scale factor is determined as in the original simulation:
+###     Obtain NAP emissions using scale factor from Hays 2002 ES&T
+###     (0.0253 g NAP/kg DM) and Andreae and Merlet 2001 GBC (92 g CO/kg DM)
+###############################################################################
+# ExtNr ExtName           on/off  Species
+0       Base              : on    *
+    --> HEMCO_RESTART     :       true
+    --> NEMO_NEI2019_AR              :  on   true
+
+### END SECTION EXTENSION SWITCHES ###
+
+###############################################################################
+### BEGIN SECTION BASE EMISSIONS
+###############################################################################
+
+#==============================================================================
+# --- GMU-NEI 2019 (1-km NEMO: USA/CAN/MEX) ---
+#==============================================================================
+(((NEO_NEI2019_AR
+# SURFACE ALL INVENTORY
+0 NEI2019_ALL_CO             $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          CO            2019/1-12/1-31/$HH C xy  kg/m2/s CO           1007     1 50
+0 NEI2019_ALL_CL2            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          CL2           2019/1-12/1-31/$HH C xy  kg/m2/s CL2          1007     1 50
+0 NEI2019_ALL_HCL            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          HCL           2019/1-12/1-31/$HH C xy  kg/m2/s HCL          1007     1 50
+0 NEI2019_ALL_SO2            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          SO2           2019/1-12/1-31/$HH C xy  kg/m2/s SO2          1007     1 50
+0 NEI2019_ALL_NO             $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          NO            2019/1-12/1-31/$HH C xy  kg/m2/s NOT          1007     1 50
+0 NEI2019_ALL_NO2            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          NO2           2019/1-12/1-31/$HH C xy  kg/m2/s NO2          1007     1 50
+0 NEI2019_ALL_HONO           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          HONO          2019/1-12/1-31/$HH C xy  kg/m2/s HONO         1007     1 50
+0 NEI2019_ALL_SULF           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          SULF          2019/1-12/1-31/$HH C xy  kg/m2/s SULF         1007     1 50
+0 NEI2019_ALL_NH3            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          NH3           2019/1-12/1-31/$HH C xy  kg/m2/s NH3          1007     1 50
+0 NEI2019_ALL_CH4            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          CH4           2019/1-12/1-31/$HH C xy  kg/m2/s CH4          1007     1 50
+0 NEI2019_ALL_ACROLEIN       $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          ACROLEIN      2019/1-12/1-31/$HH C xy  kg/m2/s ACROLEIN     1007     1 50
+0 NEI2019_ALL_BUTADIENE13    $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          BUTADIENE13   2019/1-12/1-31/$HH C xy  kg/m2/s BUTADIENE13  1009     1 50
+0 NEI2019_ALL_ETHY           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          ETHY          2019/1-12/1-31/$HH C xy  kg/m2/s ETHY         1007     1 50
+0 NEI2019_ALL_TERP           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          TERP          2019/1-12/1-31/$HH C xy  kg/m2/s TERP         1007     1 50
+0 NEI2019_ALL_FORM           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          FORM          2019/1-12/1-31/$HH C xy  kg/m2/s FORM         1007     1 50
+0 NEI2019_ALL_PAR            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PAR           2019/1-12/1-31/$HH C xy  kg/m2/s PAR          1007     1 50
+0 NEI2019_ALL_IOLE           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          IOLE          2019/1-12/1-31/$HH C xy  kg/m2/s IOLE         1007     1 50
+0 NEI2019_ALL_OLE            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          OLE           2019/1-12/1-31/$HH C xy  kg/m2/s OLE          1007     1 50
+0 NEI2019_ALL_ETH            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          ETH           2019/1-12/1-31/$HH C xy  kg/m2/s ETH          1007     1 50
+0 NEI2019_ALL_ETHA           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          ETHA          2019/1-12/1-31/$HH C xy  kg/m2/s ETHA         1007     1 50
+0 NEI2019_ALL_ETOH           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          ETOH          2019/1-12/1-31/$HH C xy  kg/m2/s ETOH         1007     1 50
+0 NEI2019_ALL_MEOH           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          MEOH          2019/1-12/1-31/$HH C xy  kg/m2/s MEOH         1007     1 50
+0 NEI2019_ALL_BENZ           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          BENZ          2019/1-12/1-31/$HH C xy  kg/m2/s BENZ         1007     1 50
+0 NEI2019_ALL_TOL            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          TOL           2019/1-12/1-31/$HH C xy  kg/m2/s TOL          1007     1 50
+0 NEI2019_ALL_XYLMN          $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          XYLMN         2019/1-12/1-31/$HH C xy  kg/m2/s XYLMN        1007     1 50
+0 NEI2019_ALL_NAPH           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          NAPH          2019/1-12/1-31/$HH C xy  kg/m2/s NAPH         1007     1 50
+0 NEI2019_ALL_ALD2           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          ALD2          2019/1-12/1-31/$HH C xy  kg/m2/s ALD2         1007     1 50
+0 NEI2019_ALL_ALDX           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          ALDX          2019/1-12/1-31/$HH C xy  kg/m2/s ALDX         1007     1 50
+0 NEI2019_ALL_ISOP           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          ISOP          2019/1-12/1-31/$HH C xy  kg/m2/s ISOP         1007     1 50
+0 NEI2019_ALL_PRPA           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PRPA          2019/1-12/1-31/$HH C xy  kg/m2/s PRPA         1007     1 50
+0 NEI2019_ALL_ACET           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          ACET          2019/1-12/1-31/$HH C xy  kg/m2/s ACET         1007     1 50
+0 NEI2019_ALL_KET            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          KET           2019/1-12/1-31/$HH C xy  kg/m2/s KET          1007     1 50
+0 NEI2019_ALL_ALD2_PRIMARY   $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          ALD2_PRIMARY  2019/1-12/1-31/$HH C xy  kg/m2/s ALD2_PRIMARY 1007     1 50
+0 NEI2019_ALL_FORM_PRIMARY   $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          FORM_PRIMARY  2019/1-12/1-31/$HH C xy  kg/m2/s FORM_PRIMARY 1007     1 50
+0 NEI2019_ALL_SOAALK         $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          SOAALK        2019/1-12/1-31/$HH C xy  kg/m2/s SOAALK       1007     1 50
+0 NEI2019_ALL_VOC_INV        $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          VOC_INV       2019/1-12/1-31/$HH C xy  kg/m2/s VOC_INV      1007     1 50
+0 NEI2019_ALL_PEC            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PEC           2019/1-12/1-31/$HH C xy  kg/m2/s PEC          1007     1 50
+0 NEI2019_ALL_POC            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          POC           2019/1-12/1-31/$HH C xy  kg/m2/s POC          1007     1 50
+0 NEI2019_ALL_PAL            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PAL           2019/1-12/1-31/$HH C xy  kg/m2/s PAL          1007     1 50
+0 NEI2019_ALL_PCA            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PCA           2019/1-12/1-31/$HH C xy  kg/m2/s PCA          1007     1 50
+0 NEI2019_ALL_PCL            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PCL           2019/1-12/1-31/$HH C xy  kg/m2/s PCL          1007     1 50
+0 NEI2019_ALL_PFE            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PFE           2019/1-12/1-31/$HH C xy  kg/m2/s PFE          1007     1 50
+0 NEI2019_ALL_PH2O           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PH2O          2019/1-12/1-31/$HH C xy  kg/m2/s PH2O         1007     1 50
+0 NEI2019_ALL_PK             $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PK            2019/1-12/1-31/$HH C xy  kg/m2/s PK           1007     1 50
+0 NEI2019_ALL_PMG            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PMG           2019/1-12/1-31/$HH C xy  kg/m2/s PMG          1007     1 50
+0 NEI2019_ALL_PMN            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PMN           2019/1-12/1-31/$HH C xy  kg/m2/s PMN          1007     1 50
+0 NEI2019_ALL_PMOTHR         $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PMOTHR        2019/1-12/1-31/$HH C xy  kg/m2/s PMOTHR       1007     1 50
+0 NEI2019_ALL_PNA            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PNA           2019/1-12/1-31/$HH C xy  kg/m2/s PNA          1007     1 50
+0 NEI2019_ALL_PNCOM          $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PNCOM         2019/1-12/1-31/$HH C xy  kg/m2/s PNCOM        1007     1 50
+0 NEI2019_ALL_PNH4           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PNH4          2019/1-12/1-31/$HH C xy  kg/m2/s PNH4         1007     1 50
+0 NEI2019_ALL_PNO3           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PNO3          2019/1-12/1-31/$HH C xy  kg/m2/s PNO3         1007     1 50
+0 NEI2019_ALL_PTI            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PTI           2019/1-12/1-31/$HH C xy  kg/m2/s PTI          1007     1 50
+0 NEI2019_ALL_PSI            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PSI           2019/1-12/1-31/$HH C xy  kg/m2/s PSI          1007     1 50
+0 NEI2019_ALL_PMC            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PMC           2019/1-12/1-31/$HH C xy  kg/m2/s PMC          1007     1 50
+0 NEI2019_ALL_PSO4           $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          PSO4          2019/1-12/1-31/$HH C xy  kg/m2/s PSO4         1007     1 50
+0 NEI2019_ALL_UNR            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          UNR           2019/1-12/1-31/$HH C xy  kg/m2/s UNR          1007     1 50
+0 NEI2019_ALL_UNK            $ROOT/NEMO/NEI2019/v2023-03/$MM/NEI2019v1_0.1_degree_2019$MM$DD_all.nc          UNK           2019/1-12/1-31/$HH C xy  kg/m2/s UNK          1007     1 50
+)))NEMO_NEI2019_AR
+
+#####################################################################
+# Met fields for stand-alone/offline GFS MEGANv2.1 use
+#####################################################################
+
+
+###############################################################################
+### NON-EMISSIONS DATA (subsection of BASE EMISSIONS SECTION)
+###
+### Non-emissions data. The following fields are read through HEMCO but do
+### not contain emissions data. The extension number is set to wildcard
+### character denoting that these fields will not be considered for emission
+### calculation. A given entry is only read if the assigned species name is
+### an HEMCO species.
+###############################################################################
+
+### END SECTION BASE EMISSIONS ###
+
+###############################################################################
+### BEGIN SECTION SCALE FACTORS
+###############################################################################
+
+#==============================================================================
+# --- Time zones (offset to UTC) ---
+#==============================================================================
+* TIMEZONES $ROOT/TIMEZONES/v2015-02/timezones_voronoi_1x1.nc UTC_OFFSET 2000/1/1/0 C xy count * - 1 1
+
+#==============================================================================
+# Units carbon to species conversions
+# Factor = (# carbon atoms * MW carbon) / MW species
+#==============================================================================
+440 CtoACET MATH:58.1/(3.0*12.0)   - - - xy unitless 1
+441 CtoALD2 MATH:44.0/(2.0*12.0)   - - - xy unitless 1
+442 CtoALDX MATH:58.1/(4.3*12.0)   - - - xy unitless 1
+443 CtoBENZ MATH:78.1/(6.0*12.0)   - - - xy unitless 1
+445 CtoETHA MATH:30.1/(2.0*12.0)   - - - xy unitless 1
+446 CtoPRPA MATH:44.1/(3.0*12.0)   - - - xy unitless 1
+447 CtoETOH MATH:46.1/(2.0*12.0)   - - - xy unitless 1
+448 CtoKET  MATH:72.1/(4.0*12.0)   - - - xy unitless 1
+449 CtoTOL  MATH:92.1/(7.0*12.0)   - - - xy unitless 1
+450 CtoXYLMN MATH:106.2/(8.0*12.0)  - - - xy unitless 1
+451 CtoETHY MATH:26.0/(2.0*12.0)   - - - xy unitless 1
+452 CtoISOP MATH:68.1/(5.0*12.0)   - - - xy unitless 1
+453 CtoACROLEIN MATH:56.1/(3.0*12.0)   - - - xy unitless 1
+454 CtoBUTADIENE13 MATH:54.0/(4.0*12.0)   - - - xy unitless 1
+455 CtoTERP MATH:136.2/(5.0*12.0)   - - - xy unitless 1
+456 CtoFORM MATH:30.0/(1.0*12.0)   - - - xy unitless 1
+457 CtoPAR MATH:72.1/(4.0*12.0)   - - - xy unitless 1
+458 CtoIOLE MATH:56.1/(4.0*12.0)   - - - xy unitless 1
+459 CtoOLE MATH:42.1/(2.0*12.0)   - - - xy unitless 1
+460 CtoETH MATH:28.0/(2.0*12.0)   - - - xy unitless 1
+461 CtoMEOH MATH:32.0/(1.0*12.0)   - - - xy unitless 1
+462 CtoNAPH MATH:128.2/(10.0*12.0)   - - - xy unitless 1
+463 CtoALD2_PRIMARY MATH:44.0/(2.0*12.0)   - - - xy unitless 1
+464 CtoFORM_PRIMARY MATH:30.0/(1.0*12.0)   - - - xy unitless 1
+465 CtoSOAALK MATH:112.0/(4.0*12.0)   - - - xy unitless 1
+
+### END SECTION MASKS ###
+
+### END OF HEMCO INPUT FILE ###
+
+#EOC
