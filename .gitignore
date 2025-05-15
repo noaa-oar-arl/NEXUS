@@ -1,4 +1,6 @@
 .vscode/
+
+# Build
 *.mod
 
 # Outputs
@@ -9,6 +11,10 @@ HEMCO_restart.*.nc
 PET*.ESMF_LogFile
 HEMCO.log
 NEXUS.log
+
+# Testing
+tmp*/
+/*.nc
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
