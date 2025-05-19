@@ -64,7 +64,7 @@ Cap time shift              : true
 # ExtNr ExtName           on/off  Species
 0       Base              : on    *
     --> HEMCO_RESTART     :       true
-    --> CEDS              :  on   true
+    --> CEDSv2              :  on   true
 
 ### END SECTION EXTENSION SWITCHES ###
 
