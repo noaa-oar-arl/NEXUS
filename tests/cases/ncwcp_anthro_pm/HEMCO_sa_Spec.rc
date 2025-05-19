@@ -1,0 +1,13 @@
+# List species below. For each species, the following entries must be given:
+# ID        : species ID
+# NAME      : species name
+# MW        : molecular weight (g/mol)
+# MWEMIS    : molecular weight of emitted species (g/mol)
+# MOLECRATIO: molecules of emitted species per molecule of species
+# K0        : Henry constant at 298 K (M/atm, liquid over gas)
+# CR        : Henry temperature dependency (-d ln(KH)/d(1/T)
+# pKA       : acid dissociation constant
+
+# ID NAME MW MWEMIS MOLECRATIO K0 CR PKA
+1 PM10 12.0 12.0 1.0 0.0 0.0 0.0
+2 PM25 12.0 12.0 1.0 0.0 0.0 0.0

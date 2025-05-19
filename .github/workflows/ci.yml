@@ -8,8 +8,11 @@ on:
 
 jobs:
   build:
-    name: Build (APT, no MPI, pre-built ESMF)
+    name: Build (APT, ${{ !matrix.mpi && 'no ' || '' }}MPI, pre-built ESMF)
     runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        mpi: [true, false]
     steps:
       - name: Check out
         uses: actions/checkout@v4
@@ -20,24 +23,44 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install -y
           libnetcdf-dev libnetcdff-dev liblapack-dev libopenblas-dev
+          ${{ matrix.mpi && 'libopenmpi-dev openmpi-bin' || '' }}
 
       - name: Fetch pre-built ESMF
         run: |
           v="8.3.1"  # ESMF
           gcc="12"
           esmf_base=$HOME/esmf
-          esmf=${v}-gcc-${gcc}-mpiuni
+          esmf=${v}-gcc-${gcc}-${{ matrix.mpi && 'mpi' || 'mpiuni' }}
 
           export ESMF_DIR=${esmf_base}/${esmf}
           mkdir -p $ESMF_DIR
           cd $ESMF_DIR
-          wget https://github.com/zmoon/gha-esmf/releases/download/v0.0.5/${esmf}.tar.gz
+          wget https://github.com/zmoon/gha-esmf/releases/download/v0.0.8/${esmf}.tar.gz
           tar xzvf ${esmf}.tar.gz
 
-          echo "ESMFMKFILE=${ESMF_DIR}/lib/libO/Linux.gfortran.64.mpiuni.default/esmf.mk" >> "$GITHUB_ENV"
+          echo "ESMFMKFILE=${ESMF_DIR}/lib/libO/\
+          Linux.gfortran.64.${{ matrix.mpi && 'mpi' || 'mpiuni' }}.default\
+          /esmf.mk" >> "$GITHUB_ENV"
 
       - name: Configure
         run: FC=gfortran-12 cmake -S . -B build
 
       - name: Build
         run: cmake --build build
+
+      - name: Run included test cases
+        run: |
+          set -x
+          bin="$PWD/build/bin/nexus"
+          failed=0
+          cd tests/cases
+          for d in *; do
+            cd $d
+            $bin -c NEXUS_Config.rc ${{ matrix.mpi && '-r grid_spec.nc' || '' }} || failed=1
+            if [[ "$failed" == 1 ]]; then
+              tail -n 20 NEXUS.log
+              cat PET0.ESMF_LogFile
+              exit 1
+            fi
+            cd ..
+          done
