@@ -371,7 +371,7 @@ Cap time shift              : true
 )))HTAPv3
 
 #####################################################################
-# Met fields for stand-alone/offline GFS MEGANv2.1 use
+# Met fields
 #####################################################################
 
 ### END SECTION BASE EMISSIONS ###

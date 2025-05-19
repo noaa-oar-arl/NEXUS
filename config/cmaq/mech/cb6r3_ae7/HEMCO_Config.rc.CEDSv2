@@ -90,14 +90,14 @@ Cap time shift              : true
 0 CEDS_POC__G $ROOT/CEDS/v2021-06/2019/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc OC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s POC 25     1 1
 0 CEDS_POC__H $ROOT/CEDS/v2021-06/2019/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc OC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s POC 25     1 1
 
-0 CEDS_SO2__A $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 25/1008     1 1
-0 CEDS_SO2__B $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 36/45/1008     1 1
-0 CEDS_SO2__C $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 25/1008     1 1
-0 CEDS_SO2__D $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 28/47/1008     1 1
-0 CEDS_SO2__E $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 37/48/1008     1 1
-0 CEDS_SO2__F $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 25/1008     1 1
-0 CEDS_SO2__G $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 25/1008     1 1
-0 CEDS_SO2__H $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 25/1008     1 1
+0 CEDS_SO2__A $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 25     1 1
+0 CEDS_SO2__B $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 36/45     1 1
+0 CEDS_SO2__C $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 25     1 1
+0 CEDS_SO2__D $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 28/47     1 1
+0 CEDS_SO2__E $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 37/48     1 1
+0 CEDS_SO2__F $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 25     1 1
+0 CEDS_SO2__G $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 25     1 1
+0 CEDS_SO2__H $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 25     1 1
 
 0 CEDS_SULF__A $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SULF 25/1099     1 1
 0 CEDS_SULF__B $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SULF 36/45/1098     1 1

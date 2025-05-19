@@ -1,0 +1,334 @@
+###############################################################################
+### BEGIN SECTION SETTINGS
+###############################################################################
+
+ROOT                        : input
+GridFile                    : HEMCO_sa_Grid.rc
+SpecFile                    : HEMCO_sa_Spec.rc
+TimeFile                    : HEMCO_sa_Time.rc
+DiagnFile                   : HEMCO_sa_Diagn.rc
+DiagnPrefix                 : output/NEXUS.merged_nei2019_meganv21_pre
+DiagnFreq                   : Hourly
+Logfile                     : NEXUS.log
+Unit tolerance              : 2
+Negative values             : 1
+Verbose                     : 10
+Warnings                    : 1
+Mask fractions              : true
+MET                         : geosfp
+RES                         : 4x5
+PBL dry deposition          : False
+SINTOK                      : 0.5
+Cap time shift              : true
+#
+
+### END SECTION SETTINGS ###
+
+###############################################################################
+### BEGIN SECTION EXTENSION SWITCHES
+###############################################################################
+###
+### This section lists all emission extensions available to HEMCO and whether
+### they shall be used or not. Extension 'base' must have extension number
+### zero, all other extension numbers can be freely chosen. Data fields in
+### section 'base emissions' will only be read if the corresponding extension
+### (identified by ExtNr) is enabled. Similarly, fields grouped into data
+### collections ('(((CollectionName', ')))CollectionName') are only considered
+### if the corresponding data collection is enabled in this section. Data
+### listed within a disabled extension are always ignored, even if they are
+### grouped in an enabled collection (e.g. GFED-4 data will never be considered
+### if the GFED extension is disabled, even if the GFED4 option is set to true).
+###
+### It is possible to define collections that are only evaluated if a
+### collection name is *not* enabled. This is achieved by leading the
+### collection name with '.not.', e.g. '(((.not.FINN_daily' ...
+### '))).not.FINN_daily' for FINN monthly data (only used if daily data is
+### not being used).
+###
+### The ExtNr provided in this section must match with the ExtNr assigned to
+### the data listed in the base emissions sections. Otherwise, the listed
+### files won't be read!
+###
+### NOTES:
+### --> You can only select one biomass burning option (GFED, QFED, FINN).
+###
+### --> BOND_BIOMASS must be set to false if GFED, QFED, or FINN is enabled.
+###
+### --> The biomass burning POA scale factor is the same as for the biofuel
+###     and anthro sources.
+###
+### --> The NAP scale factor is determined as in the original simulation:
+###     Obtain NAP emissions using scale factor from Hays 2002 ES&T
+###     (0.0253 g NAP/kg DM) and Andreae and Merlet 2001 GBC (92 g CO/kg DM)
+###############################################################################
+# ExtNr ExtName           on/off  Species
+0       Base              : on    *
+    --> HEMCO_RESTART     :       true
+    --> CEDS              :  on   true
+
+### END SECTION EXTENSION SWITCHES ###
+
+#==============================================================================
+# --- CEDSv2 ---
+#==============================================================================
+(((CEDS
+0 BC_agr $ROOT/CEDS/v2021-06/2019/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc BC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s BC 25     1 1
+0 BC_ene $ROOT/CEDS/v2021-06/2019/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc BC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s BC_elev 35/44     1 1
+0 BC_ind $ROOT/CEDS/v2021-06/2019/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc BC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s BC 25     1 1
+0 BC_rco $ROOT/CEDS/v2021-06/2019/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc BC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s BC 28/46     1 1
+0 BC_tra $ROOT/CEDS/v2021-06/2019/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc BC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s BC 37/48     1 1
+0 BC_shp $ROOT/CEDS/v2021-06/2019/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc BC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s BC_shp 25     1 1
+0 BC_slv $ROOT/CEDS/v2021-06/2019/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc BC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s BC 25     1 1
+0 BC_wst $ROOT/CEDS/v2021-06/2019/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc BC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s BC 25     1 1
+
+0 OC_agr $ROOT/CEDS/v2021-06/2019/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc OC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s OC 25     1 1
+0 OC_ene $ROOT/CEDS/v2021-06/2019/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc OC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s OC_elev 35/44     1 1
+0 OC_ind $ROOT/CEDS/v2021-06/2019/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc OC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s OC 25     1 1
+0 OC_rco $ROOT/CEDS/v2021-06/2019/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc OC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s OC 28/46     1 1
+0 OC_tra $ROOT/CEDS/v2021-06/2019/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc OC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s OC 37/48     1 1
+0 OC_shp $ROOT/CEDS/v2021-06/2019/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc OC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s OC_shp 25     1 1
+0 OC_slv $ROOT/CEDS/v2021-06/2019/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc OC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s OC 25     1 1
+0 OC_wst $ROOT/CEDS/v2021-06/2019/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc OC_em_anthro 2019/1-12/1/0 C xyz kg/m2/s OC 25     1 1
+
+0 SO2_agr $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_agr_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 25     1 1
+0 SO2_ene $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ene_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2_elev 35/45     1 1
+0 SO2_ind $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_ind_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 25     1 1
+0 SO2_rco $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_res_com_oth_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 28/47     1 1
+0 SO2_tra $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_road_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 37/48     1 1
+0 SO2_shp $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2_shp 25     1 1
+0 SO2_slv $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_slv_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 25     1 1
+0 SO2_wst $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_wst_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2 25     1 1
+0 SO2_shp $ROOT/CEDS/v2021-06/2019/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2021-02-05_gn_201901-201912_shp_fixtime.nc SO2_em_anthro 2019/1-12/1/0 C xyz kg/m2/s SO2_shp 25/199     1 1
+
+0 OC_agr $ROOT/CEDS/v2021-06/$YYYY/OC-em-anthro_CMIP_CEDS_$YYYY.nc OC_agr 2011-2020/1-12/1/0 C xy kg/m2/s OC 25     1 1
+0 OC_ene $ROOT/CEDS/v2021-06/$YYYY/OC-em-anthro_CMIP_CEDS_$YYYY.nc OC_ene 2011-2020/1-12/1/0 C xy kg/m2/s OC_elev 35/44     1 1
+0 OC_ind $ROOT/CEDS/v2021-06/$YYYY/OC-em-anthro_CMIP_CEDS_$YYYY.nc OC_ind 2011-2020/1-12/1/0 C xy kg/m2/s OC 25     1 1
+0 OC_rco $ROOT/CEDS/v2021-06/$YYYY/OC-em-anthro_CMIP_CEDS_$YYYY.nc OC_rco 2011-2020/1-12/1/0 C xy kg/m2/s OC 28/46     1 1
+0 OC_tra $ROOT/CEDS/v2021-06/$YYYY/OC-em-anthro_CMIP_CEDS_$YYYY.nc OC_tra 2011-2020/1-12/1/0 C xy kg/m2/s OC 37/48    1 1
+0 OC_shp $ROOT/CEDS/v2021-06/$YYYY/OC-em-anthro_CMIP_CEDS_$YYYY.nc OC_shp 2011-2020/1-12/1/0 C xy kg/m2/s OC_ship 25    1 1
+0 OC_slv $ROOT/CEDS/v2021-06/$YYYY/OC-em-anthro_CMIP_CEDS_$YYYY.nc OC_slv 2011-2020/1-12/1/0 C xy kg/m2/s OC 25    1 1
+0 OC_wst $ROOT/CEDS/v2021-06/$YYYY/OC-em-anthro_CMIP_CEDS_$YYYY.nc OC_wst 2011-2020/1-12/1/0 C xy kg/m2/s OC 25    1 1
+
+0 SO2_agr $ROOT/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_agr 2011-2020/1-12/1/0 C xy kg/m2/s SO2 25/1008    1 1
+0 SO2_ene $ROOT/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_ene 2011-2020/1-12/1/0 C xy kg/m2/s SO2_elev 26/45/1008    1 1
+0 SO2_ind $ROOT/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_ind 2011-2020/1-12/1/0 C xy kg/m2/s SO2 25/1008     1 1
+0 SO2_rco $ROOT/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_rco 2011-2020/1-12/1/0 C xy kg/m2/s SO2 37/48/1008    1 1
+0 SO2_tra $ROOT/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_tra 2011-2020/1-12/1/0 C xy kg/m2/s SO2 -     1 1
+0 SO2_shp $ROOT/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_shp 2011-2020/1-12/1/0 C xy kg/m2/s SO2_ship -     1 1
+0 SO4_shp $ROOT/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_shp 2011-2020/1-12/1/0 C xy kg/m2/s SO4_ship 199     1 1
+0 SO2_slv $ROOT/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_slv 2011-2020/1-12/1/0 C xy kg/m2/s SO2 -     1 1
+0 SO2_wst $ROOT/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_wst 2011-2020/1-12/1/0 C xy kg/m2/s SO2 -     1 1
+
+0 NH3_agr $ROOT/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_agr 2011-2020/1-12/1/0 C xy kg/m2/s NH3_ag -     1 1
+0 NH3_ene $ROOT/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_ene 2011-2020/1-12/1/0 C xy kg/m2/s NH3_en -     1 1
+0 NH3_ind $ROOT/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_ind 2011-2020/1-12/1/0 C xy kg/m2/s NH3_in -     1 1
+0 NH3_rco $ROOT/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_rco 2011-2020/1-12/1/0 C xy kg/m2/s NH3_re -     1 1
+0 NH3_tra $ROOT/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_tra 2011-2020/1-12/1/0 C xy kg/m2/s NH3_tr -     1 1
+0 NH3_shp $ROOT/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_shp 2011-2020/1-12/1/0 C xy kg/m2/s NH3_tr -     1 1
+0 NH3_slv $ROOT/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_slv 2011-2020/1-12/1/0 C xy kg/m2/s NH3_oc -     1 1
+0 NH3_wst $ROOT/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_wst 2011-2020/1-12/1/0 C xy kg/m2/s NH3_oc -     1 1
+)))CEDS
+
+
+#####################################################################
+# Met fields for stand-alone/offline GFS MEGANv2.1 use
+#####################################################################
+
+
+###############################################################################
+### NON-EMISSIONS DATA (subsection of BASE EMISSIONS SECTION)
+###
+### Non-emissions data. The following fields are read through HEMCO but do
+### not contain emissions data. The extension number is set to wildcard
+### character denoting that these fields will not be considered for emission
+### calculation. A given entry is only read if the assigned species name is
+### an HEMCO species.
+###############################################################################
+
+### END SECTION BASE EMISSIONS ###
+
+###############################################################################
+### BEGIN SECTION SCALE FACTORS
+###############################################################################
+
+# ScalID Name sourceFile sourceVar sourceTime C/R/E SrcDim SrcUnit Oper
+
+#==============================================================================
+# --- Time zones (offset to UTC) ---
+#==============================================================================
+* TIMEZONES $ROOT/TIMEZONES/v2015-02/timezones_voronoi_1x1.nc UTC_OFFSET 2000/1/1/0 C xy count * - 1 1
+
+#==============================================================================
+# --- diurnal scale factors ---
+#==============================================================================
+25 EDGAR_TODNOX $ROOT/EDGARv42/v2015-02/NO/EDGAR_hourly_NOxScal.nc NOXscale 2000/1/1/HH C xy unitless 1
+26 GEIA_TOD_FOSSIL 0.45/0.45/0.6/0.6/0.6/0.6/1.45/1.45/1.45/1.45/1.4/1.4/1.4/1.4/1.45/1.45/1.45/1.45/0.65/0.65/0.65/0.65/0.45/0.45 - - - xy unitless 1
+
+#==============================================================================
+# --- CAMS-TEMPO daily weights (Year Dependent) ---
+#==============================================================================
+
+28 CAMS_DAILY_RES $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_daily.nc FD_res 2011-2021/1/DD/0 C xy 1 -1
+
+#==============================================================================
+# --- CAMS-TEMPO weekly (DOW) weights ---
+#==============================================================================
+
+29 CAMS_WEEKLY_ENE_CH4 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_ch4 2017/1/WD/0 C xy 1 -1
+30 CAMS_WEEKLY_ENE_CO $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_co 2017/1/WD/0 C xy 1 -1
+31 CAMS_WEEKLY_ENE_CO2 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_co2 2017/1/WD/0 C xy 1 -1
+32 CAMS_WEEKLY_ENE_NMVOC $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_nmvoc 2017/1/WD/0 C xy 1 -1
+33 CAMS_WEEKLY_ENE_NOX $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_nox 2017/1/WD/0 C xy 1 -1
+34 CAMS_WEEKLY_ENE_PM10 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_pm10 2017/1/WD/0 C xy 1 -1
+35 CAMS_WEEKLY_ENE_PM25 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_pm25 2017/1/WD/0 C xy 1 -1
+36 CAMS_WEEKLY_ENE_SOX $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_sox 2017/1/WD/0 C xy 1 -1
+37 CAMS_WEEKLY_TRO $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_tro 2017/1/WD/0 C xy 1 -1
+
+#==============================================================================
+# --- CAMS-TEMPO hourly weights ---
+#==============================================================================
+
+38 CAMS_HOURLY_ENE_CH4 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_ch4 2017/1/1/HH C xy 1 -1
+39 CAMS_HOURLY_ENE_CO $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_co 2017/1/1/HH C xy 1 -1
+40 CAMS_HOURLY_ENE_CO2 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_co2 2017/1/1/HH C xy 1 -1
+41 CAMS_HOURLY_ENE_NMVOC $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_nmvoc 2017/1/1/HH C xy 1 -1
+42 CAMS_HOURLY_ENE_NOX $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_nox 2017/1/1/HH C xy 1 -1
+43 CAMS_HOURLY_ENE_PM10 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_pm10 2017/1/1/HH C xy 1 -1
+44 CAMS_HOURLY_ENE_PM25 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_pm25 2017/1/1/HH C xy 1 -1
+45 CAMS_HOURLY_ENE_SOX $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_sox 2017/1/1/HH C xy 1 -1
+46 CAMS_HOURLY_RES_PM10_PM25 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_res_pm10_pm25 2017/1/1/HH C xy 1 -1
+47 CAMS_HOURLY_RES_OTHERS $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_res_others 2017/1/1/HH C xy 1 -1
+48 CAMS_HOURLY_TRO_WEEKDAY $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_dow_tro 2017/1/1/HH C xy 1 -1
+
+#==============================================================================
+# --- CEDS-2019 to CB6 speciations ---
+#==============================================================================
+1099 SO2_to_SULF_ag           0.0               - - - xy unitless 1
+1098 SO2_to_SULF_ene          0.0218      	- - - xy unitless 1
+1097 SO2_to_SULF_ind          0.00919       	- - - xy unitless 1
+1096 SO2_to_SULF_res          0.0148            - - - xy unitless 1
+1095 SO2_to_SULF_road         0.0               - - - xy unitless 1
+1094 SO2_to_SULF_shp          0.0               - - - xy unitless 1
+1093 NH3_to_NH3_FERT_ag       0.0               - - - xy unitless 1
+1092 NH3_to_NH3_FERT_ene      0.0               - - - xy unitless 1
+1091 NH3_to_NH3_FERT_ind      0.0               - - - xy unitless 1
+1090 NH3_to_NH3_FERT_res      0.0               - - - xy unitless 1
+1089 NH3_to_NH3_FERT_road     0.0               - - - xy unitless 1
+1088 NH3_to_NH3_FERT_shp      0.0               - - - xy unitless 1
+999 NOx_to_NO            0.9                    - - - xy unitless 1
+998 NOx_to_NO2           0.1                    - - - xy unitless 1
+997 VOC_to_ACET_ag       0.0575823632326        - - - xy unitless 1
+996 VOC_to_ACET_ene      0.00957147100992       - - - xy unitless 1
+995 VOC_to_ACET_ind      0.0440082728517        - - - xy unitless 1
+994 VOC_to_ACET_res      0.039774498589         - - - xy unitless 1
+993 VOC_to_ACET_road     0.0                    - - - xy unitless 1
+992 VOC_to_ACET_shp      3.54169342618E-7       - - - xy unitless 1
+991 VOC_to_ALD2_ag       0.0024776888701        - - - xy unitless 1
+990 VOC_to_ALD2_ene      3.67097186616E-4       - - - xy unitless 1
+989 VOC_to_ALD2_ind      1.18207932284E-4       - - - xy unitless 1
+988 VOC_to_ALD2_res      0.0900358729371        - - - xy unitless 1
+987 VOC_to_ALD2_road     0.0710218819724        - - - xy unitless 1
+986 VOC_to_ALD2_shp      5.77462568672E-7       - - - xy unitless 1
+985 VOC_to_ALDX_ag       0.00615197195977       - - - xy unitless 1
+984 VOC_to_ALDX_ene      1.4815546365E-4        - - - xy unitless 1
+983 VOC_to_ALDX_ind      1.52329140684E-4       - - - xy unitless 1
+982 VOC_to_ALDX_res      0.121784661698         - - - xy unitless 1
+981 VOC_to_ALDX_road     0.0378120320473        - - - xy unitless 1
+980 VOC_to_ALDX_shp      3.45438108579E-7       - - - xy unitless 1
+979 VOC_to_FORM_ag       0.00168908099317       - - - xy unitless 1
+978 VOC_to_FORM_ene      0.190191796147         - - - xy unitless 1
+977 VOC_to_FORM_ind      5.08434064797E-4       - - - xy unitless 1
+976 VOC_to_FORM_res      0.0699150378122        - - - xy unitless 1
+975 VOC_to_FORM_road     0.0767629895289        - - - xy unitless 1
+974 VOC_to_FORM_shp      2.40224428567E-6       - - - xy unitless 1
+973 VOC_to_IOLE_ag       6.13586542275E-4       - - - xy unitless 1
+972 VOC_to_IOLE_ene      0.0100938655016        - - - xy unitless 1
+971 VOC_to_IOLE_ind      0.00210508962472       - - - xy unitless 1
+970 VOC_to_IOLE_res      0.0167276365371        - - - xy unitless 1
+969 VOC_to_IOLE_road     0.0171861597827        - - - xy unitless 1
+968 VOC_to_IOLE_shp      0.00958760317986       - - - xy unitless 1
+967 VOC_to_ISOP_ag       1.30612223916E-4       - - - xy unitless 1
+966 VOC_to_ISOP_ene      6.71074811105E-6       - - - xy unitless 1
+965 VOC_to_ISOP_ind      1.38464049137E-5       - - - xy unitless 1
+964 VOC_to_ISOP_res      0.00246868096823       - - - xy unitless 1
+963 VOC_to_ISOP_road     1.38464049137E-5       - - - xy unitless 1
+962 VOC_to_ISOP_shp      0.00770121315844       - - - xy unitless 1
+961 VOC_to_NAPH_ag       1.36778227179E-7       - - - xy unitless 1
+960 VOC_to_NAPH_ene      3.63847016452E-6       - - - xy unitless 1
+959 VOC_to_NAPH_ind      1.71060575861E-4       - - - xy unitless 1
+958 VOC_to_NAPH_res      0.0113561249025        - - - xy unitless 1
+957 VOC_to_NAPH_road     5.08575514881E-4       - - - xy unitless 1
+956 VOC_to_NAPH_shp      1.000704134E-7         - - - xy unitless 1
+955 VOC_to_OLE_ag        0.00102971199434       - - - xy unitless 1
+954 VOC_to_OLE_ene       0.02805903042          - - - xy unitless 1
+953 VOC_to_OLE_ind       0.00325858013981       - - - xy unitless 1
+952 VOC_to_OLE_res       0.0440245481697        - - - xy unitless 1
+951 VOC_to_OLE_road      0.0623650472659        - - - xy unitless 1
+950 VOC_to_OLE_shp       0.0248284779534        - - - xy unitless 1
+949 VOC_to_PAR_ag        0.165014699643         - - - xy unitless 1
+948 VOC_to_PAR_ene       0.181952615336         - - - xy unitless 1
+947 VOC_to_PAR_ind       0.312372770111         - - - xy unitless 1
+946 VOC_to_PAR_res       0.158460274763         - - - xy unitless 1
+945 VOC_to_PAR_road      0.286623860228         - - - xy unitless 1
+944 VOC_to_PAR_shp       0.449394617725         - - - xy unitless 1
+943 VOC_to_SOAALK_ag     0.116369356197         - - - xy unitless 1
+942 VOC_to_SOAALK_ene    0.0995650083185        - - - xy unitless 1
+941 VOC_to_SOAALK_ind    0.220986628827         - - - xy unitless 1
+940 VOC_to_SOAALK_res    0.0354072771973        - - - xy unitless 1
+939 VOC_to_SOAALK_road   0.127159971449         - - - xy unitless 1
+938 VOC_to_SOAALK_shp    0.180587474592         - - - xy unitless 1
+937 VOC_to_UNR_ag        0.0115783145045        - - - xy unitless 1
+936 VOC_to_UNR_ene       4.45694884816E-4       - - - xy unitless 1
+935 VOC_to_UNR_ind       0.0712742545987        - - - xy unitless 1
+934 VOC_to_UNR_res       0.0658999221508        - - - xy unitless 1
+933 VOC_to_UNR_road      0.0132928995912        - - - xy unitless 1
+932 VOC_to_UNR_shp       0.0459610428361        - - - xy unitless 1
+931 VOC_to_XYLMN_ag      2.21417065285E-4       - - - xy unitless 1
+930 VOC_to_XYLMN_ene     0.159655662765         - - - xy unitless 1
+929 VOC_to_XYLMN_ind     0.025809019216         - - - xy unitless 1
+928 VOC_to_XYLMN_res     0.034488840395         - - - xy unitless 1
+927 VOC_to_XYLMN_road    0.0251811446047        - - - xy unitless 1
+926 VOC_to_XYLMN_shp     0.0931580521465        - - - xy unitless 1
+925 VOC_to_UNK_ag        0.0		        - - - xy unitless 1
+924 VOC_to_UNK_ene       0.0     	        - - - xy unitless 1
+923 VOC_to_UNK_ind       3.29606019021E-7      	- - - xy unitless 1
+922 VOC_to_UNK_res       0.0      	        - - - xy unitless 1
+921 VOC_to_UNK_road      0.0      	        - - - xy unitless 1
+920 VOC_to_UNK_shp       0.0      	        - - - xy unitless 1
+919 VOC_to_TERP_ag       2.95982508732E-6       - - - xy unitless 1
+918 VOC_to_TERP_ene      1.10815091251E-5       - - - xy unitless 1
+917 VOC_to_TERP_ind      0.00628459340814       - - - xy unitless 1
+916 VOC_to_TERP_res      9.36241391846E-4       - - - xy unitless 1
+915 VOC_to_TERP_road     7.80032315049E-4       - - - xy unitless 1
+914 VOC_to_TERP_shp      0.0                    - - - xy unitless 1
+
+699 CEDS_to_CH4_ag       	0.0                    - - - xy unitless 1
+698 CEDS_to_CH4_ene      	0.0       		- - - xy unitless 1
+697 CEDS_to_CH4_ind      	0.0       		- - - xy unitless 1
+696 CEDS_to_CH4_res      	0.0       		- - - xy unitless 1
+695 CEDS_to_CH4_road     	0.0       		- - - xy unitless 1
+694 CEDS_to_CH4_shp      	0.0                    - - - xy unitless 1
+693 CEDS_to_HONO_ag      	0.0                    - - - xy unitless 1
+692 CEDS_to_HONO_ene     	0.0                    - - - xy unitless 1
+691 CEDS_to_HONO_ind     	0.0                    - - - xy unitless 1
+690 CEDS_to_HONO_res     	0.0                    - - - xy unitless 1
+689 CEDS_to_HONO_road    	0.0                    - - - xy unitless 1
+688 CEDS_to_HONO_shp     	0.0                    - - - xy unitless 1
+687 CEDS_to_ACROLEIN_ag         0.0                    - - - xy unitless 1
+686 CEDS_to_ACROLEIN_ene        0.0                    - - - xy unitless 1
+685 CEDS_to_ACROLEIN_ind        0.0                    - - - xy unitless 1
+684 CEDS_to_ACROLEIN_res        0.0                    - - - xy unitless 1
+683 CEDS_to_ACROLEIN_road       0.0                    - - - xy unitless 1
+682 CEDS_to_ACROLEIN_shp        0.0                    - - - xy unitless 1
+681 CEDS_to_BUTADIENE13_ag      0.0                    - - - xy unitless 1
+680 CEDS_to_BUTADIENE13_ene     0.0                    - - - xy unitless 1
+679 CEDS_to_BUTADIENE13_ind     0.0                    - - - xy unitless 1
+678 CEDS_to_BUTADIENE13_res     0.0                    - - - xy unitless 1
+677 CEDS_to_BUTADIENE13_road    0.0                    - - - xy unitless 1
+676 CEDS_to_BUTADIENE13_shp     0.0                    - - - xy unitless 1
+
+### END SECTION MASKS ###
+
+### END OF HEMCO INPUT FILE ###
+
+#EOC

@@ -1,0 +1,810 @@
+###############################################################################
+### BEGIN SECTION SETTINGS
+###############################################################################
+
+ROOT                        : input
+GridFile                    : HEMCO_sa_Grid.rc
+SpecFile                    : HEMCO_sa_Spec.rc
+TimeFile                    : HEMCO_sa_Time.rc
+DiagnFile                   : HEMCO_sa_Diagn.rc
+DiagnPrefix                 : output/NEXUS.merged_nei2019_meganv21_pre
+DiagnFreq                   : Hourly
+Logfile                     : NEXUS.log
+Unit tolerance              : 2
+Negative values             : 1
+Verbose                     : 10
+Warnings                    : 1
+Mask fractions              : true
+MET                         : geosfp
+RES                         : 4x5
+PBL dry deposition          : False
+SINTOK                      : 0.5
+Cap time shift              : true
+#
+
+### END SECTION SETTINGS ###
+
+###############################################################################
+### BEGIN SECTION EXTENSION SWITCHES
+###############################################################################
+###
+### This section lists all emission extensions available to HEMCO and whether
+### they shall be used or not. Extension 'base' must have extension number
+### zero, all other extension numbers can be freely chosen. Data fields in
+### section 'base emissions' will only be read if the corresponding extension
+### (identified by ExtNr) is enabled. Similarly, fields grouped into data
+### collections ('(((CollectionName', ')))CollectionName') are only considered
+### if the corresponding data collection is enabled in this section. Data
+### listed within a disabled extension are always ignored, even if they are
+### grouped in an enabled collection (e.g. GFED-4 data will never be considered
+### if the GFED extension is disabled, even if the GFED4 option is set to true).
+###
+### It is possible to define collections that are only evaluated if a
+### collection name is *not* enabled. This is achieved by leading the
+### collection name with '.not.', e.g. '(((.not.FINN_daily' ...
+### '))).not.FINN_daily' for FINN monthly data (only used if daily data is
+### not being used).
+###
+### The ExtNr provided in this section must match with the ExtNr assigned to
+### the data listed in the base emissions sections. Otherwise, the listed
+### files won't be read!
+###
+### NOTES:
+### --> You can only select one biomass burning option (GFED, QFED, FINN).
+###
+### --> BOND_BIOMASS must be set to false if GFED, QFED, or FINN is enabled.
+###
+### --> The biomass burning POA scale factor is the same as for the biofuel
+###     and anthro sources.
+###
+### --> The NAP scale factor is determined as in the original simulation:
+###     Obtain NAP emissions using scale factor from Hays 2002 ES&T
+###     (0.0253 g NAP/kg DM) and Andreae and Merlet 2001 GBC (92 g CO/kg DM)
+###############################################################################
+# ExtNr ExtName           on/off  Species
+0       Base              : on    *
+    --> HEMCO_RESTART     :       true
+    --> NEMO_NEI2019_AR              :  on   true
+
+### END SECTION EXTENSION SWITCHES ###
+
+###############################################################################
+### BEGIN SECTION BASE EMISSIONS
+###############################################################################
+
+#==============================================================================
+# --- GMU-NEI 2019 (1-km NEMO: USA/CAN/MEX) ---
+#==============================================================================
+(((NEI2016v1_AR
+# SURFACE AFDUSTADJ INVENTORY
+0 NEI2016v1_AFDUSTADJ_PEC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_afdust_adj.nc          PEC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PEC         1007     1 50
+0 NEI2016v1_AFDUSTADJ_POC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_afdust_adj.nc          POC           2016/1-12/1-31/$HH C xyz  kg/m2/s  POC         1007     1 50
+0 NEI2016v1_AFDUSTADJ_PAL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_afdust_adj.nc          PAL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PAL         1007     1 50
+0 NEI2016v1_AFDUSTADJ_PCA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_afdust_adj.nc          PCA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCA         1007     1 50
+0 NEI2016v1_AFDUSTADJ_PCL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_afdust_adj.nc          PCL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCL         1007     1 50
+0 NEI2016v1_AFDUSTADJ_PFE            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_afdust_adj.nc          PFE           2016/1-12/1-31/$HH C xyz  kg/m2/s  PFE         1007     1 50
+0 NEI2016v1_AFDUSTADJ_PH2O           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_afdust_adj.nc          PH2O          2016/1-12/1-31/$HH C xyz  kg/m2/s  PH2O        1007     1 50
+0 NEI2016v1_AFDUSTADJ_PK             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_afdust_adj.nc          PK            2016/1-12/1-31/$HH C xyz  kg/m2/s  PK          1007     1 50
+0 NEI2016v1_AFDUSTADJ_PMG            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_afdust_adj.nc          PMG           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMG         1007     1 50
+0 NEI2016v1_AFDUSTADJ_PMN            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_afdust_adj.nc          PMN           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMN         1007     1 50
+0 NEI2016v1_AFDUSTADJ_PMOTHR         $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_afdust_adj.nc          PMOTHR        2016/1-12/1-31/$HH C xyz  kg/m2/s  PMOTHR      1007     1 50
+0 NEI2016v1_AFDUSTADJ_PNA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_afdust_adj.nc          PNA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PNA         1007     1 50
+0 NEI2016v1_AFDUSTADJ_PNCOM          $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_afdust_adj.nc          PNCOM         2016/1-12/1-31/$HH C xyz  kg/m2/s  PNCOM       1007     1 50
+0 NEI2016v1_AFDUSTADJ_PNH4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_afdust_adj.nc          PNH4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNH4        1007     1 50
+0 NEI2016v1_AFDUSTADJ_PNO3           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_afdust_adj.nc          PNO3          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNO3        1007     1 50
+0 NEI2016v1_AFDUSTADJ_PTI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_afdust_adj.nc          PTI           2016/1-12/1-31/$HH C xyz kg/m2/s  PTI         1007     1 50
+0 NEI2016v1_AFDUSTADJ_PSI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_afdust_adj.nc          PSI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PSI         1007     1 50
+0 NEI2016v1_AFDUSTADJ_PMC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_afdust_adj.nc          PMC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMC         1007     1 50
+0 NEI2016v1_AFDUSTADJ_PSO4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_afdust_adj.nc          PSO4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PSO4        1007     1 50
+
+# SURFACE AG INVENTORY
+0 NEI2016v1_AG_NH3            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_ag.nc          NH3           2016/1-12/1-31/$HH C xyz  kg/m2/s  NH3          1007     1 50
+0 NEI2016v1_AG_NH3_FERT       $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_ag.nc          NH3_FERT      2016/1-12/1-31/$HH C xyz  kg/m2/s  NH3_FERT     1007     1 50
+
+# SURFACE AIRPORTS INVENTORY
+0 NEI2016v1_AIRPORTS_CO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          CO            2016/1-12/1-31/$HH C xyz  kg/m2/s  CO           1007     1 50
+0 NEI2016v1_AIRPORTS_SO2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          SO2           2016/1-12/1-31/$HH C xyz  kg/m2/s  SO2          1007     1 50
+0 NEI2016v1_AIRPORTS_NO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          NO            2016/1-12/1-31/$HH C xyz  kg/m2/s  NOT          1007     1 50
+0 NEI2016v1_AIRPORTS_NO2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          NO2           2016/1-12/1-31/$HH C xyz  kg/m2/s  NO2          1007     1 50
+0 NEI2016v1_AIRPORTS_HONO           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          HONO          2016/1-12/1-31/$HH C xyz  kg/m2/s  HONO         1007     1 50
+0 NEI2016v1_AIRPORTS_SULF           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          SULF          2016/1-12/1-31/$HH C xyz  kg/m2/s  SULF         1007     1 50
+0 NEI2016v1_AIRPORTS_CH4            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          CH4           2016/1-12/1-31/$HH C xyz  kg/m2/s  CH4          1007     1 50
+0 NEI2016v1_AIRPORTS_ACROLEIN       $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          ACROLEIN      2016/1-12/1-31/$HH C xyz  kg/m2/s ACROLEIN     1007     1 50
+0 NEI2016v1_AIRPORTS_BUTADIENE13    $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          BUTADIENE13   2016/1-12/1-31/$HH C xyz  kg/m2/s BUTADIENE13  1007     1 50
+0 NEI2016v1_AIRPORTS_ETHY           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          ETHY          2016/1-12/1-31/$HH C xyz  kg/m2/s ETHY         1007     1 50
+0 NEI2016v1_AIRPORTS_TERP           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          TERP          2016/1-12/1-31/$HH C xyz  kg/m2/s TERP         1007     1 50
+0 NEI2016v1_AIRPORTS_FORM           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          FORM          2016/1-12/1-31/$HH C xyz  kg/m2/s FORM         1007     1 50
+0 NEI2016v1_AIRPORTS_PAR            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          PAR           2016/1-12/1-31/$HH C xyz  kg/m2/s PAR          1007     1 50
+0 NEI2016v1_AIRPORTS_IOLE           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          IOLE          2016/1-12/1-31/$HH C xyz  kg/m2/s IOLE        1007     1 50
+0 NEI2016v1_AIRPORTS_OLE            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          OLE           2016/1-12/1-31/$HH C xyz  kg/m2/s OLE         1007     1 50
+0 NEI2016v1_AIRPORTS_ETH            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          ETH           2016/1-12/1-31/$HH C xyz  kg/m2/s ETH         1007     1 50
+0 NEI2016v1_AIRPORTS_ETHA           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          ETHA          2016/1-12/1-31/$HH C xyz  kg/m2/s ETHA        1007     1 50
+0 NEI2016v1_AIRPORTS_ETOH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          ETOH          2016/1-12/1-31/$HH C xyz  kg/m2/s ETOH        1007     1 50
+0 NEI2016v1_AIRPORTS_MEOH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          MEOH          2016/1-12/1-31/$HH C xyz kg/m2/s MEOH        1007     1 50
+0 NEI2016v1_AIRPORTS_BENZ           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          BENZ          2016/1-12/1-31/$HH C xyz kg/m2/s BENZ        1007     1 50
+0 NEI2016v1_AIRPORTS_TOL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          TOL           2016/1-12/1-31/$HH C xyz kg/m2/s TOL         1007     1 50
+0 NEI2016v1_AIRPORTS_XYLMN          $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          XYLMN         2016/1-12/1-31/$HH C xyz kg/m2/s XYLMN       1007     1 50
+0 NEI2016v1_AIRPORTS_NAPH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          NAPH          2016/1-12/1-31/$HH C xyz  kg/m2/s NAPH        1007     1 50
+0 NEI2016v1_AIRPORTS_ALD2           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          ALD2          2016/1-12/1-31/$HH C xyz  kg/m2/s ALD2        1007     1 50
+0 NEI2016v1_AIRPORTS_ALDX           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          ALDX          2016/1-12/1-31/$HH C xyz  kg/m2/s ALDX        1007     1 50
+0 NEI2016v1_AIRPORTS_ISOP           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          ISOP          2016/1-12/1-31/$HH C xyz  kg/m2/s ISOP        1007     1 50
+0 NEI2016v1_AIRPORTS_PRPA           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          PRPA          2016/1-12/1-31/$HH C xyz kg/m2/s PRPA        1007     1 50
+0 NEI2016v1_AIRPORTS_ACET           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          ACET          2016/1-12/1-31/$HH C xyz kg/m2/s ACET        1007     1 50
+0 NEI2016v1_AIRPORTS_KET            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          KET           2016/1-12/1-31/$HH C xyz  kg/m2/s KET         1007     1 50
+0 NEI2016v1_AIRPORTS_ALD2_PRIMARY   $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          ALD2_PRIMARY  2016/1-12/1-31/$HH C xyz  kg/m2/s ALD2_PRIMARY 1007    1 50
+0 NEI2016v1_AIRPORTS_FORM_PRIMARY   $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          FORM_PRIMARY  2016/1-12/1-31/$HH C xyz  kg/m2/s FORM_PRIMARY 1007    1 50
+0 NEI2016v1_AIRPORTS_SOAALK         $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          SOAALK        2016/1-12/1-31/$HH C xyz  kg/m2/s SOAALK      1007     1 50
+0 NEI2016v1_AIRPORTS_PEC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          PEC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PEC         1007     1 50
+0 NEI2016v1_AIRPORTS_POC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          POC           2016/1-12/1-31/$HH C xyz  kg/m2/s  POC         1007     1 50
+0 NEI2016v1_AIRPORTS_PAL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          PAL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PAL         1007     1 50
+0 NEI2016v1_AIRPORTS_PCA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          PCA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCA         1007     1 50
+0 NEI2016v1_AIRPORTS_PCL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          PCL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCL         1007     1 50
+0 NEI2016v1_AIRPORTS_PFE            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          PFE           2016/1-12/1-31/$HH C xyz  kg/m2/s  PFE         1007     1 50
+0 NEI2016v1_AIRPORTS_PH2O           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          PH2O          2016/1-12/1-31/$HH C xyz  kg/m2/s  PH2O        1007     1 50
+0 NEI2016v1_AIRPORTS_PK             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          PK            2016/1-12/1-31/$HH C xyz  kg/m2/s  PK          1007     1 50
+0 NEI2016v1_AIRPORTS_PMG            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          PMG           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMG         1007     1 50
+0 NEI2016v1_AIRPORTS_PMN            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          PMN           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMN         1007     1 50
+0 NEI2016v1_AIRPORTS_PMOTHR         $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          PMOTHR        2016/1-12/1-31/$HH C xyz  kg/m2/s  PMOTHR      1007     1 50
+0 NEI2016v1_AIRPORTS_PNA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          PNA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PNA         1007     1 50
+0 NEI2016v1_AIRPORTS_PNCOM          $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          PNCOM         2016/1-12/1-31/$HH C xyz  kg/m2/s  PNCOM       1007     1 50
+0 NEI2016v1_AIRPORTS_PNH4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          PNH4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNH4        1007     1 50
+0 NEI2016v1_AIRPORTS_PNO3           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          PNO3          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNO3        1007     1 50
+0 NEI2016v1_AIRPORTS_PTI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          PTI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PTI         1007     1 50
+0 NEI2016v1_AIRPORTS_PSI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          PSI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PSI         1007     1 50
+0 NEI2016v1_AIRPORTS_PMC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          PMC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMC         1007     1 50
+0 NEI2016v1_AIRPORTS_PSO4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_airports.nc          PSO4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PSO4        1007     1 50
+
+# SURFACE NONROAD INVENTORY
+0 NEI2016v1_NONROAD_CO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          CO            2016/1-12/1-31/$HH C xyz  kg/m2/s  CO           1007     1 50
+0 NEI2016v1_NONROAD_SO2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          SO2           2016/1-12/1-31/$HH C xyz  kg/m2/s  SO2          1007     1 50
+0 NEI2016v1_NONROAD_NO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          NO            2016/1-12/1-31/$HH C xyz  kg/m2/s  NOT          1007     1 50
+0 NEI2016v1_NONROAD_NO2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          NO2           2016/1-12/1-31/$HH C xyz  kg/m2/s  NO2          1007     1 50
+0 NEI2016v1_NONROAD_HONO           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          HONO          2016/1-12/1-31/$HH C xyz  kg/m2/s  HONO         1007     1 50
+0 NEI2016v1_NONROAD_SULF           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          SULF          2016/1-12/1-31/$HH C xyz  kg/m2/s  SULF         1007     1 50
+0 NEI2016v1_NONROAD_NH3            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          NH3           2016/1-12/1-31/$HH C xyz  kg/m2/s  NH3          1007     1 50
+0 NEI2016v1_NONROAD_NH3_FERT       $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          NH3_FERT      2016/1-12/1-31/$HH C xyz  kg/m2/s  NH3_FERT     1007     1 50
+0 NEI2016v1_NONROAD_CH4            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          CH4           2016/1-12/1-31/$HH C xyz  kg/m2/s  CH4          1007     1 50
+0 NEI2016v1_NONROAD_ACROLEIN       $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          ACROLEIN      2016/1-12/1-31/$HH C xyz  kg/m2/s ACROLEIN     1007     1 50
+0 NEI2016v1_NONROAD_BUTADIENE13    $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          BUTADIENE13   2016/1-12/1-31/$HH C xyz  kg/m2/s BUTADIENE13  1007     1 50
+0 NEI2016v1_NONROAD_ETHY           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          ETHY          2016/1-12/1-31/$HH C xyz  kg/m2/s ETHY         1007     1 50
+0 NEI2016v1_NONROAD_TERP           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          TERP          2016/1-12/1-31/$HH C xyz  kg/m2/s TERP         1007     1 50
+0 NEI2016v1_NONROAD_FORM           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          FORM          2016/1-12/1-31/$HH C xyz  kg/m2/s FORM         1007     1 50
+0 NEI2016v1_NONROAD_PAR            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          PAR           2016/1-12/1-31/$HH C xyz  kg/m2/s PAR          1007     1 50
+0 NEI2016v1_NONROAD_IOLE           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          IOLE          2016/1-12/1-31/$HH C xyz  kg/m2/s IOLE         1007     1 50
+0 NEI2016v1_NONROAD_OLE            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          OLE           2016/1-12/1-31/$HH C xyz kg/m2/s OLE          1007     1 50
+0 NEI2016v1_NONROAD_ETH            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          ETH           2016/1-12/1-31/$HH C xyz kg/m2/s ETH          1007     1 50
+0 NEI2016v1_NONROAD_ETHA           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          ETHA          2016/1-12/1-31/$HH C xyz kg/m2/s ETHA         1007     1 50
+0 NEI2016v1_NONROAD_ETOH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          ETOH          2016/1-12/1-31/$HH C xyz kg/m2/s ETOH         1007     1 50
+0 NEI2016v1_NONROAD_MEOH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          MEOH          2016/1-12/1-31/$HH C xyz  kg/m2/s MEOH         1007     1 50
+0 NEI2016v1_NONROAD_BENZ           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          BENZ          2016/1-12/1-31/$HH C xyz  kg/m2/s BENZ         1007     1 50
+0 NEI2016v1_NONROAD_TOL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          TOL           2016/1-12/1-31/$HH C xyz  kg/m2/s TOL          1007     1 50
+0 NEI2016v1_NONROAD_XYLMN          $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          XYLMN         2016/1-12/1-31/$HH C xyz  kg/m2/s XYLMN        1007     1 50
+0 NEI2016v1_NONROAD_NAPH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          NAPH          2016/1-12/1-31/$HH C xyz  kg/m2/s NAPH         1007     1 50
+0 NEI2016v1_NONROAD_ALD2           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          ALD2          2016/1-12/1-31/$HH C xyz  kg/m2/s ALD2         1007     1 50
+0 NEI2016v1_NONROAD_ALDX           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          ALDX          2016/1-12/1-31/$HH C xyz  kg/m2/s ALDX         1007     1 50
+0 NEI2016v1_NONROAD_ISOP           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          ISOP          2016/1-12/1-31/$HH C xyz  kg/m2/s ISOP         1007     1 50
+0 NEI2016v1_NONROAD_PRPA           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          PRPA          2016/1-12/1-31/$HH C xyz  kg/m2/s PRPA         1007     1 50
+0 NEI2016v1_NONROAD_ACET           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          ACET          2016/1-12/1-31/$HH C xyz  kg/m2/s ACET         1007     1 50
+0 NEI2016v1_NONROAD_KET            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          KET           2016/1-12/1-31/$HH C xyz  kg/m2/s KET          1007     1 50
+0 NEI2016v1_NONROAD_ALD2_PRIMARY   $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          ALD2_PRIMARY  2016/1-12/1-31/$HH C xyz  kg/m2/s ALD2_PRIMARY 1007     1 50
+0 NEI2016v1_NONROAD_FORM_PRIMARY   $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          FORM_PRIMARY  2016/1-12/1-31/$HH C xyz  kg/m2/s FORM_PRIMARY 1007     1 50
+0 NEI2016v1_NONROAD_SOAALK         $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          SOAALK        2016/1-12/1-31/$HH C xyz  kg/m2/s SOAALK       1007     1 50
+0 NEI2016v1_NONROAD_PEC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          PEC           2016/1-12/1-31/$HH C xyz kg/m2/s  PEC          1007     1 50
+0 NEI2016v1_NONROAD_POC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          POC           2016/1-12/1-31/$HH C xyz  kg/m2/s  POC          1007     1 50
+0 NEI2016v1_NONROAD_PAL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          PAL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PAL          1007     1 50
+0 NEI2016v1_NONROAD_PCA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          PCA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCA          1007     1 50
+0 NEI2016v1_NONROAD_PCL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          PCL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCL          1007     1 50
+0 NEI2016v1_NONROAD_PFE            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          PFE           2016/1-12/1-31/$HH C xyz  kg/m2/s  PFE          1007     1 50
+0 NEI2016v1_NONROAD_PH2O           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          PH2O          2016/1-12/1-31/$HH C xyz  kg/m2/s  PH2O         1007     1 50
+0 NEI2016v1_NONROAD_PK             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          PK            2016/1-12/1-31/$HH C xyz  kg/m2/s  PK           1007     1 50
+0 NEI2016v1_NONROAD_PMG            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          PMG           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMG          1007     1 50
+0 NEI2016v1_NONROAD_PMN            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          PMN           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMN          1007     1 50
+0 NEI2016v1_NONROAD_PMOTHR         $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          PMOTHR        2016/1-12/1-31/$HH C xyz  kg/m2/s  PMOTHR       1007     1 50
+0 NEI2016v1_NONROAD_PNA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          PNA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PNA          1007     1 50
+0 NEI2016v1_NONROAD_PNCOM          $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          PNCOM         2016/1-12/1-31/$HH C xyz  kg/m2/s  PNCOM        1007     1 50
+0 NEI2016v1_NONROAD_PNH4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          PNH4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNH4         1007     1 50
+0 NEI2016v1_NONROAD_PNO3           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          PNO3          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNO3         1007     1 50
+0 NEI2016v1_NONROAD_PTI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          PTI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PTI          1007     1 50
+0 NEI2016v1_NONROAD_PSI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          PSI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PSI          1007     1 50
+0 NEI2016v1_NONROAD_PMC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          PMC           2016/1-12/1-31/$HH C xyz kg/m2/s  PMC          1007     1 50
+0 NEI2016v1_NONROAD_PSO4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonroad.nc          PSO4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PSO4         1007     1 50
+
+# SURFACE NONPT INVENTORY
+0 NEI2016v1_NONPT_CO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          CO            2016/1-12/1-31/$HH C xyz  kg/m2/s  CO           1007     1 50
+0 NEI2016v1_NONPT_SO2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          SO2           2016/1-12/1-31/$HH C xyz  kg/m2/s  SO2          1007     1 50
+0 NEI2016v1_NONPT_NO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          NO            2016/1-12/1-31/$HH C xyz  kg/m2/s  NOT          1007     1 50
+0 NEI2016v1_NONPT_NO2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          NO2           2016/1-12/1-31/$HH C xyz  kg/m2/s  NO2          1007     1 50
+0 NEI2016v1_NONPT_HCL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          HCL           2016/1-12/1-31/$HH C xyz  kg/m2/s  HCL          1007     1 50
+0 NEI2016v1_NONPT_CL2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          CL2           2016/1-12/1-31/$HH C xyz  kg/m2/s  CL2          1007     1 50
+0 NEI2016v1_NONPT_HONO           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          HONO          2016/1-12/1-31/$HH C xyz  kg/m2/s  HONO         1007     1 50
+0 NEI2016v1_NONPT_SULF           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          SULF          2016/1-12/1-31/$HH C xyz  kg/m2/s  SULF         1007     1 50
+0 NEI2016v1_NONPT_NH3            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          NH3           2016/1-12/1-31/$HH C xyz  kg/m2/s  NH3          1007     1 50
+0 NEI2016v1_NONPT_NH3_FERT       $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          NH3_FERT      2016/1-12/1-31/$HH C xyz kg/m2/s  NH3_FERT     1007     1 50
+0 NEI2016v1_NONPT_CH4            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          CH4           2016/1-12/1-31/$HH C xyz  kg/m2/s  CH4          1007     1 50
+0 NEI2016v1_NONPT_ACROLEIN       $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          ACROLEIN      2016/1-12/1-31/$HH C xyz  kg/m2/s ACROLEIN     1007     1 50
+0 NEI2016v1_NONPT_BUTADIENE13    $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          BUTADIENE13   2016/1-12/1-31/$HH C xyz  kg/m2/s BUTADIENE13  1007     1 50
+0 NEI2016v1_NONPT_ETHY           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          ETHY          2016/1-12/1-31/$HH C xyz  kg/m2/s ETHY         1007     1 50
+0 NEI2016v1_NONPT_TERP           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          TERP          2016/1-12/1-31/$HH C xyz  kg/m2/s TERP         1007     1 50
+0 NEI2016v1_NONPT_FORM           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          FORM          2016/1-12/1-31/$HH C xyz  kg/m2/s FORM         1007     1 50
+0 NEI2016v1_NONPT_PAR            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          PAR           2016/1-12/1-31/$HH C xyz  kg/m2/s PAR          1007     1 50
+0 NEI2016v1_NONPT_IOLE           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          IOLE          2016/1-12/1-31/$HH C xyz  kg/m2/s IOLE        1007     1 50
+0 NEI2016v1_NONPT_OLE            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          OLE           2016/1-12/1-31/$HH C xyz  kg/m2/s OLE         1007     1 50
+0 NEI2016v1_NONPT_ETH            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          ETH           2016/1-12/1-31/$HH C xyz  kg/m2/s ETH         1007     1 50
+0 NEI2016v1_NONPT_ETHA           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          ETHA          2016/1-12/1-31/$HH C xyz  kg/m2/s ETHA        1007     1 50
+0 NEI2016v1_NONPT_ETOH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          ETOH          2016/1-12/1-31/$HH C xyz kg/m2/s ETOH        1007     1 50
+0 NEI2016v1_NONPT_MEOH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          MEOH          2016/1-12/1-31/$HH C xyz kg/m2/s MEOH        1007     1 50
+0 NEI2016v1_NONPT_BENZ           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          BENZ          2016/1-12/1-31/$HH C xyz  kg/m2/s BENZ        1007     1 50
+0 NEI2016v1_NONPT_TOL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          TOL           2016/1-12/1-31/$HH C xyz  kg/m2/s TOL         1007     1 50
+0 NEI2016v1_NONPT_XYLMN          $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          XYLMN         2016/1-12/1-31/$HH C xyz  kg/m2/s XYLMN       1007     1 50
+0 NEI2016v1_NONPT_NAPH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          NAPH          2016/1-12/1-31/$HH C xyz  kg/m2/s NAPH        1007     1 50
+0 NEI2016v1_NONPT_ALD2           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          ALD2          2016/1-12/1-31/$HH C xyz  kg/m2/s ALD2        1007     1 50
+0 NEI2016v1_NONPT_ALDX           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          ALDX          2016/1-12/1-31/$HH C xyz  kg/m2/s ALDX        1007     1 50
+0 NEI2016v1_NONPT_ISOP           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          ISOP          2016/1-12/1-31/$HH C xyz  kg/m2/s ISOP        1007     1 50
+0 NEI2016v1_NONPT_PRPA           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          PRPA          2016/1-12/1-31/$HH C xyz  kg/m2/s PRPA        1007     1 50
+0 NEI2016v1_NONPT_ACET           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          ACET          2016/1-12/1-31/$HH C xyz  kg/m2/s ACET        1007     1 50
+0 NEI2016v1_NONPT_KET            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          KET           2016/1-12/1-31/$HH C xyz  kg/m2/s KET         1007     1 50
+0 NEI2016v1_NONPT_ALD2_PRIMARY   $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          ALD2_PRIMARY  2016/1-12/1-31/$HH C xyz  kg/m2/s ALD2_PRIMARY 1007     1 50
+0 NEI2016v1_NONPT_FORM_PRIMARY   $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          FORM_PRIMARY  2016/1-12/1-31/$HH C xyz  kg/m2/s FORM_PRIMARY 1007     1 50
+0 NEI2016v1_NONPT_SOAALK         $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          SOAALK        2016/1-12/1-31/$HH C xyz  kg/m2/s SOAALK      1007     1 50
+0 NEI2016v1_NONPT_PEC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          PEC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PEC         1007     1 50
+0 NEI2016v1_NONPT_POC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          POC           2016/1-12/1-31/$HH C xyz  kg/m2/s  POC         1007     1 50
+0 NEI2016v1_NONPT_PAL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          PAL           2016/1-12/1-31/$HH C xyz kg/m2/s  PAL         1007     1 50
+0 NEI2016v1_NONPT_PCA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          PCA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCA         1007     1 50
+0 NEI2016v1_NONPT_PCL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          PCL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCL         1007     1 50
+0 NEI2016v1_NONPT_PFE            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          PFE           2016/1-12/1-31/$HH C xyz  kg/m2/s  PFE         1007     1 50
+0 NEI2016v1_NONPT_PH2O           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          PH2O          2016/1-12/1-31/$HH C xyz  kg/m2/s  PH2O        1007     1 50
+0 NEI2016v1_NONPT_PK             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          PK            2016/1-12/1-31/$HH C xyz  kg/m2/s  PK          1007     1 50
+0 NEI2016v1_NONPT_PMG            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          PMG           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMG         1007     1 50
+0 NEI2016v1_NONPT_PMN            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          PMN           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMN         1007     1 50
+0 NEI2016v1_NONPT_PMOTHR         $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          PMOTHR        2016/1-12/1-31/$HH C xyz  kg/m2/s  PMOTHR      1007     1 50
+0 NEI2016v1_NONPT_PNA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          PNA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PNA         1007     1 50
+0 NEI2016v1_NONPT_PNCOM          $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          PNCOM         2016/1-12/1-31/$HH C xyz  kg/m2/s  PNCOM       1007     1 50
+0 NEI2016v1_NONPT_PNH4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          PNH4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNH4        1007     1 50
+0 NEI2016v1_NONPT_PNO3           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          PNO3          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNO3        1007     1 50
+0 NEI2016v1_NONPT_PTI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          PTI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PTI         1007     1 50
+0 NEI2016v1_NONPT_PSI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          PSI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PSI         1007     1 50
+0 NEI2016v1_NONPT_PMC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          PMC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMC         1007     1 50
+0 NEI2016v1_NONPT_PSO4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_nonpt.nc          PSO4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PSO4        1007     1 50
+
+# SURFACE OTHAFDUSTADJ INVENTORY
+0 NEI2016v1_OTHAFDUSTADJ_PEC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othafdust_adj.nc          PEC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PEC  1007     1 50
+0 NEI2016v1_OTHAFDUSTADJ_POC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othafdust_adj.nc          POC           2016/1-12/1-31/$HH C xyz  kg/m2/s  POC  1007     1 50
+0 NEI2016v1_OTHAFDUSTADJ_PAL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othafdust_adj.nc          PAL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PAL  1007     1 50
+0 NEI2016v1_OTHAFDUSTADJ_PCA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othafdust_adj.nc          PCA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCA  1007     1 50
+0 NEI2016v1_OTHAFDUSTADJ_PCL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othafdust_adj.nc          PCL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCL  1007     1 50
+0 NEI2016v1_OTHAFDUSTADJ_PFE            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othafdust_adj.nc          PFE           2016/1-12/1-31/$HH C xyz  kg/m2/s  PFE  1007     1 50
+0 NEI2016v1_OTHAFDUSTADJ_PH2O           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othafdust_adj.nc          PH2O          2016/1-12/1-31/$HH C xyz  kg/m2/s  PH2O 1007     1 50
+0 NEI2016v1_OTHAFDUSTADJ_PK             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othafdust_adj.nc          PK            2016/1-12/1-31/$HH C xyz  kg/m2/s  PK   1007     1 50
+0 NEI2016v1_OTHAFDUSTADJ_PMG            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othafdust_adj.nc          PMG           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMG  1007     1 50
+0 NEI2016v1_OTHAFDUSTADJ_PMN            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othafdust_adj.nc          PMN           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMN  1007     1 50
+0 NEI2016v1_OTHAFDUSTADJ_PMOTHR         $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othafdust_adj.nc          PMOTHR        2016/1-12/1-31/$HH C xyz  kg/m2/s  PMOTHR 1007     1 50
+0 NEI2016v1_OTHAFDUSTADJ_PNA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othafdust_adj.nc          PNA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PNA    1007     1 50
+0 NEI2016v1_OTHAFDUSTADJ_PNCOM          $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othafdust_adj.nc          PNCOM         2016/1-12/1-31/$HH C xyz  kg/m2/s  PNCOM  1007     1 50
+0 NEI2016v1_OTHAFDUSTADJ_PNH4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othafdust_adj.nc          PNH4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNH4   1007     1 50
+0 NEI2016v1_OTHAFDUSTADJ_PNO3           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othafdust_adj.nc          PNO3          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNO3   1007     1 50
+0 NEI2016v1_OTHAFDUSTADJ_PTI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othafdust_adj.nc          PTI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PTI    1007     1 50
+0 NEI2016v1_OTHAFDUSTADJ_PSI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othafdust_adj.nc          PSI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PSI    1007     1 50
+0 NEI2016v1_OTHAFDUSTADJ_PMC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othafdust_adj.nc          PMC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMC    1007     1 50
+0 NEI2016v1_OTHAFDUSTADJ_PSO4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othafdust_adj.nc          PSO4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PSO4   1007     1 50
+
+# SURFACE OTHPTDUSTADJ INVENTORY
+0 NEI2016v1_OTHPTDUSTADJ_PEC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othptdust_adj.nc          PEC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PEC    1007     1 50
+0 NEI2016v1_OTHPTDUSTADJ_POC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othptdust_adj.nc          POC           2016/1-12/1-31/$HH C xyz  kg/m2/s  POC    1007     1 50
+0 NEI2016v1_OTHPTDUSTADJ_PAL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othptdust_adj.nc          PAL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PAL    1007     1 50
+0 NEI2016v1_OTHPTDUSTADJ_PCA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othptdust_adj.nc          PCA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCA    1007     1 50
+0 NEI2016v1_OTHPTDUSTADJ_PCL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othptdust_adj.nc          PCL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCL    1007     1 50
+0 NEI2016v1_OTHPTDUSTADJ_PFE            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othptdust_adj.nc          PFE           2016/1-12/1-31/$HH C xyz  kg/m2/s  PFE    1007     1 50
+0 NEI2016v1_OTHPTDUSTADJ_PH2O           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othptdust_adj.nc          PH2O          2016/1-12/1-31/$HH C xyz  kg/m2/s  PH2O   1007     1 50
+0 NEI2016v1_OTHPTDUSTADJ_PK             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othptdust_adj.nc          PK            2016/1-12/1-31/$HH C xyz kg/m2/s  PK     1007     1 50
+0 NEI2016v1_OTHPTDUSTADJ_PMG            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othptdust_adj.nc          PMG           2016/1-12/1-31/$HH C xyz kg/m2/s  PMG    1007     1 50
+0 NEI2016v1_OTHPTDUSTADJ_PMN            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othptdust_adj.nc          PMN           2016/1-12/1-31/$HH C xyz kg/m2/s  PMN    1007     1 50
+0 NEI2016v1_OTHPTDUSTADJ_PMOTHR         $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othptdust_adj.nc          PMOTHR        2016/1-12/1-31/$HH C xyz kg/m2/s  PMOTHR 1007     1 50
+0 NEI2016v1_OTHPTDUSTADJ_PNA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othptdust_adj.nc          PNA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PNA    1007     1 50
+0 NEI2016v1_OTHPTDUSTADJ_PNCOM          $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othptdust_adj.nc          PNCOM         2016/1-12/1-31/$HH C xyz  kg/m2/s  PNCOM  1007     1 50
+0 NEI2016v1_OTHPTDUSTADJ_PNH4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othptdust_adj.nc          PNH4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNH4   1007     1 50
+0 NEI2016v1_OTHPTDUSTADJ_PNO3           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othptdust_adj.nc          PNO3          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNO3   1007     1 50
+0 NEI2016v1_OTHPTDUSTADJ_PTI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othptdust_adj.nc          PTI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PTI    1007     1 50
+0 NEI2016v1_OTHPTDUSTADJ_PSI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othptdust_adj.nc          PSI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PSI    1007     1 50
+0 NEI2016v1_OTHPTDUSTADJ_PMC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othptdust_adj.nc          PMC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMC    1007     1 50
+0 NEI2016v1_OTHPTDUSTADJ_PSO4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othptdust_adj.nc          PSO4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PSO4   1007     1 50
+
+# SURFACE OTHAR INVENTORY
+0 NEI2016v1_OTHAR_CO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          CO            2016/1-12/1-31/$HH C xyz  kg/m2/s  CO           1007     1 50
+0 NEI2016v1_OTHAR_SO2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          SO2           2016/1-12/1-31/$HH C xyz  kg/m2/s  SO2          1007     1 50
+0 NEI2016v1_OTHAR_NO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          NO            2016/1-12/1-31/$HH C xyz  kg/m2/s  NOT          1007     1 50
+0 NEI2016v1_OTHAR_NO2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          NO2           2016/1-12/1-31/$HH C xyz  kg/m2/s  NO2          1007     1 50
+0 NEI2016v1_OTHAR_HONO           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          HONO          2016/1-12/1-31/$HH C xyz  kg/m2/s  HONO         1007     1 50
+0 NEI2016v1_OTHAR_SULF           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          SULF          2016/1-12/1-31/$HH C xyz kg/m2/s  SULF         1007     1 50
+0 NEI2016v1_OTHAR_NH3            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          NH3           2016/1-12/1-31/$HH C xyz kg/m2/s  NH3          1007     1 50
+0 NEI2016v1_OTHAR_NH3_FERT       $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          NH3_FERT      2016/1-12/1-31/$HH C xyz  kg/m2/s  NH3_FERT     1007     1 50
+0 NEI2016v1_OTHAR_CH4            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          CH4           2016/1-12/1-31/$HH C xyz  kg/m2/s  CH4          1007     1 50
+0 NEI2016v1_OTHAR_ETHY           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          ETHY          2016/1-12/1-31/$HH C xyz  kg/m2/s ETHY         1007     1  50
+0 NEI2016v1_OTHAR_TERP           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          TERP          2016/1-12/1-31/$HH C xyz  kg/m2/s TERP         1007     1 50
+0 NEI2016v1_OTHAR_FORM           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          FORM          2016/1-12/1-31/$HH C xyz  kg/m2/s FORM         1007     1 50
+0 NEI2016v1_OTHAR_PAR            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          PAR           2016/1-12/1-31/$HH C xyz  kg/m2/s PAR          1007     1 50
+0 NEI2016v1_OTHAR_IOLE           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          IOLE          2016/1-12/1-31/$HH C xyz  kg/m2/s IOLE         1007     1 50
+0 NEI2016v1_OTHAR_OLE            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          OLE           2016/1-12/1-31/$HH C xyz  kg/m2/s OLE          1007     1 50
+0 NEI2016v1_OTHAR_ETH            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          ETH           2016/1-12/1-31/$HH C xyz  kg/m2/s ETH          1007     1 50
+0 NEI2016v1_OTHAR_ETHA           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          ETHA          2016/1-12/1-31/$HH C xyz  kg/m2/s ETHA         1007     1 50
+0 NEI2016v1_OTHAR_ETOH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          ETOH          2016/1-12/1-31/$HH C xyz  kg/m2/s ETOH         1007     1 50
+0 NEI2016v1_OTHAR_MEOH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          MEOH          2016/1-12/1-31/$HH C xyz  kg/m2/s MEOH         1007     1 50
+0 NEI2016v1_OTHAR_BENZ           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          BENZ          2016/1-12/1-31/$HH C xyz  kg/m2/s BENZ         1007     1 50
+0 NEI2016v1_OTHAR_TOL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          TOL           2016/1-12/1-31/$HH C xyz  kg/m2/s TOL          1007     1 50
+0 NEI2016v1_OTHAR_XYLMN          $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          XYLMN         2016/1-12/1-31/$HH C xyz  kg/m2/s XYLMN        1007     1 50
+0 NEI2016v1_OTHAR_NAPH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          NAPH          2016/1-12/1-31/$HH C xyz  kg/m2/s NAPH         1007     1 50
+0 NEI2016v1_OTHAR_ALD2           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          ALD2          2016/1-12/1-31/$HH C xyz  kg/m2/s ALD2         1007     1  50
+0 NEI2016v1_OTHAR_ALDX           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          ALDX          2016/1-12/1-31/$HH C xyz  kg/m2/s ALDX         1007     1 50
+0 NEI2016v1_OTHAR_ISOP           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          ISOP          2016/1-12/1-31/$HH C xyz  kg/m2/s ISOP         1007     1 50
+0 NEI2016v1_OTHAR_PRPA           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          PRPA          2016/1-12/1-31/$HH C xyz  kg/m2/s PRPA         1007     1 50
+0 NEI2016v1_OTHAR_ACET           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          ACET          2016/1-12/1-31/$HH C xyz  kg/m2/s ACET         1007     1 50
+0 NEI2016v1_OTHAR_KET            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          KET           2016/1-12/1-31/$HH C xyz  kg/m2/s KET          1007     1 50
+0 NEI2016v1_OTHAR_ALD2_PRIMARY   $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          ALD2_PRIMARY  2016/1-12/1-31/$HH C xyz  kg/m2/s ALD2_PRIMARY 1007     1 50
+0 NEI2016v1_OTHAR_FORM_PRIMARY   $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          FORM_PRIMARY  2016/1-12/1-31/$HH C xyz  kg/m2/s FORM_PRIMARY 1007     1 50
+0 NEI2016v1_OTHAR_SOAALK         $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          SOAALK        2016/1-12/1-31/$HH C xyz  kg/m2/s SOAALK       1007     1 50
+0 NEI2016v1_OTHAR_PEC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          PEC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PEC          1007     1 50
+0 NEI2016v1_OTHAR_POC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          POC           2016/1-12/1-31/$HH C xyz  kg/m2/s  POC          1007     1 50
+0 NEI2016v1_OTHAR_PAL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          PAL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PAL          1007     1 50
+0 NEI2016v1_OTHAR_PCA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          PCA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCA          1007     1 50
+0 NEI2016v1_OTHAR_PCL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          PCL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCL          1007     1 50
+0 NEI2016v1_OTHAR_PFE            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          PFE           2016/1-12/1-31/$HH C xyz  kg/m2/s  PFE          1007     1 50
+0 NEI2016v1_OTHAR_PH2O           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          PH2O          2016/1-12/1-31/$HH C xyz  kg/m2/s  PH2O         1007     1 50
+0 NEI2016v1_OTHAR_PK             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          PK            2016/1-12/1-31/$HH C xyz  kg/m2/s  PK           1007     1 50
+0 NEI2016v1_OTHAR_PMG            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          PMG           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMG          1007     1 50
+0 NEI2016v1_OTHAR_PMN            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          PMN           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMN          1007     1 50
+0 NEI2016v1_OTHAR_PMOTHR         $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          PMOTHR        2016/1-12/1-31/$HH C xyz  kg/m2/s  PMOTHR       1007     1 50
+0 NEI2016v1_OTHAR_PNA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          PNA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PNA          1007     1 50
+0 NEI2016v1_OTHAR_PNCOM          $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          PNCOM         2016/1-12/1-31/$HH C xyz  kg/m2/s  PNCOM        1007     1 50
+0 NEI2016v1_OTHAR_PNH4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          PNH4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNH4         1007     1 50
+0 NEI2016v1_OTHAR_PNO3           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          PNO3          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNO3         1007     1 50
+0 NEI2016v1_OTHAR_PTI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          PTI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PTI          1007     1 50
+0 NEI2016v1_OTHAR_PSI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          PSI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PSI          1007     1 50
+0 NEI2016v1_OTHAR_PMC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          PMC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMC          1007     1 50
+0 NEI2016v1_OTHAR_PSO4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_othar.nc          PSO4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PSO4         1007     1 50
+
+# SURFACE RAIL INVENTORY
+0 NEI2016v1_RAIL_CO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          CO            2016/1-12/1-31/$HH C xyz  kg/m2/s  CO           1007     1 50
+0 NEI2016v1_RAIL_SO2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          SO2           2016/1-12/1-31/$HH C xyz  kg/m2/s  SO2          1007     1 50
+0 NEI2016v1_RAIL_NO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          NO            2016/1-12/1-31/$HH C xyz  kg/m2/s  NOT          1007     1 50
+0 NEI2016v1_RAIL_NO2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          NO2           2016/1-12/1-31/$HH C xyz  kg/m2/s  NO2          1007     1 50
+0 NEI2016v1_RAIL_HONO           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          HONO          2016/1-12/1-31/$HH C xyz  kg/m2/s  HONO         1007     1 50
+0 NEI2016v1_RAIL_SULF           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          SULF          2016/1-12/1-31/$HH C xyz  kg/m2/s  SULF         1007     1 50
+0 NEI2016v1_RAIL_NH3            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          NH3           2016/1-12/1-31/$HH C xyz  kg/m2/s  NH3          1007     1 50
+0 NEI2016v1_RAIL_NH3_FERT       $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          NH3_FERT      2016/1-12/1-31/$HH C xyz  kg/m2/s  NH3_FERT     1007     1 50
+0 NEI2016v1_RAIL_CH4            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          CH4           2016/1-12/1-31/$HH C xyz  kg/m2/s  CH4          1007     1 50
+0 NEI2016v1_RAIL_ACROLEIN       $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          ACROLEIN      2016/1-12/1-31/$HH C xyz  kg/m2/s ACROLEIN     1007     1 50
+0 NEI2016v1_RAIL_BUTADIENE13    $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          BUTADIENE13   2016/1-12/1-31/$HH C xyz  kg/m2/s BUTADIENE13  1007     1 50
+0 NEI2016v1_RAIL_ETHY           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          ETHY          2016/1-12/1-31/$HH C xyz  kg/m2/s ETHY         1007     1 50
+0 NEI2016v1_RAIL_TERP           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          TERP          2016/1-12/1-31/$HH C xyz  kg/m2/s TERP         1007     1 50
+0 NEI2016v1_RAIL_FORM           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          FORM          2016/1-12/1-31/$HH C xyz  kg/m2/s FORM         1007     1 50
+0 NEI2016v1_RAIL_PAR            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          PAR           2016/1-12/1-31/$HH C xyz  kg/m2/s PAR          1007     1 50
+0 NEI2016v1_RAIL_IOLE           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          IOLE          2016/1-12/1-31/$HH C xyz  kg/m2/s IOLE         1007     1 50
+0 NEI2016v1_RAIL_OLE            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          OLE           2016/1-12/1-31/$HH C xyz  kg/m2/s OLE          1007     1 50
+0 NEI2016v1_RAIL_ETH            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          ETH           2016/1-12/1-31/$HH C xyz  kg/m2/s ETH          1007     1 50
+0 NEI2016v1_RAIL_ETHA           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          ETHA          2016/1-12/1-31/$HH C xyz  kg/m2/s ETHA         1007     1 50
+0 NEI2016v1_RAIL_ETOH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          ETOH          2016/1-12/1-31/$HH C xyz  kg/m2/s ETOH         1007     1 50
+0 NEI2016v1_RAIL_MEOH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          MEOH          2016/1-12/1-31/$HH C xyz  kg/m2/s MEOH         1007     1 50
+0 NEI2016v1_RAIL_BENZ           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          BENZ          2016/1-12/1-31/$HH C xyz  kg/m2/s BENZ         1007     1 50
+0 NEI2016v1_RAIL_TOL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          TOL           2016/1-12/1-31/$HH C xyz  kg/m2/s TOL          1007     1 50
+0 NEI2016v1_RAIL_XYLMN          $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          XYLMN         2016/1-12/1-31/$HH C xyz  kg/m2/s XYLMN        1007     1 50
+0 NEI2016v1_RAIL_NAPH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          NAPH          2016/1-12/1-31/$HH C xyz  kg/m2/s NAPH         1007     1 50
+0 NEI2016v1_RAIL_ALD2           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          ALD2          2016/1-12/1-31/$HH C xyz  kg/m2/s ALD2         1007     1 50
+0 NEI2016v1_RAIL_ALDX           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          ALDX          2016/1-12/1-31/$HH C xyz  kg/m2/s ALDX         1007     1 50
+0 NEI2016v1_RAIL_ISOP           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          ISOP          2016/1-12/1-31/$HH C xyz  kg/m2/s ISOP         1007     1 50
+0 NEI2016v1_RAIL_PRPA           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          PRPA          2016/1-12/1-31/$HH C xyz  kg/m2/s PRPA         1007     1 50
+0 NEI2016v1_RAIL_ACET           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          ACET          2016/1-12/1-31/$HH C xyz  kg/m2/s ACET         1007     1 50
+0 NEI2016v1_RAIL_KET            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          KET           2016/1-12/1-31/$HH C xyz  kg/m2/s KET          1007     1 50
+0 NEI2016v1_RAIL_ALD2_PRIMARY   $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          ALD2_PRIMARY  2016/1-12/1-31/$HH C xyz  kg/m2/s ALD2_PRIMARY 1007     1 50
+0 NEI2016v1_RAIL_FORM_PRIMARY   $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          FORM_PRIMARY  2016/1-12/1-31/$HH C xyz  kg/m2/s FORM_PRIMARY 1007     1 50
+0 NEI2016v1_RAIL_SOAALK         $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          SOAALK        2016/1-12/1-31/$HH C xyz  kg/m2/s SOAALK       1007     1 50
+0 NEI2016v1_RAIL_PEC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          PEC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PEC          1007     1 50
+0 NEI2016v1_RAIL_POC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          POC           2016/1-12/1-31/$HH C xyz  kg/m2/s  POC          1007     1 50
+0 NEI2016v1_RAIL_PAL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          PAL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PAL          1007     1 50
+0 NEI2016v1_RAIL_PCA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          PCA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCA          1007     1 50
+0 NEI2016v1_RAIL_PCL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          PCL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCL          1007     1 50
+0 NEI2016v1_RAIL_PFE            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          PFE           2016/1-12/1-31/$HH C xyz  kg/m2/s  PFE          1007     1 50
+0 NEI2016v1_RAIL_PH2O           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          PH2O          2016/1-12/1-31/$HH C xyz  kg/m2/s  PH2O         1007     1 50
+0 NEI2016v1_RAIL_PK             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          PK            2016/1-12/1-31/$HH C xyz  kg/m2/s  PK           1007     1 50
+0 NEI2016v1_RAIL_PMG            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          PMG           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMG          1007     1 50
+0 NEI2016v1_RAIL_PMN            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          PMN           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMN          1007     1 50
+0 NEI2016v1_RAIL_PMOTHR         $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          PMOTHR        2016/1-12/1-31/$HH C xyz  kg/m2/s  PMOTHR       1007     1 50
+0 NEI2016v1_RAIL_PNA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          PNA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PNA          1007     1 50
+0 NEI2016v1_RAIL_PNCOM          $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          PNCOM         2016/1-12/1-31/$HH C xyz  kg/m2/s  PNCOM        1007     1 50
+0 NEI2016v1_RAIL_PNH4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          PNH4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNH4         1007     1 50
+0 NEI2016v1_RAIL_PNO3           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          PNO3          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNO3         1007     1 50
+0 NEI2016v1_RAIL_PTI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          PTI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PTI          1007     1 50
+0 NEI2016v1_RAIL_PSI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          PSI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PSI          1007     1 50
+0 NEI2016v1_RAIL_PMC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          PMC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMC          1007     1 50
+0 NEI2016v1_RAIL_PSO4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rail.nc          PSO4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PSO4         1007     1 50
+
+
+# SURFACE ONROAD INVENTORY
+0 NEI2016v1_ONROAD_CO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          CO            2016/1-12/1-31/$HH C xyz  kg/m2/s  CO           1007     1 50
+0 NEI2016v1_ONROAD_SO2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          SO2           2016/1-12/1-31/$HH C xyz  kg/m2/s  SO2          1007     1 50
+0 NEI2016v1_ONROAD_NO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          NO            2016/1-12/1-31/$HH C xyz  kg/m2/s  NOT          1007     1 50
+0 NEI2016v1_ONROAD_NO2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          NO2           2016/1-12/1-31/$HH C xyz  kg/m2/s  NO2          1007     1 50
+0 NEI2016v1_ONROAD_HONO           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          HONO          2016/1-12/1-31/$HH C xyz  kg/m2/s  HONO         1007     1 50
+0 NEI2016v1_ONROAD_NH3            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          NH3           2016/1-12/1-31/$HH C xyz  kg/m2/s  NH3          1007     1 50
+0 NEI2016v1_ONROAD_CH4            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          CH4           2016/1-12/1-31/$HH C xyz  kg/m2/s  CH4          1007     1 50
+0 NEI2016v1_ONROAD_ACROLEIN       $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          ACROLEIN      2016/1-12/1-31/$HH C xyz  kg/m2/s ACROLEIN     1007     1 50
+0 NEI2016v1_ONROAD_BUTADIENE13    $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          BUTADIENE13   2016/1-12/1-31/$HH C xyz  kg/m2/s BUTADIENE13  1007     1 50
+0 NEI2016v1_ONROAD_ETHY           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          ETHY          2016/1-12/1-31/$HH C xyz  kg/m2/s ETHY         1007     1 50
+0 NEI2016v1_ONROAD_TERP           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          TERP          2016/1-12/1-31/$HH C xyz  kg/m2/s TERP         1007     1 50
+0 NEI2016v1_ONROAD_FORM           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          FORM          2016/1-12/1-31/$HH C xyz  kg/m2/s FORM         1007     1 50
+0 NEI2016v1_ONROAD_PAR            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          PAR           2016/1-12/1-31/$HH C xyz  kg/m2/s PAR          1007     1 50
+0 NEI2016v1_ONROAD_IOLE           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          IOLE          2016/1-12/1-31/$HH C xyz  kg/m2/s IOLE         1007     1 50
+0 NEI2016v1_ONROAD_OLE            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          OLE           2016/1-12/1-31/$HH C xyz  kg/m2/s OLE          1007     1 50
+0 NEI2016v1_ONROAD_ETH            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          ETH           2016/1-12/1-31/$HH C xyz  kg/m2/s ETH          1007     1 50
+0 NEI2016v1_ONROAD_ETHA           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          ETHA          2016/1-12/1-31/$HH C xyz  kg/m2/s ETHA         1007     1 50
+0 NEI2016v1_ONROAD_ETOH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          ETOH          2016/1-12/1-31/$HH C xyz  kg/m2/s ETOH         1007     1 50
+0 NEI2016v1_ONROAD_MEOH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          MEOH          2016/1-12/1-31/$HH C xyz  kg/m2/s MEOH         1007     1 50
+0 NEI2016v1_ONROAD_BENZ           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          BENZ          2016/1-12/1-31/$HH C xyz  kg/m2/s BENZ         1007     1 50
+0 NEI2016v1_ONROAD_TOL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          TOL           2016/1-12/1-31/$HH C xyz  kg/m2/s TOL          1007    1 50
+0 NEI2016v1_ONROAD_XYLMN          $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          XYLMN         2016/1-12/1-31/$HH C xyz  kg/m2/s XYLMN        1007     1 50
+0 NEI2016v1_ONROAD_NAPH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          NAPH          2016/1-12/1-31/$HH C xyz  kg/m2/s NAPH         1007     1 50
+0 NEI2016v1_ONROAD_ALD2           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          ALD2          2016/1-12/1-31/$HH C xyz  kg/m2/s ALD2         1007     1 50
+0 NEI2016v1_ONROAD_ALDX           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          ALDX          2016/1-12/1-31/$HH C xyz  kg/m2/s ALDX         1007     1 50
+0 NEI2016v1_ONROAD_ISOP           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          ISOP          2016/1-12/1-31/$HH C xyz  kg/m2/s ISOP         1007     1 50
+0 NEI2016v1_ONROAD_PRPA           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          PRPA          2016/1-12/1-31/$HH C xyz  kg/m2/s PRPA         1007     1 50
+0 NEI2016v1_ONROAD_ACET           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          ACET          2016/1-12/1-31/$HH C xyz  kg/m2/s ACET         1007     1 50
+0 NEI2016v1_ONROAD_KET            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          KET           2016/1-12/1-31/$HH C xyz  kg/m2/s KET          1007     1 50
+0 NEI2016v1_ONROAD_ALD2_PRIMARY   $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          ALD2_PRIMARY  2016/1-12/1-31/$HH C xyz  kg/m2/s ALD2_PRIMARY 1007     1 50
+0 NEI2016v1_ONROAD_FORM_PRIMARY   $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          FORM_PRIMARY  2016/1-12/1-31/$HH C xyz  kg/m2/s FORM_PRIMARY 1007     1 50
+0 NEI2016v1_ONROAD_SOAALK         $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          SOAALK        2016/1-12/1-31/$HH C xyz  kg/m2/s SOAALK       1007     1 50
+0 NEI2016v1_ONROAD_PEC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          PEC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PEC          1007     1 50
+0 NEI2016v1_ONROAD_POC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          POC           2016/1-12/1-31/$HH C xyz  kg/m2/s  POC          1007     1 50
+0 NEI2016v1_ONROAD_PAL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          PAL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PAL          1007     1 50
+0 NEI2016v1_ONROAD_PCA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          PCA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCA          1007     1 50
+0 NEI2016v1_ONROAD_PCL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          PCL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCL          1007     1 50
+0 NEI2016v1_ONROAD_PFE            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          PFE           2016/1-12/1-31/$HH C xyz  kg/m2/s  PFE          1007     1 50
+0 NEI2016v1_ONROAD_PH2O           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          PH2O          2016/1-12/1-31/$HH C xyz  kg/m2/s  PH2O         1007     1 50
+0 NEI2016v1_ONROAD_PK             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          PK            2016/1-12/1-31/$HH C xyz  kg/m2/s  PK           1007     1 50
+0 NEI2016v1_ONROAD_PMG            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          PMG           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMG          1007     1 50
+0 NEI2016v1_ONROAD_PMN            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          PMN           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMN          1007     1 50
+0 NEI2016v1_ONROAD_PMOTHR         $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          PMOTHR        2016/1-12/1-31/$HH C xyz  kg/m2/s  PMOTHR       1007     1 50
+0 NEI2016v1_ONROAD_PNA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          PNA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PNA          1007     1 50
+0 NEI2016v1_ONROAD_PNCOM          $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          PNCOM         2016/1-12/1-31/$HH C xyz  kg/m2/s  PNCOM        1007     1 50
+0 NEI2016v1_ONROAD_PNH4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          PNH4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNH4         1007     1 50
+0 NEI2016v1_ONROAD_PNO3           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          PNO3          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNO3         1007     1 50
+0 NEI2016v1_ONROAD_PTI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          PTI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PTI          1007     1 50
+0 NEI2016v1_ONROAD_PSI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          PSI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PSI          1007     1 50
+0 NEI2016v1_ONROAD_PMC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          PMC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMC          1007     1 50
+0 NEI2016v1_ONROAD_PSO4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          PSO4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PSO4         1007     1 50
+0 NEI2016v1_ONROAD_CH4_INV        $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          CH4_INV       2016/1-12/1-31/$HH C xyz  kg/m2/s  CH4_INV      1007     1 50
+0 NEI2016v1_ONROAD_CO2_INV        $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          CO2_INV       2016/1-12/1-31/$HH C xyz  kg/m2/s  CO2_INV      1007     1 50
+
+# SURFACE ONROADCAADJ INVENTORY
+0 NEI2016v1_ONROADCAADJ_CO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          CO            2016/1-12/1-31/$HH C xyz  kg/m2/s  CO           1007     1 50
+0 NEI2016v1_ONROADCAADJ_SO2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          SO2           2016/1-12/1-31/$HH C xyz  kg/m2/s  SO2          1007     1 50
+0 NEI2016v1_ONROADCAADJ_NO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          NO            2016/1-12/1-31/$HH C xyz  kg/m2/s  NOT          1007     1 50
+0 NEI2016v1_ONROADCAADJ_NO2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          NO2           2016/1-12/1-31/$HH C xyz  kg/m2/s  NO2          1007     1 50
+0 NEI2016v1_ONROADCAADJ_HONO           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          HONO          2016/1-12/1-31/$HH C xyz  kg/m2/s  HONO         1007     1 50
+0 NEI2016v1_ONROADCAADJ_NH3            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          NH3           2016/1-12/1-31/$HH C xyz  kg/m2/s  NH3          1007     1 50
+0 NEI2016v1_ONROADCAADJ_CH4            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          CH4           2016/1-12/1-31/$HH C xyz  kg/m2/s  CH4          1007     1 50
+0 NEI2016v1_ONROADCAADJ_ACROLEIN       $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          ACROLEIN      2016/1-12/1-31/$HH C xyz  kg/m2/s ACROLEIN     1007     1 50
+0 NEI2016v1_ONROADCAADJ_BUTADIENE13    $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          BUTADIENE13   2016/1-12/1-31/$HH C xyz  kg/m2/s BUTADIENE13  1007     1 50
+0 NEI2016v1_ONROADCAADJ_ETHY           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          ETHY          2016/1-12/1-31/$HH C xyz  kg/m2/s ETHY         1007     1 50
+0 NEI2016v1_ONROADCAADJ_TERP           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          TERP          2016/1-12/1-31/$HH C xyz  kg/m2/s TERP         1007     1 50
+0 NEI2016v1_ONROADCAADJ_FORM           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          FORM          2016/1-12/1-31/$HH C xyz  kg/m2/s FORM         1007     1 50
+0 NEI2016v1_ONROADCAADJ_PAR            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          PAR           2016/1-12/1-31/$HH C xyz  kg/m2/s PAR          1007     1 50
+0 NEI2016v1_ONROADCAADJ_IOLE           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          IOLE          2016/1-12/1-31/$HH C xyz  kg/m2/s IOLE         1007     1 50
+0 NEI2016v1_ONROADCAADJ_OLE            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          OLE           2016/1-12/1-31/$HH C xyz  kg/m2/s OLE          1007     1 50
+0 NEI2016v1_ONROADCAADJ_ETH            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          ETH           2016/1-12/1-31/$HH C xyz  kg/m2/s ETH          1007     1 50
+0 NEI2016v1_ONROADCAADJ_ETHA           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          ETHA          2016/1-12/1-31/$HH C xyz  kg/m2/s ETHA         1007     1 50
+0 NEI2016v1_ONROADCAADJ_ETOH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          ETOH          2016/1-12/1-31/$HH C xyz  kg/m2/s ETOH         1007     1 50
+0 NEI2016v1_ONROADCAADJ_MEOH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          MEOH          2016/1-12/1-31/$HH C xyz  kg/m2/s MEOH         1007     1 50
+0 NEI2016v1_ONROADCAADJ_BENZ           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          BENZ          2016/1-12/1-31/$HH C xyz  kg/m2/s BENZ         1007     1 50
+0 NEI2016v1_ONROADCAADJ_TOL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          TOL           2016/1-12/1-31/$HH C xyz  kg/m2/s TOL          1007     1 50
+0 NEI2016v1_ONROADCAADJ_XYLMN          $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          XYLMN         2016/1-12/1-31/$HH C xyz  kg/m2/s XYLMN        1007     1 50
+0 NEI2016v1_ONROADCAADJ_NAPH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          NAPH          2016/1-12/1-31/$HH C xyz  kg/m2/s NAPH         1007     1 50
+0 NEI2016v1_ONROADCAADJ_ALD2           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          ALD2          2016/1-12/1-31/$HH C xyz  kg/m2/s ALD2         1007     1 50
+0 NEI2016v1_ONROADCAADJ_ALDX           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          ALDX          2016/1-12/1-31/$HH C xyz  kg/m2/s ALDX         1007     1 50
+0 NEI2016v1_ONROADCAADJ_ISOP           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          ISOP          2016/1-12/1-31/$HH C xyz  kg/m2/s ISOP         1007     1 50
+0 NEI2016v1_ONROADCAADJ_PRPA           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          PRPA          2016/1-12/1-31/$HH C xyz  kg/m2/s PRPA         1007     1 50
+0 NEI2016v1_ONROADCAADJ_ACET           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          ACET          2016/1-12/1-31/$HH C xyz  kg/m2/s ACET         1007     1 50
+0 NEI2016v1_ONROADCAADJ_KET            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          KET           2016/1-12/1-31/$HH C xyz  kg/m2/s KET          1007     1 50
+0 NEI2016v1_ONROADCAADJ_ALD2_PRIMARY   $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          ALD2_PRIMARY  2016/1-12/1-31/$HH C xyz  kg/m2/s ALD2_PRIMARY 1007     1 50
+0 NEI2016v1_ONROADCAADJ_FORM_PRIMARY   $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          FORM_PRIMARY  2016/1-12/1-31/$HH C xyz  kg/m2/s FORM_PRIMARY 1007     1 50
+0 NEI2016v1_ONROADCAADJ_SOAALK         $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          SOAALK        2016/1-12/1-31/$HH C xyz  kg/m2/s SOAALK       1007     1 50
+0 NEI2016v1_ONROADCAADJ_PEC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          PEC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PEC          1007     1 50
+0 NEI2016v1_ONROADCAADJ_POC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          POC           2016/1-12/1-31/$HH C xyz  kg/m2/s  POC          1007     1 50
+0 NEI2016v1_ONROADCAADJ_PAL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          PAL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PAL          1007     1 50
+0 NEI2016v1_ONROADCAADJ_PCA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          PCA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCA          1007     1 50
+0 NEI2016v1_ONROADCAADJ_PCL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          PCL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCL          1007     1 50
+0 NEI2016v1_ONROADCAADJ_PFE            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          PFE           2016/1-12/1-31/$HH C xyz  kg/m2/s  PFE          1007     1 50
+0 NEI2016v1_ONROADCAADJ_PH2O           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          PH2O          2016/1-12/1-31/$HH C xyz  kg/m2/s  PH2O         1007     1 50
+0 NEI2016v1_ONROADCAADJ_PK             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          PK            2016/1-12/1-31/$HH C xyz  kg/m2/s  PK           1007     1 50
+0 NEI2016v1_ONROADCAADJ_PMG            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          PMG           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMG          1007     1 50
+0 NEI2016v1_ONROADCAADJ_PMN            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          PMN           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMN          1007     1 50
+0 NEI2016v1_ONROADCAADJ_PMOTHR         $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          PMOTHR        2016/1-12/1-31/$HH C xyz  kg/m2/s  PMOTHR       1007     1 50
+0 NEI2016v1_ONROADCAADJ_PNA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          PNA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PNA          1007     1 50
+0 NEI2016v1_ONROADCAADJ_PNCOM          $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          PNCOM         2016/1-12/1-31/$HH C xyz  kg/m2/s  PNCOM        1007     1 50
+0 NEI2016v1_ONROADCAADJ_PNH4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          PNH4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNH4         1007     1 50
+0 NEI2016v1_ONROADCAADJ_PNO3           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          PNO3          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNO3         1007     1 50
+0 NEI2016v1_ONROADCAADJ_PTI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          PTI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PTI          1007     1 50
+0 NEI2016v1_ONROADCAADJ_PSI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          PSI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PSI          1007     1 50
+0 NEI2016v1_ONROADCAADJ_PMC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          PMC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMC          1007     1 50
+0 NEI2016v1_ONROADCAADJ_PSO4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          PSO4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PSO4         1007     1 50
+0 NEI2016v1_ONROADCAADJ_CH4_INV        $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          CH4_INV       2016/1-12/1-31/$HH C xyz  kg/m2/s  CH4_INV      1007     1 50
+0 NEI2016v1_ONROADCAADJ_CO2_INV        $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          CO2_INV       2016/1-12/1-31/$HH C xyz  kg/m2/s  CO2_INV      1007     1 50
+
+# SURFACE ONROADCAN INVENTORY
+0 NEI2016v1_ONROADCAN_CO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          CO            2016/1-12/1-31/$HH C xyz  kg/m2/s  CO           1007     1 50
+0 NEI2016v1_ONROADCAN_SO2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          SO2           2016/1-12/1-31/$HH C xyz  kg/m2/s  SO2          1007     1 50
+0 NEI2016v1_ONROADCAN_NO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          NO            2016/1-12/1-31/$HH C xyz  kg/m2/s  NOT          1007     1 50
+0 NEI2016v1_ONROADCAN_NO2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          NO2           2016/1-12/1-31/$HH C xyz  kg/m2/s  NO2          1007     1 50
+0 NEI2016v1_ONROADCAN_HONO           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          HONO          2016/1-12/1-31/$HH C xyz  kg/m2/s  HONO         1007     1 50
+0 NEI2016v1_ONROADCAN_SULF           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          SULF          2016/1-12/1-31/$HH C xyz  kg/m2/s  SULF         1007     1 50
+0 NEI2016v1_ONROADCAN_NH3            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          NH3           2016/1-12/1-31/$HH C xyz  kg/m2/s  NH3          1007     1 50
+0 NEI2016v1_ONROADCAN_NH3_FERT       $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          NH3_FERT      2016/1-12/1-31/$HH C xyz  kg/m2/s  NH3_FERT     1007     1 50
+0 NEI2016v1_ONROADCAN_CH4            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          CH4           2016/1-12/1-31/$HH C xyz  kg/m2/s  CH4          1007     1 50
+0 NEI2016v1_ONROADCAN_ETHY           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          ETHY          2016/1-12/1-31/$HH C xyz  kg/m2/s ETHY         1007     1 50
+0 NEI2016v1_ONROADCAN_TERP           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          TERP          2016/1-12/1-31/$HH C xyz  kg/m2/s TERP         1007     1 50
+0 NEI2016v1_ONROADCAN_FORM           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          FORM          2016/1-12/1-31/$HH C xyz  kg/m2/s FORM         1007     1 50
+0 NEI2016v1_ONROADCAN_PAR            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          PAR           2016/1-12/1-31/$HH C xyz  kg/m2/s PAR          1007     1 50
+0 NEI2016v1_ONROADCAN_IOLE           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          IOLE          2016/1-12/1-31/$HH C xyz  kg/m2/s IOLE         1007     1 50
+0 NEI2016v1_ONROADCAN_OLE            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          OLE           2016/1-12/1-31/$HH C xyz  kg/m2/s OLE          1007     1 50
+0 NEI2016v1_ONROADCAN_ETH            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          ETH           2016/1-12/1-31/$HH C xyz  kg/m2/s ETH          1007     1 50
+0 NEI2016v1_ONROADCAN_ETHA           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          ETHA          2016/1-12/1-31/$HH C xyz  kg/m2/s ETHA         1007     1 50
+0 NEI2016v1_ONROADCAN_ETOH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          ETOH          2016/1-12/1-31/$HH C xyz  kg/m2/s ETOH         1007     1 50
+0 NEI2016v1_ONROADCAN_MEOH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          MEOH          2016/1-12/1-31/$HH C xyz  kg/m2/s MEOH         1007     1 50
+0 NEI2016v1_ONROADCAN_BENZ           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          BENZ          2016/1-12/1-31/$HH C xyz  kg/m2/s BENZ         1007     1 50
+0 NEI2016v1_ONROADCAN_TOL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          TOL           2016/1-12/1-31/$HH C xyz  kg/m2/s TOL          1007     1 50
+0 NEI2016v1_ONROADCAN_XYLMN          $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          XYLMN         2016/1-12/1-31/$HH C xyz  kg/m2/s XYLMN        1007     1 50
+0 NEI2016v1_ONROADCAN_NAPH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          NAPH          2016/1-12/1-31/$HH C xyz  kg/m2/s NAPH         1007     1 50
+0 NEI2016v1_ONROADCAN_ALD2           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          ALD2          2016/1-12/1-31/$HH C xyz  kg/m2/s ALD2         1007     1 50
+0 NEI2016v1_ONROADCAN_ALDX           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          ALDX          2016/1-12/1-31/$HH C xyz  kg/m2/s ALDX         1007     1 50
+0 NEI2016v1_ONROADCAN_ISOP           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          ISOP          2016/1-12/1-31/$HH C xyz  kg/m2/s ISOP         1007     1 50
+0 NEI2016v1_ONROADCAN_PRPA           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          PRPA          2016/1-12/1-31/$HH C xyz  kg/m2/s PRPA         1007     1 50
+0 NEI2016v1_ONROADCAN_ACET           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          ACET          2016/1-12/1-31/$HH C xyz  kg/m2/s ACET         1007     1 50
+0 NEI2016v1_ONROADCAN_KET            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          KET           2016/1-12/1-31/$HH C xyz  kg/m2/s KET          1007     1 50
+0 NEI2016v1_ONROADCAN_ALD2_PRIMARY   $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          ALD2_PRIMARY  2016/1-12/1-31/$HH C xyz  kg/m2/s ALD2_PRIMARY 1007     1 50
+0 NEI2016v1_ONROADCAN_FORM_PRIMARY   $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          FORM_PRIMARY  2016/1-12/1-31/$HH C xyz  kg/m2/s FORM_PRIMARY 1007     1 50
+0 NEI2016v1_ONROADCAN_SOAALK         $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          SOAALK        2016/1-12/1-31/$HH C xyz  kg/m2/s SOAALK       1007     1 50
+0 NEI2016v1_ONROADCAN_PEC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          PEC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PEC          1007     1 50
+0 NEI2016v1_ONROADCAN_POC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          POC           2016/1-12/1-31/$HH C xyz  kg/m2/s  POC          1007     1 50
+0 NEI2016v1_ONROADCAN_PAL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          PAL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PAL          1007     1 50
+0 NEI2016v1_ONROADCAN_PCA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          PCA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCA          1007     1 50
+0 NEI2016v1_ONROADCAN_PCL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          PCL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCL          1007     1 50
+0 NEI2016v1_ONROADCAN_PFE            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          PFE           2016/1-12/1-31/$HH C xyz  kg/m2/s  PFE          1007     1 50
+0 NEI2016v1_ONROADCAN_PH2O           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          PH2O          2016/1-12/1-31/$HH C xyz  kg/m2/s  PH2O         1007     1 50
+0 NEI2016v1_ONROADCAN_PK             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          PK            2016/1-12/1-31/$HH C xyz  kg/m2/s  PK           1007     1 50
+0 NEI2016v1_ONROADCAN_PMG            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          PMG           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMG          1007     1 50
+0 NEI2016v1_ONROADCAN_PMN            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          PMN           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMN          1007     1 50
+0 NEI2016v1_ONROADCAN_PMOTHR         $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          PMOTHR        2016/1-12/1-31/$HH C xyz  kg/m2/s  PMOTHR       1007     1 50
+0 NEI2016v1_ONROADCAN_PNA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          PNA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PNA          1007     1 50
+0 NEI2016v1_ONROADCAN_PNCOM          $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          PNCOM         2016/1-12/1-31/$HH C xyz  kg/m2/s  PNCOM        1007     1 50
+0 NEI2016v1_ONROADCAN_PNH4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          PNH4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNH4         1007     1 50
+0 NEI2016v1_ONROADCAN_PNO3           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          PNO3          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNO3         1007     1 50
+0 NEI2016v1_ONROADCAN_PTI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          PTI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PTI          1007     1 50
+0 NEI2016v1_ONROADCAN_PSI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          PSI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PSI          1007     1 50
+0 NEI2016v1_ONROADCAN_PMC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          PMC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMC          1007     1 50
+0 NEI2016v1_ONROADCAN_PSO4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_can.nc          PSO4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PSO4         1007     1 50
+
+# SURFACE ONROADMEX INVENTORY
+0 NEI2016v1_ONROADMEX_CO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          CO            2016/1-12/1-31/$HH C xyz  kg/m2/s  CO           1007     1 50
+0 NEI2016v1_ONROADMEX_SO2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          SO2           2016/1-12/1-31/$HH C xyz  kg/m2/s  SO2          1007     1 50
+0 NEI2016v1_ONROADMEX_NO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          NO            2016/1-12/1-31/$HH C xyz  kg/m2/s  NOT          1007     1 50
+0 NEI2016v1_ONROADMEX_NO2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          NO2           2016/1-12/1-31/$HH C xyz  kg/m2/s  NO2          1007     1 50
+0 NEI2016v1_ONROADMEX_HONO           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          HONO          2016/1-12/1-31/$HH C xyz  kg/m2/s  HONO         1007     1 50
+0 NEI2016v1_ONROADMEX_SULF           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          SULF          2016/1-12/1-31/$HH C xyz  kg/m2/s  SULF         1007     1 50
+0 NEI2016v1_ONROADMEX_NH3            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          NH3           2016/1-12/1-31/$HH C xyz  kg/m2/s  NH3          1007     1 50
+0 NEI2016v1_ONROADMEX_NH3_FERT       $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          NH3_FERT      2016/1-12/1-31/$HH C xyz  kg/m2/s  NH3_FERT     1007     1 50
+0 NEI2016v1_ONROADMEX_CH4            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          CH4           2016/1-12/1-31/$HH C xyz  kg/m2/s  CH4          1007     1 50
+0 NEI2016v1_ONROADMEX_ACROLEIN       $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          ACROLEIN      2016/1-12/1-31/$HH C xyz  kg/m2/s ACROLEIN     1007     1 50
+0 NEI2016v1_ONROADMEX_BUTADIENE13    $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          BUTADIENE13   2016/1-12/1-31/$HH C xyz  kg/m2/s BUTADIENE13  1007     1 50
+0 NEI2016v1_ONROADMEX_ETHY           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          ETHY          2016/1-12/1-31/$HH C xyz  kg/m2/s ETHY         1007    1 50
+0 NEI2016v1_ONROADMEX_TERP           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          TERP          2016/1-12/1-31/$HH C xyz  kg/m2/s TERP         1007     1 50
+0 NEI2016v1_ONROADMEX_FORM           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          FORM          2016/1-12/1-31/$HH C xyz  kg/m2/s FORM         1007     1 50
+0 NEI2016v1_ONROADMEX_PAR            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          PAR           2016/1-12/1-31/$HH C xyz  kg/m2/s PAR          1007     1 50
+0 NEI2016v1_ONROADMEX_IOLE           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          IOLE          2016/1-12/1-31/$HH C xyz  kg/m2/s IOLE         1007     1 50
+0 NEI2016v1_ONROADMEX_OLE            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          OLE           2016/1-12/1-31/$HH C xyz  kg/m2/s OLE          1007     1 50
+0 NEI2016v1_ONROADMEX_ETH            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          ETH           2016/1-12/1-31/$HH C xyz  kg/m2/s ETH          1007     1 50
+0 NEI2016v1_ONROADMEX_ETHA           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          ETHA          2016/1-12/1-31/$HH C xyz  kg/m2/s ETHA         1007     1 50
+0 NEI2016v1_ONROADMEX_ETOH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          ETOH          2016/1-12/1-31/$HH C xyz  kg/m2/s ETOH         1007     1 50
+0 NEI2016v1_ONROADMEX_MEOH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          MEOH          2016/1-12/1-31/$HH C xyz  kg/m2/s MEOH         1007     1 50
+0 NEI2016v1_ONROADMEX_BENZ           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          BENZ          2016/1-12/1-31/$HH C xyz  kg/m2/s BENZ         1007     1 50
+0 NEI2016v1_ONROADMEX_TOL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          TOL           2016/1-12/1-31/$HH C xyz  kg/m2/s TOL          1007     1 50
+0 NEI2016v1_ONROADMEX_XYLMN          $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          XYLMN         2016/1-12/1-31/$HH C xyz  kg/m2/s XYLMN        1007     1 50
+0 NEI2016v1_ONROADMEX_NAPH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          NAPH          2016/1-12/1-31/$HH C xyz  kg/m2/s NAPH         1007     1 50
+0 NEI2016v1_ONROADMEX_ALD2           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          ALD2          2016/1-12/1-31/$HH C xyz  kg/m2/s ALD2         1007     1 50
+0 NEI2016v1_ONROADMEX_ALDX           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          ALDX          2016/1-12/1-31/$HH C xyz  kg/m2/s ALDX         1007     1 50
+0 NEI2016v1_ONROADMEX_ISOP           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          ISOP          2016/1-12/1-31/$HH C xyz  kg/m2/s ISOP         1007     1 50
+0 NEI2016v1_ONROADMEX_PRPA           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          PRPA          2016/1-12/1-31/$HH C xyz  kg/m2/s PRPA         1007     1 50
+0 NEI2016v1_ONROADMEX_ACET           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          ACET          2016/1-12/1-31/$HH C xyz  kg/m2/s ACET         1007     1 50
+0 NEI2016v1_ONROADMEX_KET            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          KET           2016/1-12/1-31/$HH C xyz  kg/m2/s KET          1007     1 50
+0 NEI2016v1_ONROADMEX_ALD2_PRIMARY   $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          ALD2_PRIMARY  2016/1-12/1-31/$HH C xyz  kg/m2/s ALD2_PRIMARY 1007     1 50
+0 NEI2016v1_ONROADMEX_FORM_PRIMARY   $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          FORM_PRIMARY  2016/1-12/1-31/$HH C xyz  kg/m2/s FORM_PRIMARY 1007     1 50
+0 NEI2016v1_ONROADMEX_SOAALK         $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          SOAALK        2016/1-12/1-31/$HH C xyz  kg/m2/s SOAALK       1007     1 50
+0 NEI2016v1_ONROADMEX_PEC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          PEC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PEC          1007     1 50
+0 NEI2016v1_ONROADMEX_POC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          POC           2016/1-12/1-31/$HH C xyz  kg/m2/s  POC          1007     1 50
+0 NEI2016v1_ONROADMEX_PAL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          PAL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PAL          1007     1 50
+0 NEI2016v1_ONROADMEX_PCA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          PCA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCA          1007     1 50
+0 NEI2016v1_ONROADMEX_PCL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          PCL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCL          1007     1 50
+0 NEI2016v1_ONROADMEX_PFE            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          PFE           2016/1-12/1-31/$HH C xyz  kg/m2/s  PFE          1007     1 50
+0 NEI2016v1_ONROADMEX_PH2O           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          PH2O          2016/1-12/1-31/$HH C xyz  kg/m2/s  PH2O         1007     1 50
+0 NEI2016v1_ONROADMEX_PK             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          PK            2016/1-12/1-31/$HH C xyz  kg/m2/s  PK           1007     1 50
+0 NEI2016v1_ONROADMEX_PMG            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          PMG           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMG          1007     1 50
+0 NEI2016v1_ONROADMEX_PMN            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          PMN           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMN          1007     1 50
+0 NEI2016v1_ONROADMEX_PMOTHR         $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          PMOTHR        2016/1-12/1-31/$HH C xyz  kg/m2/s  PMOTHR       1007     1 50
+0 NEI2016v1_ONROADMEX_PNA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          PNA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PNA          1007     1 50
+0 NEI2016v1_ONROADMEX_PNCOM          $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          PNCOM         2016/1-12/1-31/$HH C xyz  kg/m2/s  PNCOM        1007     1 50
+0 NEI2016v1_ONROADMEX_PNH4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          PNH4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNH4         1007     1 50
+0 NEI2016v1_ONROADMEX_PNO3           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          PNO3          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNO3         1007     1 50
+0 NEI2016v1_ONROADMEX_PTI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          PTI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PTI          1007     1 50
+0 NEI2016v1_ONROADMEX_PSI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          PSI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PSI          1007     1 50
+0 NEI2016v1_ONROADMEX_PMC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          PMC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMC          1007     1 50
+0 NEI2016v1_ONROADMEX_PSO4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          PSO4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PSO4         1007     1 50
+
+# SURFACE RWC INVENTORY
+0 NEI2016v1_RWC_CO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          CO            2016/1-12/1-31/$HH C xyz  kg/m2/s  CO           1007     1 50
+0 NEI2016v1_RWC_SO2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          SO2           2016/1-12/1-31/$HH C xyz  kg/m2/s  SO2          1007     1 50
+0 NEI2016v1_RWC_NO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          NO            2016/1-12/1-31/$HH C xyz  kg/m2/s  NOT          1007     1 50
+0 NEI2016v1_RWC_NO2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          NO2           2016/1-12/1-31/$HH C xyz  kg/m2/s  NO2          1007     1 50
+0 NEI2016v1_RWC_HONO           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          HONO          2016/1-12/1-31/$HH C xyz  kg/m2/s  HONO         1007     1 50
+0 NEI2016v1_RWC_SULF           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          SULF          2016/1-12/1-31/$HH C xyz  kg/m2/s  SULF         1007     1 50
+0 NEI2016v1_RWC_NH3            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          NH3           2016/1-12/1-31/$HH C xyz  kg/m2/s  NH3          1007     1 50
+0 NEI2016v1_RWC_NH3_FERT       $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          NH3_FERT      2016/1-12/1-31/$HH C xyz  kg/m2/s  NH3_FERT     1007     1 50
+0 NEI2016v1_RWC_CH4            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          CH4           2016/1-12/1-31/$HH C xyz  kg/m2/s  CH4          1007     1 50
+0 NEI2016v1_RWC_ACROLEIN       $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          ACROLEIN      2016/1-12/1-31/$HH C xyz  kg/m2/s ACROLEIN     1007     1 50
+0 NEI2016v1_RWC_BUTADIENE13    $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          BUTADIENE13   2016/1-12/1-31/$HH C xyz  kg/m2/s BUTADIENE13  1007     1 50
+0 NEI2016v1_RWC_ETHY           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          ETHY          2016/1-12/1-31/$HH C xyz  kg/m2/s ETHY         1007     1 50
+0 NEI2016v1_RWC_TERP           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          TERP          2016/1-12/1-31/$HH C xyz  kg/m2/s TERP         1007     1 50
+0 NEI2016v1_RWC_FORM           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          FORM          2016/1-12/1-31/$HH C xyz  kg/m2/s FORM         1007     1 50
+0 NEI2016v1_RWC_PAR            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          PAR           2016/1-12/1-31/$HH C xyz  kg/m2/s PAR          1007     1 50
+0 NEI2016v1_RWC_IOLE           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          IOLE          2016/1-12/1-31/$HH C xyz  kg/m2/s IOLE         1007     1 50
+0 NEI2016v1_RWC_OLE            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          OLE           2016/1-12/1-31/$HH C xyz  kg/m2/s OLE          1007     1 50
+0 NEI2016v1_RWC_ETH            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          ETH           2016/1-12/1-31/$HH C xyz  kg/m2/s ETH          1007     1 50
+0 NEI2016v1_RWC_ETHA           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          ETHA          2016/1-12/1-31/$HH C xyz  kg/m2/s ETHA         1007     1 50
+0 NEI2016v1_RWC_ETOH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          ETOH          2016/1-12/1-31/$HH C xyz  kg/m2/s ETOH         1007     1 50
+0 NEI2016v1_RWC_MEOH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          MEOH          2016/1-12/1-31/$HH C xyz  kg/m2/s MEOH         1007     1 50
+0 NEI2016v1_RWC_BENZ           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          BENZ          2016/1-12/1-31/$HH C xyz  kg/m2/s BENZ         1007     1 50
+0 NEI2016v1_RWC_TOL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          TOL           2016/1-12/1-31/$HH C xyz  kg/m2/s TOL          1007     1 50
+0 NEI2016v1_RWC_XYLMN          $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          XYLMN         2016/1-12/1-31/$HH C xyz  kg/m2/s XYLMN        1007     1 50
+0 NEI2016v1_RWC_NAPH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          NAPH          2016/1-12/1-31/$HH C xyz  kg/m2/s NAPH         1007     1 50
+0 NEI2016v1_RWC_ALD2           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          ALD2          2016/1-12/1-31/$HH C xyz  kg/m2/s ALD2         1007     1 50
+0 NEI2016v1_RWC_ALDX           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          ALDX          2016/1-12/1-31/$HH C xyz  kg/m2/s ALDX         1007     1 50
+0 NEI2016v1_RWC_ISOP           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          ISOP          2016/1-12/1-31/$HH C xyz  kg/m2/s ISOP         1007     1 50
+0 NEI2016v1_RWC_PRPA           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          PRPA          2016/1-12/1-31/$HH C xyz  kg/m2/s PRPA         1007     1 50
+0 NEI2016v1_RWC_ACET           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          ACET          2016/1-12/1-31/$HH C xyz  kg/m2/s ACET         1007     1 50
+0 NEI2016v1_RWC_KET            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          KET           2016/1-12/1-31/$HH C xyz  kg/m2/s KET          1007     1 50
+0 NEI2016v1_RWC_ALD2_PRIMARY   $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          ALD2_PRIMARY  2016/1-12/1-31/$HH C xyz  kg/m2/s ALD2_PRIMARY 1007     1 50
+0 NEI2016v1_RWC_FORM_PRIMARY   $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          FORM_PRIMARY  2016/1-12/1-31/$HH C xyz  kg/m2/s FORM_PRIMARY 1007     1 50
+0 NEI2016v1_RWC_SOAALK         $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          SOAALK        2016/1-12/1-31/$HH C xyz  kg/m2/s SOAALK       1007     1 50
+0 NEI2016v1_RWC_PEC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          PEC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PEC          1007     1 50
+0 NEI2016v1_RWC_POC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          POC           2016/1-12/1-31/$HH C xyz  kg/m2/s  POC          1007     1 50
+0 NEI2016v1_RWC_PAL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          PAL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PAL          1007     1 50
+0 NEI2016v1_RWC_PCA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          PCA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCA          1007     1 50
+0 NEI2016v1_RWC_PCL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          PCL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCL          1007     1 50
+0 NEI2016v1_RWC_PFE            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          PFE           2016/1-12/1-31/$HH C xyz  kg/m2/s  PFE          1007     1 50
+0 NEI2016v1_RWC_PH2O           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          PH2O          2016/1-12/1-31/$HH C xyz  kg/m2/s  PH2O         1007     1 50
+0 NEI2016v1_RWC_PK             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          PK            2016/1-12/1-31/$HH C xyz  kg/m2/s  PK           1007     1 50
+0 NEI2016v1_RWC_PMG            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          PMG           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMG          1007     1 50
+0 NEI2016v1_RWC_PMN            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          PMN           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMN          1007     1 50
+0 NEI2016v1_RWC_PMOTHR         $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          PMOTHR        2016/1-12/1-31/$HH C xyz  kg/m2/s  PMOTHR       1007     1 50
+0 NEI2016v1_RWC_PNA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          PNA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PNA          1007     1 50
+0 NEI2016v1_RWC_PNCOM          $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          PNCOM         2016/1-12/1-31/$HH C xyz  kg/m2/s  PNCOM        1007     1 50
+0 NEI2016v1_RWC_PNH4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          PNH4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNH4         1007     1 50
+0 NEI2016v1_RWC_PNO3           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          PNO3          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNO3         1007     1 50
+0 NEI2016v1_RWC_PTI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          PTI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PTI          1007     1 50
+0 NEI2016v1_RWC_PSI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          PSI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PSI          1007     1 50
+0 NEI2016v1_RWC_PMC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          PMC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMC          1007     1 50
+0 NEI2016v1_RWC_PSO4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          PSO4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PSO4         1007     1 50
+
+# SURFACE NPOILGAS INVENTORY (OTHER NON-MAJOR SOURCES
+0 NEI2016v1_NPOILGAS_CO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          CO            2016/1-12/1-31/$HH C xyz  kg/m2/s  CO           1007     1 50
+0 NEI2016v1_NPOILGAS_SO2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          SO2           2016/1-12/1-31/$HH C xyz  kg/m2/s  SO2          1007     1 50
+0 NEI2016v1_NPOILGAS_NO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          NO            2016/1-12/1-31/$HH C xyz  kg/m2/s  NOT          1007     1 50
+0 NEI2016v1_NPOILGAS_NO2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          NO2           2016/1-12/1-31/$HH C xyz  kg/m2/s  NO2          1007     1 50
+0 NEI2016v1_NPOILGAS_CL2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          CL2           2016/1-12/1-31/$HH C xyz  kg/m2/s  CL2          1007     1 50
+0 NEI2016v1_NPOILGAS_HONO           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          HONO          2016/1-12/1-31/$HH C xyz  kg/m2/s  HONO         1007     1 50
+0 NEI2016v1_NPOILGAS_SULF           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          SULF          2016/1-12/1-31/$HH C xyz  kg/m2/s  SULF         1007     1 50
+0 NEI2016v1_NPOILGAS_NH3            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          NH3           2016/1-12/1-31/$HH C xyz  kg/m2/s  NH3          1007     1 50
+0 NEI2016v1_NPOILGAS_NH3_FERT       $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          NH3_FERT      2016/1-12/1-31/$HH C xyz  kg/m2/s  NH3_FERT     1007     1 50
+0 NEI2016v1_NPOILGAS_CH4            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          CH4           2016/1-12/1-31/$HH C xyz  kg/m2/s  CH4          1007     1 50
+0 NEI2016v1_NPOILGAS_ACROLEIN       $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          ACROLEIN      2016/1-12/1-31/$HH C xyz  kg/m2/s ACROLEIN     1007     1 50
+0 NEI2016v1_NPOILGAS_BUTADIENE13    $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          BUTADIENE13   2016/1-12/1-31/$HH C xyz  kg/m2/s BUTADIENE13  1007     1 50
+0 NEI2016v1_NPOILGAS_ETHY           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          ETHY          2016/1-12/1-31/$HH C xyz  kg/m2/s ETHY         1007     1 50
+0 NEI2016v1_NPOILGAS_TERP           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          TERP          2016/1-12/1-31/$HH C xyz  kg/m2/s TERP         1007     1 50
+0 NEI2016v1_NPOILGAS_FORM           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          FORM          2016/1-12/1-31/$HH C xyz  kg/m2/s FORM         1007     1 50
+0 NEI2016v1_NPOILGAS_PAR            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          PAR           2016/1-12/1-31/$HH C xyz  kg/m2/s PAR          1007     1 50
+0 NEI2016v1_NPOILGAS_IOLE           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          IOLE          2016/1-12/1-31/$HH C xyz  kg/m2/s IOLE        1007     1 50
+0 NEI2016v1_NPOILGAS_OLE            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          OLE           2016/1-12/1-31/$HH C xyz  kg/m2/s OLE         1007     1 50
+0 NEI2016v1_NPOILGAS_ETH            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          ETH          2016/1-12/1-31/$HH C xyz  kg/m2/s ETH          1007     1 50
+0 NEI2016v1_NPOILGAS_ETHA           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          ETHA          2016/1-12/1-31/$HH C xyz  kg/m2/s ETHA        1007     1 50
+0 NEI2016v1_NPOILGAS_ETOH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          ETOH          2016/1-12/1-31/$HH C xyz  kg/m2/s ETOH        1007     1 50
+0 NEI2016v1_NPOILGAS_MEOH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          MEOH          2016/1-12/1-31/$HH C xyz  kg/m2/s MEOH        1007     1 50
+0 NEI2016v1_NPOILGAS_BENZ           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          BENZ          2016/1-12/1-31/$HH C xyz  kg/m2/s BENZ        1007     1 50
+0 NEI2016v1_NPOILGAS_TOL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          TOL           2016/1-12/1-31/$HH C xyz  kg/m2/s TOL         1007     1 50
+0 NEI2016v1_NPOILGAS_XYLMN          $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          XYLMN         2016/1-12/1-31/$HH C xyz  kg/m2/s XYLMN       1007     1 50
+0 NEI2016v1_NPOILGAS_NAPH           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          NAPH          2016/1-12/1-31/$HH C xyz  kg/m2/s NAPH        1007     1 50
+0 NEI2016v1_NPOILGAS_ALD2           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          ALD2          2016/1-12/1-31/$HH C xyz  kg/m2/s ALD2        1007     1 50
+0 NEI2016v1_NPOILGAS_ALDX           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          ALDX          2016/1-12/1-31/$HH C xyz  kg/m2/s ALDX        1007     1 50
+0 NEI2016v1_NPOILGAS_ISOP           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          ISOP          2016/1-12/1-31/$HH C xyz  kg/m2/s ISOP        1007     1 50
+0 NEI2016v1_NPOILGAS_PRPA           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          PRPA          2016/1-12/1-31/$HH C xyz  kg/m2/s PRPA        1007     1 50
+0 NEI2016v1_NPOILGAS_ACET           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          ACET          2016/1-12/1-31/$HH C xyz  kg/m2/s ACET        1007     1 50
+0 NEI2016v1_NPOILGAS_KET            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          KET           2016/1-12/1-31/$HH C xyz  kg/m2/s KET         1007     1 50
+0 NEI2016v1_NPOILGAS_ALD2_PRIMARY   $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          ALD2_PRIMARY  2016/1-12/1-31/$HH C xyz  kg/m2/s ALD2_PRIMARY 1007    1 50
+0 NEI2016v1_NPOILGAS_FORM_PRIMARY   $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          FORM_PRIMARY  2016/1-12/1-31/$HH C xyz  kg/m2/s FORM_PRIMARY 1007    1 50
+0 NEI2016v1_NPOILGAS_SOAALK         $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          SOAALK        2016/1-12/1-31/$HH C xyz  kg/m2/s SOAALK      1007     1 50
+0 NEI2016v1_NPOILGAS_PEC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          PEC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PEC         1007     1 50
+0 NEI2016v1_NPOILGAS_POC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          POC           2016/1-12/1-31/$HH C xyz  kg/m2/s  POC         1007     1 50
+0 NEI2016v1_NPOILGAS_PAL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          PAL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PAL         1007     1 50
+0 NEI2016v1_NPOILGAS_PCA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          PCA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCA         1007     1 50
+0 NEI2016v1_NPOILGAS_PCL            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          PCL           2016/1-12/1-31/$HH C xyz  kg/m2/s  PCL         1007     1 50
+0 NEI2016v1_NPOILGAS_PFE            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          PFE           2016/1-12/1-31/$HH C xyz  kg/m2/s  PFE         1007     1 50
+0 NEI2016v1_NPOILGAS_PH2O           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          PH2O          2016/1-12/1-31/$HH C xyz  kg/m2/s  PH2O        1007     1 50
+0 NEI2016v1_NPOILGAS_PK             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          PK            2016/1-12/1-31/$HH C xyz  kg/m2/s  PK          1007     1 50
+0 NEI2016v1_NPOILGAS_PMG            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          PMG           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMG         1007     1 50
+0 NEI2016v1_NPOILGAS_PMN            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          PMN           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMN         1007     1 50
+0 NEI2016v1_NPOILGAS_PMOTHR         $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          PMOTHR        2016/1-12/1-31/$HH C xyz  kg/m2/s  PMOTHR      1007     1 50
+0 NEI2016v1_NPOILGAS_PNA            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          PNA           2016/1-12/1-31/$HH C xyz  kg/m2/s  PNA         1007     1 50
+0 NEI2016v1_NPOILGAS_PNCOM          $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          PNCOM         2016/1-12/1-31/$HH C xyz  kg/m2/s  PNCOM       1007     1 50
+0 NEI2016v1_NPOILGAS_PNH4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          PNH4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNH4        1007     1 50
+0 NEI2016v1_NPOILGAS_PNO3           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          PNO3          2016/1-12/1-31/$HH C xyz  kg/m2/s  PNO3        1007     1 50
+0 NEI2016v1_NPOILGAS_PTI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          PTI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PTI         1007     1 50
+0 NEI2016v1_NPOILGAS_PSI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          PSI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PSI         1007     1 50
+0 NEI2016v1_NPOILGAS_PMC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          PMC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMC         1007     1 50
+0 NEI2016v1_NPOILGAS_PSO4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          PSO4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PSO4        1007     1 50
+)))NEI2016v1_AR
+
+#####################################################################
+# Met fields for stand-alone/offline GFS MEGANv2.1 use
+#####################################################################
+
+
+###############################################################################
+### NON-EMISSIONS DATA (subsection of BASE EMISSIONS SECTION)
+###
+### Non-emissions data. The following fields are read through HEMCO but do
+### not contain emissions data. The extension number is set to wildcard
+### character denoting that these fields will not be considered for emission
+### calculation. A given entry is only read if the assigned species name is
+### an HEMCO species.
+###############################################################################
+
+### END SECTION BASE EMISSIONS ###
+
+###############################################################################
+### BEGIN SECTION SCALE FACTORS
+###############################################################################
+
+#==============================================================================
+# --- Time zones (offset to UTC) ---
+#==============================================================================
+* TIMEZONES $ROOT/TIMEZONES/v2015-02/timezones_voronoi_1x1.nc UTC_OFFSET 2000/1/1/0 C xy count * - 1 1
+
+#==============================================================================
+# Units carbon to species conversions
+# Factor = (# carbon atoms * MW carbon) / MW species
+#==============================================================================
+440 CtoACET MATH:58.1/(3.0*12.0)   - - - xy unitless 1
+441 CtoALD2 MATH:44.0/(2.0*12.0)   - - - xy unitless 1
+442 CtoALDX MATH:58.1/(4.3*12.0)   - - - xy unitless 1
+443 CtoBENZ MATH:78.1/(6.0*12.0)   - - - xy unitless 1
+445 CtoETHA MATH:30.1/(2.0*12.0)   - - - xy unitless 1
+446 CtoPRPA MATH:44.1/(3.0*12.0)   - - - xy unitless 1
+447 CtoETOH MATH:46.1/(2.0*12.0)   - - - xy unitless 1
+448 CtoKET  MATH:72.1/(4.0*12.0)   - - - xy unitless 1
+449 CtoTOL  MATH:92.1/(7.0*12.0)   - - - xy unitless 1
+450 CtoXYLMN MATH:106.2/(8.0*12.0)  - - - xy unitless 1
+451 CtoETHY MATH:26.0/(2.0*12.0)   - - - xy unitless 1
+452 CtoISOP MATH:68.1/(5.0*12.0)   - - - xy unitless 1
+453 CtoACROLEIN MATH:56.1/(3.0*12.0)   - - - xy unitless 1
+454 CtoBUTADIENE13 MATH:54.0/(4.0*12.0)   - - - xy unitless 1
+455 CtoTERP MATH:136.2/(5.0*12.0)   - - - xy unitless 1
+456 CtoFORM MATH:30.0/(1.0*12.0)   - - - xy unitless 1
+457 CtoPAR MATH:72.1/(4.0*12.0)   - - - xy unitless 1
+458 CtoIOLE MATH:56.1/(4.0*12.0)   - - - xy unitless 1
+459 CtoOLE MATH:42.1/(2.0*12.0)   - - - xy unitless 1
+460 CtoETH MATH:28.0/(2.0*12.0)   - - - xy unitless 1
+461 CtoMEOH MATH:32.0/(1.0*12.0)   - - - xy unitless 1
+462 CtoNAPH MATH:128.2/(10.0*12.0)   - - - xy unitless 1
+463 CtoALD2_PRIMARY MATH:44.0/(2.0*12.0)   - - - xy unitless 1
+464 CtoFORM_PRIMARY MATH:30.0/(1.0*12.0)   - - - xy unitless 1
+465 CtoSOAALK MATH:112.0/(4.0*12.0)   - - - xy unitless 1
+
+### END SECTION MASKS ###
+
+### END OF HEMCO INPUT FILE ###
+
+#EOC

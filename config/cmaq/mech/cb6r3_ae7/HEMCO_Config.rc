@@ -1,0 +1,176 @@
+#------------------------------------------------------------------------------
+#                  Harmonized Emissions Component (HEMCO)                     !
+#------------------------------------------------------------------------------
+#BOP
+#
+# !MODULE: HEMCO_Config.rc
+#
+# !DESCRIPTION: Contains configuration information for HEMCO. Define the
+#  emissions inventories and corresponding file paths here. Entire
+#  configuration files can be inserted into this configuration file with
+#  an '>>>include' statement, e.g. '>>>include HEMCO\_Config\_test.rc'
+#  The settings of include-files will be ignored.
+#\\
+#\\
+# !REMARKS:
+#  See The HEMCO User's Guide for file details:
+#    http://wiki.geos-chem.org/The_HEMCO_User%27s_Guide
+#
+# !REVISION HISTORY:
+#  See https://github.com/geoschem/geos-chem for complete history
+#EOP
+#------------------------------------------------------------------------------
+#BOC
+###############################################################################
+### BEGIN SECTION SETTINGS
+###############################################################################
+
+ROOT                        : input
+INPUT                       : input
+OUTPUT                      : output
+GridFile                    : HEMCO_sa_Grid.rc
+SpecFile                    : HEMCO_sa_Spec.rc
+TimeFile                    : HEMCO_sa_Time.rc
+DiagnFile                   : HEMCO_sa_Diagn.rc
+DiagnPrefix                 : output/NEXUS.merged_nei2019_meganv21_pre
+DiagnFreq                   : Hourly
+Logfile                     : NEXUS.log
+Unit tolerance              : 2
+Negative values             : 1
+Verbose                     : 10
+Warnings                    : 1
+Mask fractions              : true
+MET                         : geosfp
+RES                         : 4x5
+PBL dry deposition          : False
+SINTOK                      : 0.5
+Cap time shift              : true
+
+### END SECTION SETTINGS ###
+
+###############################################################################
+### BEGIN SECTION EXTENSION SWITCHES
+###############################################################################
+# ExtNr ExtName                on/off  Species  Years avail.
+0       Base                   : on    *
+    --> HEMCO_RESTART     :       true
+    --> AEIC              :       false
+    --> BIOFUEL           :       false
+    --> BOND              :       false
+    --> BRAVO             :       false
+    --> CAC               :       false
+    --> C2H6              :       false
+    --> EDGAR             :       false
+    --> HTAPv2            :       false
+    --> HTAPv3            :  on   true
+    --> EMEP              :       false
+    --> GEIA              :       false
+    --> LIANG_BROMOCARB   :       false
+    --> NEI2016           :       false
+    --> NEMO_NEI2019_AR   :  on   true
+    --> RETRO             :       false
+    --> SHIP              :       false
+    --> MIX               :       false
+    --> STREETS           :       false
+    --> VOLCANO           :       false
+    --> +UValbedo+        :       false
+    --> +TOMS_SBUV_O3+    :       false
+    --> +LinStratChem+    :       false
+    --> CEDSv2            :  on   true
+    --> CEDSv3            :       false
+    --> OMI_HTAP_SO2      :  on   true
+    --> Yuan_XLAI         :  on   false
+    --> MODIS_XLAI        :       false
+    --> OFFLINE_SOILNOX   :  on   true
+
+### END SECTION EXTENSION SWITCHES ###
+# -----------------------------------------------------------------------------
+100     Custom            : off   -
+101     SeaFlux           : off   DMS/ACET
+102     ParaNOx           : off   NO/NO2/O3/HNO3
+    --> LUT data format   :       nc
+    --> LUT source dir    :       $ROOT/PARANOX/v2015-02
+103     LightNOx          : off   NO
+    --> OTD-LIS factors   :       true
+    --> CDF table         :       $ROOT/LIGHTNOX/v2014-07/light_dist.ott2010.dat
+104     SoilNOx           : off   NO
+    --> Use fertilizer NOx:       true
+105     DustDead          : off   DST1/DST2/DST3/DST4
+106     DustGinoux        : off   DST1/DST2/DST3/DST4
+107     SeaSalt           : off   SALA/SALC/Br2
+    --> SALA lower radius :       0.01
+    --> SALA upper radius :       0.5
+    --> SALC lower radius :       0.5
+    --> SALC upper radius :       8.0
+    --> Emit Br2          :       true
+    --> Br2 scaling       :       1.0
+108     MEGAN             : on    ISOP/ACET/PRPE/C2H4/ALD2/EOH/MOH/MTPA/MTPO/LIMO/SESQ
+    --> Isoprene scaling  :       1.0
+    --> CO2 inhibition    :       true
+    --> CO2 conc (ppmv)   :       411.0
+    --> Isoprene to SOAP  :       0.015
+    --> Isoprene to SOAS  :       0.015
+
+###############################################################################
+### BEGIN SECTION BASE EMISSIONS
+###############################################################################
+
+# ExtNr	Name sourceFile sourceVar sourceTime C/R/E SrcDim SrcUnit Species ScalIDs Cat Hier
+
+#==============================================================================
+# --- CEDS v2 ---
+#
+# %%% This is the default global inventory. You may select either CEDS,
+# EDGAR, HTAP or CMIP6_SFC_LAND_ANTHRO for the global base emissions %%%
+#==============================================================================
+>>>include $ROOT/Configs/HEMCO_Config.rc.CEDSv2
+
+#==============================================================================
+# --- CEDS v3 ---
+#
+# %%% This is the default global inventory. You may select either CEDS,
+# EDGAR, HTAP or CMIP6_SFC_LAND_ANTHRO for the global base emissions %%%
+#==============================================================================
+>>>include $ROOT/Configs/HEMCO_Config.rc.CEDSv3
+
+#==============================================================================
+# --- NEI2019 ---
+#==============================================================================
+>>>include $ROOT/Configs/HEMCO_Config.rc.NEMO_NEI2019_AR
+
+#==============================================================================
+# -- HTAPv2 ---
+#==============================================================================
+>>>include $ROOT/Configs/HEMCO_Config.rc.HTAPv2
+
+#==============================================================================
+# --- HTAPv3 ---
+#==============================================================================
+>>>include $ROOT/Configs/HEMCO_Config.rc.HTAPv3
+
+#==============================================================================
+# --- MEGAN ---
+#==============================================================================
+>>>include $ROOT/Configs/HEMCO_Config.rc.MEGAN
+
+
+### END SECTION BASE EMISSIONS ###
+
+###############################################################################
+### BEGIN SECTION SCALE FACTORS
+###############################################################################
+
+# ScalID Name sourceFile sourceVar sourceTime C/R/E SrcDim SrcUnit Oper
+
+### END SECTION SCALE FACTORS ###
+
+###############################################################################
+### BEGIN SECTION MASKS
+###############################################################################
+
+# ScalID Name sourceFile sourceVar sourceTime C/R/E SrcDim SrcUnit Oper Lon1/Lat1/Lon2/Lat2
+
+### END SECTION MASKS ###
+
+### END OF HEMCO INPUT FILE ###
+#EOC
