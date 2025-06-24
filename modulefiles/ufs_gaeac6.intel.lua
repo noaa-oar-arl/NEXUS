@@ -1,9 +1,9 @@
 help([[
-  This module loads libraries required for building and running UFS Weather Model
+  This module loads libraries required for building and running NEXUS Model
   on the NOAA RDHPC machine Gaea C6 using Intel-2023.2.0.
 ]])
 
-whatis([===[Loads libraries needed for building the UFS Weather Model on Gaea C6]===])
+whatis([===[Loads libraries needed for building the NEXUS Model on Gaea C6]===])
 
 prepend_path("MODULEPATH", "/ncrc/proj/epic/spack-stack/c6/spack-stack-1.6.0/envs/fms-2024.01/install/modulefiles/Core")
 

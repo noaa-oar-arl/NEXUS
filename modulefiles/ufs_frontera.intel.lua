@@ -1,5 +1,5 @@
 help([[
-loads UFS Model prerequisites for Frontera/Intel
+loads NEXUS Model prerequisites for Frontera/Intel
 ]])
 
 prepend_path("MODULEPATH", "/work2/06146/tg854455/frontera/spack-stack/modulefiles")

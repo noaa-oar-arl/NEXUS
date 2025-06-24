@@ -4,7 +4,7 @@
 ##
 ##    UFS prerequisites: macOS with gcc/gfortran or clang/gfortran compilers
 
-echo "Setting environment variables for UFS Model on macOS with gcc/gfortran or clang/gfortran"
+echo "Setting environment variables for NEXUS Model on macOS with gcc/gfortran or clang/gfortran"
 
 ##
 ## load programming environment: compiler, flags, paths

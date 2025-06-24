@@ -4,7 +4,7 @@
 ##
 ##    UFS prerequisites: Linux (tested: Ubuntu) with gcc/gfortran compilers
 
-echo "Setting environment variables for UFS Model on Linux with gcc/gfortran"
+echo "Setting environment variables for NEXUS Model on Linux with gcc/gfortran"
 
 ##
 ## load programming environment: compiler, flags, paths

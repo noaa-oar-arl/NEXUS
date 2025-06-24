@@ -1,5 +1,5 @@
 help([[
-loads UFS Model prerequisites for S4/Intel
+loads NEXUS Model prerequisites for S4/Intel
 ]])
 
 prepend_path("MODULEPATH", "/data/prod/jedi/spack-stack/spack-stack-1.6.0/envs/upp-addon-env/install/modulefiles/Core")

@@ -4,7 +4,7 @@
 ##
 ##    UFS prerequisites: macOS with icc/ifort compilers
 
-echo "Setting environment variables for UFS Model on macOS with with icc/ifort"
+echo "Setting environment variables for NEXUS Model on macOS with with icc/ifort"
 
 ##
 ## load programming environment: compiler, flags, paths

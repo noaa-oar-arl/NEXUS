@@ -1,5 +1,5 @@
 help([[
-loads UFS Model prerequisites for Derecho/GNU
+loads NEXUS Model prerequisites for Derecho/GNU
 ]])
 
 setenv("LMOD_TMOD_FIND_FIRST","yes")

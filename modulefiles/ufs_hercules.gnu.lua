@@ -1,5 +1,5 @@
 help([[
-loads UFS Model prerequisites for Hercules/GNU
+loads NEXUS Model prerequisites for Hercules/GNU
 ]])
 
 prepend_path("MODULEPATH", "/apps/contrib/spack-stack/spack-stack-1.6.0/envs/gnu-fms-2024.01/install/modulefiles/Core")
