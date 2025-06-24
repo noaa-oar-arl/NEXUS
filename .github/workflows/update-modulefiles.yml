@@ -37,6 +37,8 @@ jobs:
         sed -i '/crtm/d' modulefiles/ufs_common.lua
         sed -i '/bacio/d' modulefiles/ufs_common.lua
         sed -i '/fms/d' modulefiles/ufs_common.lua
+        find modulefiles/ -type f -exec sed -i 's/UFS Weather Model/NEXUS Model/g' {} +
+        find modulefiles/ -type f -exec sed -i 's/UFS Model/NEXUS Model/g' {} +
 
     - name: Set up Python and install pre-commit
       run: |
@@ -53,11 +55,6 @@ jobs:
       run: |
         git add modulefiles
         git commit -m "Apply pre-commit fixes to modulefiles" || echo "No pre-commit changes to commit"
-
-    - name: Update model references in help strings
-      run: |
-        find modulefiles/ -type f -exec sed -i 's/UFS Weather Model/NEXUS Model/g' {} +
-        find modulefiles/ -type f -exec sed -i 's/UFS Model/NEXUS Model/g' {} +
 
     - name: Check for changes
       id: changes
