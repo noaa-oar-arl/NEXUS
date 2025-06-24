@@ -47,7 +47,7 @@ jobs:
     - name: Run pre-commit hooks on modulefiles
       run: |
         source venv/bin/activate
-        pre-commit run --files $(find modulefiles/ -type f)
+        pre-commit run --files $(find modulefiles/ -type f) || true
 
     - name: Commit pre-commit fixes (if any)
       run: |
