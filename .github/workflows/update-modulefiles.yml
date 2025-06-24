@@ -38,14 +38,21 @@ jobs:
         sed -i '/bacio/d' modulefiles/ufs_common.lua
         sed -i '/fms/d' modulefiles/ufs_common.lua
 
+    - name: Set up Python and install pre-commit
+      run: |
+        python3 -m venv venv
+        source venv/bin/activate
+        pip install pre-commit
+
+    - name: Run pre-commit hooks on modulefiles
+      run: |
+        source venv/bin/activate
+        pre-commit run --files $(find modulefiles/ -type f)
+
     - name: Update model references in help strings
       run: |
         find modulefiles/ -type f -exec sed -i 's/UFS Weather Model/NEXUS Model/g' {} +
         find modulefiles/ -type f -exec sed -i 's/UFS Model/NEXUS Model/g' {} +
-
-    - name: Clean whitespace and ensure trailing newline
-      run: |
-        find modulefiles/ -type f -exec sed -i -e 's/[[:space:]]\+$//' -e '$a\' {} +
 
     - name: Check for changes
       id: changes
