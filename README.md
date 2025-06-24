@@ -23,6 +23,13 @@ pre-commit install --install-hooks
 
 ### Setup
 
+#### On Supported Platforms
+```
+./build.sh
+```
+
+Further details on building manually are below
+
 #### Supported UFS machines
 
 UFS spack-stack module files are included for Hera, WCOSS2, Orion, etc.
