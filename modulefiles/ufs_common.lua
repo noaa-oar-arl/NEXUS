@@ -1,5 +1,5 @@
 
-help([[Load NEXUS Model common libraries]])
+help([[Load UFS Model common libraries]])
 
 local ufs_modules = {
   {["zlib"]            = "1.2.13"},

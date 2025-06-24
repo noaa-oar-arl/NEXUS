@@ -1,5 +1,5 @@
 help([[
-loads NEXUS Model prerequisites for NOAA Parallelworks/Intel
+loads UFS Model prerequisites for NOAA Parallelworks/Intel
 ]])
 
 setenv("LMOD_TMOD_FIND_FIRST","yes")

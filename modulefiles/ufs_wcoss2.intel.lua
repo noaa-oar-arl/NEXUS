@@ -1,5 +1,5 @@
 help([[
-loads NEXUS Model prerequisites on Cactus and Dogwood
+loads UFS Model prerequisites on Cactus and Dogwood
 ]])
 
 -- First, look for libraries in "prod" space
