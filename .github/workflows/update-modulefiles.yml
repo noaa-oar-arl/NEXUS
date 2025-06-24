@@ -43,6 +43,10 @@ jobs:
         find modulefiles/ -type f -exec sed -i 's/UFS Weather Model/NEXUS Model/g' {} +
         find modulefiles/ -type f -exec sed -i 's/UFS Model/NEXUS Model/g' {} +
 
+    - name: Clean whitespace and ensure trailing newline
+      run: |
+        find modulefiles/ -type f -exec sed -i -e 's/[[:space:]]\+$//' -e '$a\' {} +
+
     - name: Check for changes
       id: changes
       run: |
