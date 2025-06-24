@@ -52,8 +52,4 @@ setenv("CXX", "CC")
 setenv("FC", "ftn")
 setenv("CMAKE_Platform", "wcoss2")
 
--- Avoid CMake Policy CMP0074 warning when using our Find*.cmake scripts
-unsetenv("NetCDF_ROOT")
-unsetenv("ESMF_ROOT")
-
 whatis("Description: UFS build environment")

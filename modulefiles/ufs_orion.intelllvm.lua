@@ -1,8 +1,8 @@
 help([[
-loads UFS Model prerequisites for Hercules/IntelLLVM
+loads UFS Model prerequisites for OrionLLVM/Intel
 ]])
 
-prepend_path("MODULEPATH", "/work/noaa/epic/role-epic/spack-stack/hercules/spack-stack-1.6.0/envs/fms-2024.01/install/modulefiles/Core")
+prepend_path("MODULEPATH", "/work/noaa/epic/role-epic/spack-stack/orion/spack-stack-1.6.0/envs/fms-2024.01/install/modulefiles/Core")
 
 stack_intel_ver=os.getenv("stack_intel_ver") or "2021.9.0"
 load(pathJoin("stack-intel", stack_intel_ver))
@@ -25,6 +25,6 @@ setenv("I_MPI_F90", "ifx")
 setenv("CC", "mpiicc")
 setenv("CXX", "mpiicpc")
 setenv("FC", "mpiifort")
-setenv("CMAKE_Platform", "hercules.intel")
+setenv("CMAKE_Platform", "orion.intel")
 
 whatis("Description: UFS build environment")

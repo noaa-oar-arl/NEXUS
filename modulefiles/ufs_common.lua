@@ -1,9 +1,7 @@
-whatis("Description: UFS build environment common libraries")
 
 help([[Load UFS Model common libraries]])
 
 local ufs_modules = {
-  {["jasper"]          = "2.0.32"},
   {["zlib"]            = "1.2.13"},
   {["libpng"]          = "1.6.37"},
   {["hdf5"]            = "1.14.0"},
