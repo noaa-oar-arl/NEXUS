@@ -1,5 +1,5 @@
 help([[
-loads UFS Model prerequisites for NOAA Parallelworks/Intel
+loads NEXUS Model prerequisites for NOAA Parallelworks/Intel
 ]])
 
 prepend_path("MODULEPATH", "/contrib/spack-stack-rocky8/spack-stack-1.6.0/envs/fms-2024.01/install/modulefiles/Core")

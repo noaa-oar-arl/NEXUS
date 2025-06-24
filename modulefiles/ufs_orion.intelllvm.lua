@@ -1,5 +1,5 @@
 help([[
-loads UFS Model prerequisites for OrionLLVM/Intel
+loads NEXUS Model prerequisites for OrionLLVM/Intel
 ]])
 
 prepend_path("MODULEPATH", "/work/noaa/epic/role-epic/spack-stack/orion/spack-stack-1.6.0/envs/fms-2024.01/install/modulefiles/Core")

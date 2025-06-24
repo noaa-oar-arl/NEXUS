@@ -1,5 +1,5 @@
 help([[
-loads UFS Model prerequisites for Hera/GNU
+loads NEXUS Model prerequisites for Hera/GNU
 ]])
 
 prepend_path("MODULEPATH", "/contrib/spack-stack/installs/gnu/modulefiles")

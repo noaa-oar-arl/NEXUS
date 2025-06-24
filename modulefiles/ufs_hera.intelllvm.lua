@@ -1,5 +1,5 @@
 help([[
-loads UFS Model prerequisites for Hera/IntelLLVM
+loads NEXUS Model prerequisites for Hera/IntelLLVM
 ]])
 
 prepend_path("MODULEPATH", "/contrib/spack-stack/spack-stack-1.6.0/envs/fms-2024.01/install/modulefiles/Core")
