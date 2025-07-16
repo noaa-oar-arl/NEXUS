@@ -120,11 +120,55 @@ M2_DATA_VAR_INFO = {
             "gamap_category": "GMAO-2D",
         },
     },
+    "SOIM1": {
+        "gfs_name": "soilw1",
+        "attrs": {
+            "long_name": "volumetric soil moisture 0-10cm",
+            "standard_name": "volumetric soil moisture 0-10cm",
+            "units": "m3/m3",
+            "gamap_category": "GMAO-2D",
+        },
+    },
+    "SOIM2": {
+        "gfs_name": "soilw2",
+        "attrs": {
+            "long_name": "volumetric soil moisture 10-40cm",
+            "standard_name": "volumetric soil moisture 10-40cm",
+            "units": "m3/m3",
+            "gamap_category": "GMAO-2D",
+        },
+    },
+    "SOIM3": {
+        "gfs_name": "soilw3",
+        "attrs": {
+            "long_name": "volumetric soil moisture 40-100cm",
+            "standard_name": "volumetric soil moisture 40-100cm",
+            "units": "m3/m3",
+            "gamap_category": "GMAO-2D",
+        },
+    },
+    "SOIM4": {
+        "gfs_name": "soilw4",
+        "attrs": {
+            "long_name": "volumetric soil moisture 100-200cm",
+            "standard_name": "volumetric soil moisture 100-200cm",
+            "units": "m3/m3",
+            "gamap_category": "GMAO-2D",
+        },
+    },
+    "WILT": {
+        "gfs_name": "wilt",
+        "attrs": {
+            "long_name": "wiltimg point",
+            "standard_name": "wiltimg point",
+            "units": "m3/m3",
+            "gamap_category": "GMAO-2D",
+        },
+    },
 }
 
 M2_DATA_VAR_OLD_TO_NEW = {d["gfs_name"]: k for k, d in M2_DATA_VAR_INFO.items()}
 
-# fmt: off
 # https://github.com/NCAR/ccpp-physics/blob/c348f3e363f066c2c513b0449690859d3104bac8/physics/set_soilveg.f#L258
 DRYSMC = [
     None,  # for vtype 0
@@ -144,7 +188,6 @@ MAXSMC = [
     0.395, 0.000, 0.000, 0.000, 0.000, 0.000,
     0.000, 0.000, 0.000, 0.000, 0.000, 0.000,
 ]
-# fmt: on
 
 
 def main(i_fps, o_fp):
@@ -273,7 +316,8 @@ def main(i_fps, o_fp):
     ds_new = nc.Dataset(o_fp, "w", format="NETCDF4")
     ds_new.title = "Biogenic inputs from GFS for NEXUS/HEMCO"
     ds_new.history = (
-        "NOAA GFS data reformatted to fit the COARDS conventions and be used in NEXUS/HEMCO"
+        "NOAA GFS data reformatted to fit the COARDS conventions "
+        "and be used in NEXUS/HEMCO"
     )
     for k, v in M2_DS_ATTRS.items():
         ds_new.setncattr(k, v)
@@ -325,7 +369,7 @@ def main(i_fps, o_fp):
             data = ds[vn_old][:].squeeze()  # squeeze singleton time
             # TODO: deal with `.missing_value`/`_FillValue`? (both are set)
 
-            if vn_old == "soilw4":
+            if vn_old == "soilw4" and vn_new == "GWETROOT":
                 # Set non-soil to 0 (from 1)
                 # 0: Water
                 # 16: Antarctica
@@ -341,7 +385,7 @@ def main(i_fps, o_fp):
                     is_vt = vtype == vt
                     data[is_vt] = (data[is_vt] - min_vt) / (max_vt - min_vt)
 
-            if vn_old == "soilw4":
+            if vn_old == "soilw4" and vn_new == "GWETROOT":
                 data_new = np.clip(data, 0, 1)
             else:
                 data_new = np.clip(data, 0, None)  # no negatives
