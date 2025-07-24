@@ -343,10 +343,10 @@ def main(i_fps, o_fp):
 
             if vn_old == "soilw4":
                 data_new = np.clip(data, 0, 1)
-            elif vn_old == "vddsf_ave" :
-                data_new = np.clip(data, 0, None) * 0.57 #apply an empirical factor
-            elif vn_old == "vbdsf_ave" :
-                data_new = np.clip(data, 0, None) * 0.47 #apply an empirical factor
+            elif vn_old == "vddsf_ave":
+                data_new = np.clip(data, 0, None) * 0.57  # apply an empirical factor
+            elif vn_old == "vbdsf_ave":
+                data_new = np.clip(data, 0, None) * 0.47  # apply an empirical factor
             else:
                 data_new = np.clip(data, 0, None)  # no negatives
 
