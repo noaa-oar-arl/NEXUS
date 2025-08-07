@@ -183,9 +183,6 @@ Cap time shift              : true
 # ExtNr   Name sourceFile      sourceVar sourceTime C/R/E SrcDim SrcUnit Species ScalIDs Cat Hier
 0 UNIFORM 1.0 - * C xy kg/m2/s NO - 1 5
 
-#==============================================================================
-# --- CEDS ---
-#==============================================================================
 {% if NXS_DO_CAMSTEMPO %}
   {% set ct_25 = 25 %}
   {% set ct_35 = 35 %}
@@ -205,7 +202,11 @@ Cap time shift              : true
     {% set ct_48 = "" %}
     {% set ct25_199 = 199 %}
 {% endif %}
+
 {% if NXS_DO_CEDS2019 %}
+#==============================================================================
+# --- CEDS ---
+#==============================================================================
 (((CEDS
 0 BC_agr $TMPDIR/CEDS/v2021-06/$YYYY/BC-em-anthro_CMIP_CEDS_$YYYY.nc BC_agr 1994-2020/1-12/1/0 C xy kg/m2/s BC      {{ ct_25 }}     1 1
 0 BC_ene $TMPDIR/CEDS/v2021-06/$YYYY/BC-em-anthro_CMIP_CEDS_$YYYY.nc BC_ene 1994-2020/1-12/1/0 C xy kg/m2/s BC_elev {{ ct_35}}{{ ct_44 }}  1 1
@@ -245,6 +246,9 @@ Cap time shift              : true
 # 0 NH3_wst $TMPDIR/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_wst 1994-2020/1-12/1/0 C xy kg/m2/s NH3_oc {{ ct_25 }}     1 1
 )))CEDS
 {% elif NXS_DO_CEDS2024 %}
+#==============================================================================
+# --- CEDS 2024 ---
+#==============================================================================
 (((CEDS
 0 BC_agr $TMPDIR/CEDS/v2025-01/BC/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc BC_agr 2000-2022/1-12/1/0 C xy kg/m2/s BC {{ ct_25 }}     1 1
 0 BC_ene $TMPDIR/CEDS/v2025-01/BC/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc BC_ene 2000-2022/1-12/1/0 C xy kg/m2/s BC_elev {{ ct_35}}{{ ct_44 }}  1 1
@@ -283,23 +287,46 @@ Cap time shift              : true
 # 0 NH3_sol $TMPDIR/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_sol 2000-2022/1-12/1/0 C xy kg/m2/s NH3_oc {{ ct_25 }}     1 1
 # 0 NH3_was $TMPDIR/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_was 2000-2022/1-12/1/0 C xy kg/m2/s NH3_oc {{ ct_25 }}     1 1
 )))CEDS
-{% elif NXS_DO_CAMSGLOBAL %}
-# empty for NOW
+{% elif NXS_DO_CAMS %}
+#==============================================================================
+# --- CAMS GLOBAL ANT 2024 ---
+#==============================================================================
+# Agricultural waste burning
+0 SO2_awb $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc awb 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
+# energy
+0 SO2_ene $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ene 2010-2026/1-12/1/0 C xy kg/m2/s SO2_elev {{ ct_35}}{{ ct_44 }}  1 1
+# Industry buildings
+0 SO2_ind $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ind 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
+# Commercial buildings
+0 SO2_com $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc com 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
+# Residential buildings
+0 SO2_res $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc res 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_28}}{{ ct_46 }}  1 1
+0 SO2_sum $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc sum 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_37}}{{ ct_48 }}  1 1
+0 SO2_shp $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc shp 2010-2026/1-12/1/0 C xy kg/m2/s SO2_ship {{ ct_25 }}     1 1
+0 SO4_shp $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc shp 2010-2026/1-12/1/0 C xy kg/m2/s SO4_ship {{ ct25_199 }}     1 1
+0 SO2_ref $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ref 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
+0 SO2_fef $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc fef 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
 {% endif %}
 
 {% if NXS_DO_HTAPv2 %}
+#==============================================================================
+# --- HTAP v2 ---
+#==============================================================================
 (((HTAP
-0 SO2_lto $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_so2.aviation_lto.x3600_y1800_t12.2010.nc4 so2_aviation 1994-2020/1-12/1/0 C xy kg/m2/s SO2_lto - 1 1
-0 SO2_cds $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_so2.aviation_lto.x3600_y1800_t12.2010.nc4 so2_aviation 1994-2020/1-12/1/0 C xy kg/m2/s SO2_cds - 1 1
-0 SO2_crs $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_so2.aviation_lto.x3600_y1800_t12.2010.nc4 so2_aviation 1994-2020/1-12/1/0 C xy kg/m2/s SO2_crs - 1 1
-0 OC_lto $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_oc.aviation_lto.x3600_y1800_t12.2010.nc4 oc_aviation 1994-2020/1-12/1/0 C xy kg/m2/s OC_lto - 1 1
-0 OC_cds $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_oc.aviation_lto.x3600_y1800_t12.2010.nc4 oc_aviation 1994-2020/1-12/1/0 C xy kg/m2/s OC_cds - 1 1
-0 OC_crs $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_oc.aviation_lto.x3600_y1800_t12.2010.nc4 oc_aviation 1994-2020/1-12/1/0 C xy kg/m2/s OC_crs - 1 1
-0 BC_lto $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_bc.aviation_lto.x3600_y1800_t12.2010.nc4 bc_aviation 1994-2020/1-12/1/0 C xy kg/m2/s BC_lto - 1 1
-0 BC_cds $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_bc.aviation_lto.x3600_y1800_t12.2010.nc4 bc_aviation 1994-2020/1-12/1/0 C xy kg/m2/s BC_cds - 1 1
-0 BC_crs $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_bc.aviation_lto.x3600_y1800_t12.2010.nc4 bc_aviation 1994-2020/1-12/1/0 C xy kg/m2/s BC_crs - 1 1
+0 SO2_lto $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_so2.aviation_lto.x3600_y1800_t12.2010.nc4 so2_aviation 2010/1-12/1/0 C xy kg/m2/s SO2_lto - 1 1
+0 SO2_cds $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_so2.aviation_lto.x3600_y1800_t12.2010.nc4 so2_aviation 2010/1-12/1/0 C xy kg/m2/s SO2_cds - 1 1
+0 SO2_crs $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_so2.aviation_lto.x3600_y1800_t12.2010.nc4 so2_aviation 2010/1-12/1/0 C xy kg/m2/s SO2_crs - 1 1
+0 OC_lto $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_oc.aviation_lto.x3600_y1800_t12.2010.nc4 oc_aviation 2010/1-12/1/0 C xy kg/m2/s OC_lto - 1 1
+0 OC_cds $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_oc.aviation_lto.x3600_y1800_t12.2010.nc4 oc_aviation 2010/1-12/1/0 C xy kg/m2/s OC_cds - 1 1
+0 OC_crs $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_oc.aviation_lto.x3600_y1800_t12.2010.nc4 oc_aviation 2010/1-12/1/0 C xy kg/m2/s OC_crs - 1 1
+0 BC_lto $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_bc.aviation_lto.x3600_y1800_t12.2010.nc4 bc_aviation 2010/1-12/1/0 C xy kg/m2/s BC_lto - 1 1
+0 BC_cds $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_bc.aviation_lto.x3600_y1800_t12.2010.nc4 bc_aviation 2010/1-12/1/0 C xy kg/m2/s BC_cds - 1 1
+0 BC_crs $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_bc.aviation_lto.x3600_y1800_t12.2010.nc4 bc_aviation 2010/1-12/1/0 C xy kg/m2/s BC_crs - 1 1
 )))HTAP
 {% elif NXS_DO_HTAPv3 %}
+#==============================================================================
+# --- HTAP v3 ---
+#==============================================================================
 (((HTAP
 0 SO2_lto $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_so2.aviation_lto.x3600_y1800_t12.2010.nc4 so2_aviation 1994-2020/1-12/1/0 C xy kg/m2/s SO2_lto - 1 1
 0 SO2_cds $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_so2.aviation_lto.x3600_y1800_t12.2010.nc4 so2_aviation 1994-2020/1-12/1/0 C xy kg/m2/s SO2_cds - 1 1
