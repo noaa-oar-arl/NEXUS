@@ -291,15 +291,30 @@ Cap time shift              : true
 #==============================================================================
 # --- CAMS GLOBAL ANT 2024 ---
 #==============================================================================
-# Agricultural waste burning
+0 OC_awb $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc awb 2010-2026/1-12/1/0 C xy kg/m2/s OC {{ ct_25 }}     1 1
+0 OC_ene $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ene 2010-2026/1-12/1/0 C xy kg/m2/s OC_elev {{ ct_35}}{{ ct_44 }}  1 1
+0 OC_ind $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ind 2010-2026/1-12/1/0 C xy kg/m2/s OC {{ ct_25 }}     1 1
+0 OC_com $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc com 2010-2026/1-12/1/0 C xy kg/m2/s OC {{ ct_25 }}     1 1
+0 OC_res $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc res 2010-2026/1-12/1/0 C xy kg/m2/s OC {{ ct_28}}{{ ct_46 }}  1 1
+0 OC_sum $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc sum 2010-2026/1-12/1/0 C xy kg/m2/s OC {{ ct_37}}{{ ct_48 }}  1 1
+0 OC_shp $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc shp 2010-2026/1-12/1/0 C xy kg/m2/s OC_ship {{ ct_25 }}     1 1
+0 OC_ref $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ref 2010-2026/1-12/1/0 C xy kg/m2/s OC {{ ct_25 }}     1 1
+0 OC_fef $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc fef 2010-2026/1-12/1/0 C xy kg/m2/s OC {{ ct_25 }}     1 1
+
+0 BC_awb $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc awb 2010-2026/1-12/1/0 C xy kg/m2/s BC {{ ct_25 }}     1 1
+0 BC_ene $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ene 2010-2026/1-12/1/0 C xy kg/m2/s BC_elev {{ ct_35}}{{ ct_44 }}  1 1
+0 BC_ind $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ind 2010-2026/1-12/1/0 C xy kg/m2/s BC {{ ct_25 }}     1 1
+0 BC_com $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc com 2010-2026/1-12/1/0 C xy kg/m2/s BC {{ ct_25 }}     1 1
+0 BC_res $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc res 2010-2026/1-12/1/0 C xy kg/m2/s BC {{ ct_28}}{{ ct_46 }}  1 1
+0 BC_sum $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc sum 2010-2026/1-12/1/0 C xy kg/m2/s BC {{ ct_37}}{{ ct_48 }}  1 1
+0 BC_shp $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc shp 2010-2026/1-12/1/0 C xy kg/m2/s BC_ship {{ ct_25 }}     1 1
+0 BC_ref $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ref 2010-2026/1-12/1/0 C xy kg/m2/s BC {{ ct_25 }}     1 1
+0 BC_fef $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc fef 2010-2026/1-12/1/0 C xy kg/m2/s BC {{ ct_25 }}     1 1
+
 0 SO2_awb $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc awb 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
-# energy
 0 SO2_ene $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ene 2010-2026/1-12/1/0 C xy kg/m2/s SO2_elev {{ ct_35}}{{ ct_44 }}  1 1
-# Industry buildings
 0 SO2_ind $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ind 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
-# Commercial buildings
 0 SO2_com $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc com 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
-# Residential buildings
 0 SO2_res $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc res 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_28}}{{ ct_46 }}  1 1
 0 SO2_sum $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc sum 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_37}}{{ ct_48 }}  1 1
 0 SO2_shp $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc shp 2010-2026/1-12/1/0 C xy kg/m2/s SO2_ship {{ ct_25 }}     1 1
