@@ -29,10 +29,7 @@
 #                as used in some filenames (e.g. "55L", "72L")
 #
 # !REVISION HISTORY:
-#  09 Mar 2021 - P. Campbell - Initial UFS-CMAQ HEMCO Configuration File for
-#                              CEDS2019-NEI2016v1-OMI-HTAP2019-EDGAR-HTAP2010
-#  15 Jun 2022 - P. Campbell - Added MEGANv2.1 sa extension calcultaions
-#  04 Oct 2022 - B. Baker    - Remove point sources
+#  04 Oct 2022 - B. Baker    - Initial Creation
 
 #------------------------------------------------------------------------------
 #BOC
@@ -40,17 +37,17 @@
 ### BEGIN SECTION SETTINGS
 ###############################################################################
 
-ROOT                        : {{ NXS_INPUT_DIR }}
+ROOT                        : {{ NEXUS_INPUT_DIR }}
 TMPDIR                      : /gpfs/f6/bil-fire3/world-shared/Emissions/nexus
-GridFile                    : {{ NXS_GRID_NAME | default("HEMCO_sa_Grid.rc") }}
-SpecFile                    : {{ NXS_SPEC_NAME | default("HEMCO_sa_Spec.rc") }}
-TimeFile                    : {{ NXS_TIME_NAME | default("HEMCO_sa_Time.rc") }}
-DiagnFile                   : {{ NXS_DIAG_NAME | default("HEMCO_sa_Diag.rc") }}
-DiagnPrefix                 : {{ NXS_DIAG_PREFIX | default("NXS_DIAG") }}
-DiagnFreq                   : {{ NXS_DIAG_FREQ | default("Hourly") }}
+GridFile                    : {{ NEXUS_GRID_NAME | default("HEMCO_sa_Grid.rc") }}
+SpecFile                    : {{ NEXUS_SPEC_NAME | default("HEMCO_sa_Spec.rc") }}
+TimeFile                    : {{ NEXUS_TIME_NAME | default("HEMCO_sa_Time.rc") }}
+DiagnFile                   : {{ NEXUS_DIAG_NAME | default("HEMCO_sa_Diag.rc") }}
+DiagnPrefix                 : {{ NEXUS_DIAG_PREFIX | default("NEXUS_DIAG") }}
+DiagnFreq                   : {{ NEXUS_DIAG_FREQ | default("Hourly") }}
 DiagnFileSplit              : 24hr
 DiagnRefTime                : hours since 2020-01-01 00:00:00
-Logfile                     : {{ NXS_LOGFILE | default("NEXUS.log") }}
+Logfile                     : {{ NEXUS_LOGFILE | default("NEXUS.log") }}
 Unit tolerance              : 1
 Negative values             : 1
 Verbose                     : 10
@@ -110,17 +107,17 @@ Cap time shift              : true
     --> CAC               :       false
     --> C2H6              :       false
     --> EDGAR             :       false
-{% if NXS_DO_HTAPv2 or NXS_DO_HTAPv3 %}
+{% if NEXUS_DO_HTAPv2 or NEXUS_DO_HTAPv3 %}
     --> HTAP              :  on   true
 {% else %}
     --> HTAP              :       false
 {% endif %}
-{% if NXS_DO_CEDS2019 or NXS_DO_CEDS2024 %}
+{% if NEXUS_DO_CEDS2019 or NEXUS_DO_CEDS2024 %}
     --> CEDS              :  on   true
 {% else %}
     --> CEDS              :       false
 {% endif %}
-{% if NXS_DO_CAMS %}
+{% if NEXUS_DO_CAMS %}
     --> CAMS              :  on   true
 {% else %}
     --> CAMS              :       false
@@ -183,7 +180,7 @@ Cap time shift              : true
 # ExtNr   Name sourceFile      sourceVar sourceTime C/R/E SrcDim SrcUnit Species ScalIDs Cat Hier
 0 UNIFORM 1.0 - * C xy kg/m2/s NO - 1 5
 
-{% if NXS_DO_CAMSTEMPO %}
+{% if NEXUS_DO_CAMSTEMPO %}
   {% set ct_25 = 25 %}
   {% set ct_35 = 35 %}
   {% set ct_28 = 28 %}
@@ -203,7 +200,7 @@ Cap time shift              : true
     {% set ct25_199 = 199 %}
 {% endif %}
 
-{% if NXS_DO_CEDS2019 %}
+{% if NEXUS_DO_CEDS2019 %}
 #==============================================================================
 # --- CEDS ---
 #==============================================================================
@@ -245,7 +242,7 @@ Cap time shift              : true
 # 0 NH3_slv $TMPDIR/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_slv 1994-2020/1-12/1/0 C xy kg/m2/s NH3_oc {{ ct_25 }}     1 1
 # 0 NH3_wst $TMPDIR/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_wst 1994-2020/1-12/1/0 C xy kg/m2/s NH3_oc {{ ct_25 }}     1 1
 )))CEDS
-{% elif NXS_DO_CEDS2024 %}
+{% elif NEXUS_DO_CEDS2024 %}
 #==============================================================================
 # --- CEDS 2024 ---
 #==============================================================================
@@ -287,7 +284,7 @@ Cap time shift              : true
 # 0 NH3_sol $TMPDIR/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_sol 2000-2022/1-12/1/0 C xy kg/m2/s NH3_oc {{ ct_25 }}     1 1
 # 0 NH3_was $TMPDIR/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_was 2000-2022/1-12/1/0 C xy kg/m2/s NH3_oc {{ ct_25 }}     1 1
 )))CEDS
-{% elif NXS_DO_CAMS %}
+{% elif NEXUS_DO_CAMS %}
 #==============================================================================
 # --- CAMS GLOBAL ANT 2024 ---
 #==============================================================================
@@ -323,7 +320,7 @@ Cap time shift              : true
 0 SO2_fef $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc fef 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
 {% endif %}
 
-{% if NXS_DO_HTAPv2 %}
+{% if NEXUS_DO_HTAPv2 %}
 #==============================================================================
 # --- HTAP v2 ---
 #==============================================================================
@@ -338,7 +335,7 @@ Cap time shift              : true
 0 BC_cds $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_bc.aviation_lto.x3600_y1800_t12.2010.nc4 bc_aviation 2010/1-12/1/0 C xy kg/m2/s BC_cds - 1 1
 0 BC_crs $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_bc.aviation_lto.x3600_y1800_t12.2010.nc4 bc_aviation 2010/1-12/1/0 C xy kg/m2/s BC_crs - 1 1
 )))HTAP
-{% elif NXS_DO_HTAPv3 %}
+{% elif NEXUS_DO_HTAPv3 %}
 #==============================================================================
 # --- HTAP v3 ---
 #==============================================================================
@@ -353,7 +350,7 @@ Cap time shift              : true
 0 BC_cds $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_bc.aviation_lto.x3600_y1800_t12.2010.nc4 bc_aviation 1994-2020/1-12/1/0 C xy kg/m2/s BC_cds - 1 1
 0 BC_crs $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_bc.aviation_lto.x3600_y1800_t12.2010.nc4 bc_aviation 1994-2020/1-12/1/0 C xy kg/m2/s BC_crs - 1 1
 )))HTAP
-{% elif NXS_DO_CAMS %}
+{% elif NEXUS_DO_CAMS %}
 # EMPTY FOR NOW
 {% endif %}
 
@@ -402,7 +399,7 @@ Cap time shift              : true
 #==============================================================================
 25 EDGAR_TODNOX $TMPDIR/EDGARv42/v2015-02/NO/EDGAR_hourly_NOxScal.nc NOXscale 2000/1/1/HH C xy unitless 1
 
-{% if NXS_DO_CAMSTEMPO %}
+{% if NEXUS_DO_CAMSTEMPO %}
 #==============================================================================
 # --- CAMS-TEMPO daily weights (Year Dependent) ---
 #==============================================================================
