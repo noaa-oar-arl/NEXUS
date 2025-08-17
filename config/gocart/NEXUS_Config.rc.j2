@@ -38,15 +38,12 @@
 ###############################################################################
 
 ROOT                        : {{ NEXUS_INPUT_DIR }}
-TMPDIR                      : /gpfs/f6/bil-fire3/world-shared/Emissions/nexus
 GridFile                    : {{ NEXUS_GRID_NAME | default("HEMCO_sa_Grid.rc") }}
 SpecFile                    : {{ NEXUS_SPEC_NAME | default("HEMCO_sa_Spec.rc") }}
 TimeFile                    : {{ NEXUS_TIME_NAME | default("HEMCO_sa_Time.rc") }}
 DiagnFile                   : {{ NEXUS_DIAG_NAME | default("HEMCO_sa_Diag.rc") }}
 DiagnPrefix                 : {{ NEXUS_DIAG_PREFIX | default("NEXUS_DIAG") }}
 DiagnFreq                   : {{ NEXUS_DIAG_FREQ | default("Hourly") }}
-DiagnFileSplit              : 24hr
-DiagnRefTime                : hours since 2020-01-01 00:00:00
 Logfile                     : {{ NEXUS_LOGFILE | default("NEXUS.log") }}
 Unit tolerance              : 1
 Negative values             : 1
@@ -132,10 +129,10 @@ Cap time shift              : true
 101     SeaFlux           : off   DMS/ACET
 102     ParaNOx           : off   NO/NO2/O3/HNO3
     --> LUT data format   :       nc
-    --> LUT source dir    :       $TMPDIR/PARANOX/v2015-02
+    --> LUT source dir    :       $ROOT/PARANOX/v2015-02
 103     LightNOx          : off   NO
     --> OTD-LIS factors   :       true
-    --> CDF table         :       $TMPDIR/LIGHTNOX/v2014-07/light_dist.ott2010.dat
+    --> CDF table         :       $ROOT/LIGHTNOX/v2014-07/light_dist.ott2010.dat
 104     SoilNOx           : off   NO
     --> Use fertilizer NOx:       true
 105     DustDead          : off   DST1/DST2/DST3/DST4
@@ -197,160 +194,130 @@ Cap time shift              : true
     {% set ct_44 = "" %}
     {% set ct_46 = "" %}
     {% set ct_48 = "" %}
-    {% set ct25_199 = 199 %}
+    {% set ct25_199 = "199" %}
 {% endif %}
 {% if NEXUS_DO_CEDS2019 %}
 #==============================================================================
 # --- CEDS ---
 #==============================================================================
 (((CEDS
-0 BC_agr $TMPDIR/CEDS/v2021-06/$YYYY/BC-em-anthro_CMIP_CEDS_$YYYY.nc BC_agr 1994-2020/1-12/1/0 C xy kg/m2/s BC      {{ ct_25 }}     1 1
-0 BC_ene $TMPDIR/CEDS/v2021-06/$YYYY/BC-em-anthro_CMIP_CEDS_$YYYY.nc BC_ene 1994-2020/1-12/1/0 C xy kg/m2/s BC_elev {{ ct_35}}{{ ct_44 }}  1 1
-0 BC_ind $TMPDIR/CEDS/v2021-06/$YYYY/BC-em-anthro_CMIP_CEDS_$YYYY.nc BC_ind 1994-2020/1-12/1/0 C xy kg/m2/s BC      {{ ct_25 }}     1 1
-0 BC_rco $TMPDIR/CEDS/v2021-06/$YYYY/BC-em-anthro_CMIP_CEDS_$YYYY.nc BC_rco 1994-2020/1-12/1/0 C xy kg/m2/s BC      {{ ct_28}}{{ ct_46 }}  1 1
-0 BC_tra $TMPDIR/CEDS/v2021-06/$YYYY/BC-em-anthro_CMIP_CEDS_$YYYY.nc BC_tra 1994-2020/1-12/1/0 C xy kg/m2/s BC      {{ ct_37}}{{ ct_48 }}  1 1
-0 BC_shp $TMPDIR/CEDS/v2021-06/$YYYY/BC-em-anthro_CMIP_CEDS_$YYYY.nc BC_shp 1994-2020/1-12/1/0 C xy kg/m2/s BC_ship {{ ct_25 }}     1 1
-0 BC_slv $TMPDIR/CEDS/v2021-06/$YYYY/BC-em-anthro_CMIP_CEDS_$YYYY.nc BC_slv 1994-2020/1-12/1/0 C xy kg/m2/s BC      {{ ct_25 }}     1 1
-0 BC_wst $TMPDIR/CEDS/v2021-06/$YYYY/BC-em-anthro_CMIP_CEDS_$YYYY.nc BC_wst 1994-2020/1-12/1/0 C xy kg/m2/s BC      {{ ct_25 }}     1 1
+# CEDS_BC_0.1x0.1_2019.nc                        CEDS_OC_0.1x0.1_2019.nc
+        CEDS_SO2_0.1x0.1_2019.nc
 
-0 OC_agr $TMPDIR/CEDS/v2021-06/$YYYY/OC-em-anthro_CMIP_CEDS_$YYYY.nc OC_agr 1994-2020/1-12/1/0 C xy kg/m2/s OC      {{ ct_25 }}     1 1
-0 OC_ene $TMPDIR/CEDS/v2021-06/$YYYY/OC-em-anthro_CMIP_CEDS_$YYYY.nc OC_ene 1994-2020/1-12/1/0 C xy kg/m2/s OC_elev {{ ct_35}}{{ ct_44 }}  1 1
-0 OC_ind $TMPDIR/CEDS/v2021-06/$YYYY/OC-em-anthro_CMIP_CEDS_$YYYY.nc OC_ind 1994-2020/1-12/1/0 C xy kg/m2/s OC      {{ ct_25 }}     1 1
-0 OC_rco $TMPDIR/CEDS/v2021-06/$YYYY/OC-em-anthro_CMIP_CEDS_$YYYY.nc OC_rco 1994-2020/1-12/1/0 C xy kg/m2/s OC      {{ ct_28}}{{ ct_46 }}  1 1
-0 OC_tra $TMPDIR/CEDS/v2021-06/$YYYY/OC-em-anthro_CMIP_CEDS_$YYYY.nc OC_tra 1994-2020/1-12/1/0 C xy kg/m2/s OC      {{ ct_37}}{{ ct_48 }}  1 1
-0 OC_shp $TMPDIR/CEDS/v2021-06/$YYYY/OC-em-anthro_CMIP_CEDS_$YYYY.nc OC_shp 1994-2020/1-12/1/0 C xy kg/m2/s OC_ship {{ ct_25 }}     1 1
-0 OC_slv $TMPDIR/CEDS/v2021-06/$YYYY/OC-em-anthro_CMIP_CEDS_$YYYY.nc OC_slv 1994-2020/1-12/1/0 C xy kg/m2/s OC      {{ ct_25 }}     1 1
-0 OC_wst $TMPDIR/CEDS/v2021-06/$YYYY/OC-em-anthro_CMIP_CEDS_$YYYY.nc OC_wst 1994-2020/1-12/1/0 C xy kg/m2/s OC      {{ ct_25 }}     1 1
 
-0 SO2_agr $TMPDIR/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_agr 1994-2020/1-12/1/0 C xy kg/m2/s SO2  {{ ct_25 }}     1 1
-0 SO2_ene $TMPDIR/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_ene 1994-2020/1-12/1/0 C xy kg/m2/s SO2_elev {{ ct_35}}{{ ct_44 }}  1 1
-0 SO2_ind $TMPDIR/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_ind 1994-2020/1-12/1/0 C xy kg/m2/s SO2  {{ ct_25 }}     1 1
-0 SO2_rco $TMPDIR/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_rco 1994-2020/1-12/1/0 C xy kg/m2/s SO2 {{ ct_28}}{{ ct_46 }}  1 1
-0 SO2_tra $TMPDIR/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_tra 1994-2020/1-12/1/0 C xy kg/m2/s SO2 {{ ct_37}}{{ ct_48 }}  1 1
-0 SO2_shp $TMPDIR/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_shp 1994-2020/1-12/1/0 C xy kg/m2/s SO2_ship {{ ct_25 }}     1 1
-0 SO4_shp $TMPDIR/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_shp 1994-2020/1-12/1/0 C xy kg/m2/s SO4_ship {{ ct_25_199 }}     1 1
-0 SO2_slv $TMPDIR/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_slv 1994-2020/1-12/1/0 C xy kg/m2/s SO2  {{ ct_25 }}     1 1
-0 SO2_wst $TMPDIR/CEDS/v2021-06/$YYYY/SO2-em-anthro_CMIP_CEDS_$YYYY.nc SO2_wst 1994-2020/1-12/1/0 C xy kg/m2/s SO2  {{ ct_25 }}     1 1
+0 BC_agr $ROOT/CEDS/v2023-04/$YYYY/CEDS_BC_0.1x0.1_$YYYY.nc BC_agr 1994-2020/1-12/1/0 C xy kg/m2/s BC      {{ ct_25 }}     1 1
+0 BC_ene $ROOT/CEDS/v2023-04/$YYYY/CEDS_BC_0.1x0.1_$YYYY.nc BC_ene 1994-2020/1-12/1/0 C xy kg/m2/s BC_elev {{ ct_35}}{{ ct_44 }}  1 1
+0 BC_ind $ROOT/CEDS/v2023-04/$YYYY/CEDS_BC_0.1x0.1_$YYYY.nc BC_ind 1994-2020/1-12/1/0 C xy kg/m2/s BC      {{ ct_25 }}     1 1
+0 BC_rco $ROOT/CEDS/v2023-04/$YYYY/CEDS_BC_0.1x0.1_$YYYY.nc BC_rco 1994-2020/1-12/1/0 C xy kg/m2/s BC      {{ ct_28}}{{ ct_46 }}  1 1
+0 BC_tra $ROOT/CEDS/v2023-04/$YYYY/CEDS_BC_0.1x0.1_$YYYY.nc BC_tra 1994-2020/1-12/1/0 C xy kg/m2/s BC      {{ ct_37}}{{ ct_48 }}  1 1
+0 BC_shp $ROOT/CEDS/v2023-04/$YYYY/CEDS_BC_0.1x0.1_$YYYY.nc BC_shp 1994-2020/1-12/1/0 C xy kg/m2/s BC_ship {{ ct_25 }}     1 1
+0 BC_slv $ROOT/CEDS/v2023-04/$YYYY/CEDS_BC_0.1x0.1_$YYYY.nc BC_slv 1994-2020/1-12/1/0 C xy kg/m2/s BC      {{ ct_25 }}     1 1
+0 BC_wst $ROOT/CEDS/v2023-04/$YYYY/CEDS_BC_0.1x0.1_$YYYY.nc BC_wst 1994-2020/1-12/1/0 C xy kg/m2/s BC      {{ ct_25 }}     1 1
 
-# 0 NH3_agr $TMPDIR/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_agr 1994- 2020/1-12/1/0 C xy kg/m2/s NH3_ag {{ ct_25 }}     1 1
-# 0 NH3_ene $TMPDIR/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_ene 1994-2020/1-12/1/0 C xy kg/m2/s NH3_en {{ ct_35}}{{ ct_44 }}  1 1
-# 0 NH3_ind $TMPDIR/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_ind 1994-2020/1-12/1/0 C xy kg/m2/s NH3_in {{ ct_25 }}     1 1
-# 0 NH3_rco $TMPDIR/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_rco 1994-2020/1-12/1/0 C xy kg/m2/s NH3_re {{ ct_28}}{{ ct_46 }}  1 1
-# 0 NH3_tra $TMPDIR/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_tra 1994-2020/1-12/1/0 C xy kg/m2/s NH3_tr {{ ct_37}}{{ ct_48 }}  1 1
-# 0 NH3_shp $TMPDIR/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_shp 1994-2020/1-12/1/0 C xy kg/m2/s NH3_tr {{ ct_25 }}     1 1
-# 0 NH3_slv $TMPDIR/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_slv 1994-2020/1-12/1/0 C xy kg/m2/s NH3_oc {{ ct_25 }}     1 1
-# 0 NH3_wst $TMPDIR/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_wst 1994-2020/1-12/1/0 C xy kg/m2/s NH3_oc {{ ct_25 }}     1 1
+0 OC_agr $ROOT/CEDS/v2023-04/$YYYY/CEDS_OC_0.1x0.1_$YYYY.nc OC_agr 1994-2020/1-12/1/0 C xy kg/m2/s OC      {{ ct_25 }}     1 1
+0 OC_ene $ROOT/CEDS/v2023-04/$YYYY/CEDS_OC_0.1x0.1_$YYYY.nc OC_ene 1994-2020/1-12/1/0 C xy kg/m2/s OC_elev {{ ct_35}}{{ ct_44 }}  1 1
+0 OC_ind $ROOT/CEDS/v2023-04/$YYYY/CEDS_OC_0.1x0.1_$YYYY.nc OC_ind 1994-2020/1-12/1/0 C xy kg/m2/s OC      {{ ct_25 }}     1 1
+0 OC_rco $ROOT/CEDS/v2023-04/$YYYY/CEDS_OC_0.1x0.1_$YYYY.nc OC_rco 1994-2020/1-12/1/0 C xy kg/m2/s OC      {{ ct_28}}{{ ct_46 }}  1 1
+0 OC_tra $ROOT/CEDS/v2023-04/$YYYY/CEDS_OC_0.1x0.1_$YYYY.nc OC_tra 1994-2020/1-12/1/0 C xy kg/m2/s OC      {{ ct_37}}{{ ct_48 }}  1 1
+0 OC_shp $ROOT/CEDS/v2023-04/$YYYY/CEDS_OC_0.1x0.1_$YYYY.nc OC_shp 1994-2020/1-12/1/0 C xy kg/m2/s OC_ship {{ ct_25 }}     1 1
+0 OC_slv $ROOT/CEDS/v2023-04/$YYYY/CEDS_OC_0.1x0.1_$YYYY.nc OC_slv 1994-2020/1-12/1/0 C xy kg/m2/s OC      {{ ct_25 }}     1 1
+0 OC_wst $ROOT/CEDS/v2023-04/$YYYY/CEDS_OC_0.1x0.1_$YYYY.nc OC_wst 1994-2020/1-12/1/0 C xy kg/m2/s OC      {{ ct_25 }}     1 1
+
+0 SO2_agr $ROOT/CEDS/v2023-04/$YYYY/CEDS_SO2_0.1x0.1_$YYYY.nc SO2_agr 1994-2020/1-12/1/0 C xy kg/m2/s SO2  {{ ct_25 }}     1 1
+0 SO2_ene $ROOT/CEDS/v2023-04/$YYYY/CEDS_SO2_0.1x0.1_$YYYY.nc SO2_ene 1994-2020/1-12/1/0 C xy kg/m2/s SO2_elev {{ ct_35}}{{ ct_44 }}  1 1
+0 SO2_ind $ROOT/CEDS/v2023-04/$YYYY/CEDS_SO2_0.1x0.1_$YYYY.nc SO2_ind 1994-2020/1-12/1/0 C xy kg/m2/s SO2  {{ ct_25 }}     1 1
+0 SO2_rco $ROOT/CEDS/v2023-04/$YYYY/CEDS_SO2_0.1x0.1_$YYYY.nc SO2_rco 1994-2020/1-12/1/0 C xy kg/m2/s SO2 {{ ct_28}}{{ ct_46 }}  1 1
+0 SO2_tra $ROOT/CEDS/v2023-04/$YYYY/CEDS_SO2_0.1x0.1_$YYYY.nc SO2_tra 1994-2020/1-12/1/0 C xy kg/m2/s SO2 {{ ct_37}}{{ ct_48 }}  1 1
+0 SO2_shp $ROOT/CEDS/v2023-04/$YYYY/CEDS_SO2_0.1x0.1_$YYYY.nc SO2_shp 1994-2020/1-12/1/0 C xy kg/m2/s SO2_ship {{ ct_25 }}     1 1
+0 SO4_shp $ROOT/CEDS/v2023-04/$YYYY/CEDS_SO2_0.1x0.1_$YYYY.nc SO2_shp 1994-2020/1-12/1/0 C xy kg/m2/s SO4_ship {{ ct25_199 }}     1 1
+0 SO2_slv $ROOT/CEDS/v2023-04/$YYYY/CEDS_SO2_0.1x0.1_$YYYY.nc SO2_slv 1994-2020/1-12/1/0 C xy kg/m2/s SO2  {{ ct_25 }}     1 1
+0 SO2_wst $ROOT/CEDS/v2023-04/$YYYY/CEDS_SO2_0.1x0.1_$YYYY.nc SO2_wst 1994-2020/1-12/1/0 C xy kg/m2/s SO2  {{ ct_25 }}     1 1
+
+# 0 NH3_agr $ROOT/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_agr 1994- 2020/1-12/1/0 C xy kg/m2/s NH3_ag {{ ct_25 }}     1 1
+# 0 NH3_ene $ROOT/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_ene 1994-2020/1-12/1/0 C xy kg/m2/s NH3_en {{ ct_35}}{{ ct_44 }}  1 1
+# 0 NH3_ind $ROOT/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_ind 1994-2020/1-12/1/0 C xy kg/m2/s NH3_in {{ ct_25 }}     1 1
+# 0 NH3_rco $ROOT/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_rco 1994-2020/1-12/1/0 C xy kg/m2/s NH3_re {{ ct_28}}{{ ct_46 }}  1 1
+# 0 NH3_tra $ROOT/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_tra 1994-2020/1-12/1/0 C xy kg/m2/s NH3_tr {{ ct_37}}{{ ct_48 }}  1 1
+# 0 NH3_shp $ROOT/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_shp 1994-2020/1-12/1/0 C xy kg/m2/s NH3_tr {{ ct_25 }}     1 1
+# 0 NH3_slv $ROOT/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_slv 1994-2020/1-12/1/0 C xy kg/m2/s NH3_oc {{ ct_25 }}     1 1
+# 0 NH3_wst $ROOT/CEDS/v2021-06/$YYYY/NH3-em-anthro_CMIP_CEDS_$YYYY.nc NH3_wst 1994-2020/1-12/1/0 C xy kg/m2/s NH3_oc {{ ct_25 }}     1 1
 )))CEDS
 {% elif NEXUS_DO_CEDS2024 %}
 #==============================================================================
 # --- CEDS 2024 ---
 #==============================================================================
 (((CEDS
-0 BC_agr $TMPDIR/CEDS/v2025-01/BC/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc BC_agr 2000-2022/1-12/1/0 C xy kg/m2/s BC {{ ct_25 }}     1 1
-0 BC_ene $TMPDIR/CEDS/v2025-01/BC/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc BC_ene 2000-2022/1-12/1/0 C xy kg/m2/s BC_elev {{ ct_35}}{{ ct_44 }}  1 1
-0 BC_ind $TMPDIR/CEDS/v2025-01/BC/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc BC_ind 2000-2022/1-12/1/0 C xy kg/m2/s BC {{ ct_25 }}     1 1
-0 BC_rco $TMPDIR/CEDS/v2025-01/BC/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc BC_rco 2000-2022/1-12/1/0 C xy kg/m2/s BC {{ ct_28}}{{ ct_46 }}  1 1
-0 BC_tra $TMPDIR/CEDS/v2025-01/BC/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc BC_tra 2000-2022/1-12/1/0 C xy kg/m2/s BC {{ ct_37}}{{ ct_48 }}  1 1
-0 BC_shp $TMPDIR/CEDS/v2025-01/BC/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc BC_shp 2000-2022/1-12/1/0 C xy kg/m2/s BC_ship {{ ct_25 }}     1 1
-0 BC_sol $TMPDIR/CEDS/v2025-01/BC/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc BC_sol 2000-2022/1-12/1/0 C xy kg/m2/s BC {{ ct_25 }}     1 1
-0 BC_was $TMPDIR/CEDS/v2025-01/BC/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc BC_was 2000-2022/1-12/1/0 C xy kg/m2/s BC {{ ct_25 }}     1 1
+0 BC_agr $ROOT/CEDS/v2025-01/BC/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc BC_agr 2000-2022/1-12/1/0 C xy kg/m2/s BC {{ ct_25 }}     1 1
+0 BC_ene $ROOT/CEDS/v2025-01/BC/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc BC_ene 2000-2022/1-12/1/0 C xy kg/m2/s BC_elev {{ ct_35}}{{ ct_44 }}  1 1
+0 BC_ind $ROOT/CEDS/v2025-01/BC/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc BC_ind 2000-2022/1-12/1/0 C xy kg/m2/s BC {{ ct_25 }}     1 1
+0 BC_rco $ROOT/CEDS/v2025-01/BC/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc BC_rco 2000-2022/1-12/1/0 C xy kg/m2/s BC {{ ct_28}}{{ ct_46 }}  1 1
+0 BC_tra $ROOT/CEDS/v2025-01/BC/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc BC_tra 2000-2022/1-12/1/0 C xy kg/m2/s BC {{ ct_37}}{{ ct_48 }}  1 1
+0 BC_shp $ROOT/CEDS/v2025-01/BC/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc BC_shp 2000-2022/1-12/1/0 C xy kg/m2/s BC_ship {{ ct_25 }}     1 1
+0 BC_sol $ROOT/CEDS/v2025-01/BC/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc BC_sol 2000-2022/1-12/1/0 C xy kg/m2/s BC {{ ct_25 }}     1 1
+0 BC_was $ROOT/CEDS/v2025-01/BC/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc BC_was 2000-2022/1-12/1/0 C xy kg/m2/s BC {{ ct_25 }}     1 1
 
-0 OC_agr $TMPDIR/CEDS/v2025-01/OC/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc OC_agr 2000-2022/1-12/1/0 C xy kg/m2/s OC {{ ct_25 }}     1 1
-0 OC_ene $TMPDIR/CEDS/v2025-01/OC/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc OC_ene 2000-2022/1-12/1/0 C xy kg/m2/s OC_elev {{ ct_35}}{{ ct_44 }}  1 1
-0 OC_ind $TMPDIR/CEDS/v2025-01/OC/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc OC_ind 2000-2022/1-12/1/0 C xy kg/m2/s OC {{ ct_25 }}     1 1
-0 OC_rco $TMPDIR/CEDS/v2025-01/OC/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc OC_rco 2000-2022/1-12/1/0 C xy kg/m2/s OC {{ ct_28}}{{ ct_46 }}     1 1
-0 OC_tra $TMPDIR/CEDS/v2025-01/OC/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc OC_tra 2000-2022/1-12/1/0 C xy kg/m2/s OC {{ ct_37}}{{ ct_48 }}     1 1
-0 OC_shp $TMPDIR/CEDS/v2025-01/OC/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc OC_shp 2000-2022/1-12/1/0 C xy kg/m2/s OC_ship {{ ct_25 }}     1 1
-0 OC_sol $TMPDIR/CEDS/v2025-01/OC/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc OC_sol 2000-2022/1-12/1/0 C xy kg/m2/s OC {{ ct_25 }}     1 1
-0 OC_was $TMPDIR/CEDS/v2025-01/OC/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc OC_was 2000-2022/1-12/1/0 C xy kg/m2/s OC {{ ct_25 }}     1 1
+0 OC_agr $ROOT/CEDS/v2025-01/OC/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc OC_agr 2000-2022/1-12/1/0 C xy kg/m2/s OC {{ ct_25 }}     1 1
+0 OC_ene $ROOT/CEDS/v2025-01/OC/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc OC_ene 2000-2022/1-12/1/0 C xy kg/m2/s OC_elev {{ ct_35}}{{ ct_44 }}  1 1
+0 OC_ind $ROOT/CEDS/v2025-01/OC/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc OC_ind 2000-2022/1-12/1/0 C xy kg/m2/s OC {{ ct_25 }}     1 1
+0 OC_rco $ROOT/CEDS/v2025-01/OC/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc OC_rco 2000-2022/1-12/1/0 C xy kg/m2/s OC {{ ct_28}}{{ ct_46 }}     1 1
+0 OC_tra $ROOT/CEDS/v2025-01/OC/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc OC_tra 2000-2022/1-12/1/0 C xy kg/m2/s OC {{ ct_37}}{{ ct_48 }}     1 1
+0 OC_shp $ROOT/CEDS/v2025-01/OC/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc OC_shp 2000-2022/1-12/1/0 C xy kg/m2/s OC_ship {{ ct_25 }}     1 1
+0 OC_sol $ROOT/CEDS/v2025-01/OC/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc OC_sol 2000-2022/1-12/1/0 C xy kg/m2/s OC {{ ct_25 }}     1 1
+0 OC_was $ROOT/CEDS/v2025-01/OC/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc OC_was 2000-2022/1-12/1/0 C xy kg/m2/s OC {{ ct_25 }}     1 1
 
-0 SO2_agr $TMPDIR/CEDS/v2025-01/SO2/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc SO2_agr 2000-2022/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
-0 SO2_ene $TMPDIR/CEDS/v2025-01/SO2/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc SO2_ene 2000-2022/1-12/1/0 C xy kg/m2/s SO2_elev {{ ct_35}}{{ ct_44 }}  1 1
-0 SO2_ind $TMPDIR/CEDS/v2025-01/SO2/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc SO2_ind 2000-2022/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
-0 SO2_rco $TMPDIR/CEDS/v2025-01/SO2/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc SO2_rco 2000-2022/1-12/1/0 C xy kg/m2/s SO2 {{ ct_28}}{{ ct_46 }}  1 1
-0 SO2_tra $TMPDIR/CEDS/v2025-01/SO2/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc SO2_tra 2000-2022/1-12/1/0 C xy kg/m2/s SO2 {{ ct_37}}{{ ct_48 }}  1 1
-0 SO2_shp $TMPDIR/CEDS/v2025-01/SO2/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc SO2_shp 2000-2022/1-12/1/0 C xy kg/m2/s SO2_ship {{ ct_25 }}     1 1
-0 SO4_shp $TMPDIR/CEDS/v2025-01/SO2/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc SO2_shp 2000-2022/1-12/1/0 C xy kg/m2/s SO4_ship {{ ct25_199 }}     1 1
-0 SO2_sol $TMPDIR/CEDS/v2025-01/SO2/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc SO2_sol 2000-2022/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
-0 SO2_was $TMPDIR/CEDS/v2025-01/SO2/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc SO2_was 2000-2022/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
+0 SO2_agr $ROOT/CEDS/v2025-01/SO2/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc SO2_agr 2000-2022/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
+0 SO2_ene $ROOT/CEDS/v2025-01/SO2/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc SO2_ene 2000-2022/1-12/1/0 C xy kg/m2/s SO2_elev {{ ct_35}}{{ ct_44 }}  1 1
+0 SO2_ind $ROOT/CEDS/v2025-01/SO2/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc SO2_ind 2000-2022/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
+0 SO2_rco $ROOT/CEDS/v2025-01/SO2/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc SO2_rco 2000-2022/1-12/1/0 C xy kg/m2/s SO2 {{ ct_28}}{{ ct_46 }}  1 1
+0 SO2_tra $ROOT/CEDS/v2025-01/SO2/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc SO2_tra 2000-2022/1-12/1/0 C xy kg/m2/s SO2 {{ ct_37}}{{ ct_48 }}  1 1
+0 SO2_shp $ROOT/CEDS/v2025-01/SO2/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc SO2_shp 2000-2022/1-12/1/0 C xy kg/m2/s SO2_ship {{ ct_25 }}     1 1
+0 SO4_shp $ROOT/CEDS/v2025-01/SO2/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc SO2_shp 2000-2022/1-12/1/0 C xy kg/m2/s SO4_ship {{ ct25_199 }}     1 1
+0 SO2_sol $ROOT/CEDS/v2025-01/SO2/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc SO2_sol 2000-2022/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
+0 SO2_was $ROOT/CEDS/v2025-01/SO2/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc SO2_was 2000-2022/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
 
-# 0 NH3_agr $TMPDIR/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_agr 1994- 2020/1-12/1/0 C xy kg/m2/s NH3_ag {{ ct_25 }}     1 1
-# 0 NH3_ene $TMPDIR/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_ene 2000-2022/1-12/1/0 C xy kg/m2/s NH3_en {{ ct_35}}{{ ct_44 }}  1 1
-# 0 NH3_ind $TMPDIR/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_ind 2000-2022/1-12/1/0 C xy kg/m2/s NH3_in {{ ct_25 }}     1 1
-# 0 NH3_rco $TMPDIR/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_rco 2000-2022/1-12/1/0 C xy kg/m2/s NH3_re {{ ct_28}}{{ ct_46 }}  1 1
-# 0 NH3_tra $TMPDIR/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_tra 2000-2022/1-12/1/0 C xy kg/m2/s NH3_tr {{ ct_37}}{{ ct_48 }}  1 1
-# 0 NH3_shp $TMPDIR/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_shp 2000-2022/1-12/1/0 C xy kg/m2/s NH3_tr {{ ct_25 }}     1 1
-# 0 NH3_sol $TMPDIR/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_sol 2000-2022/1-12/1/0 C xy kg/m2/s NH3_oc {{ ct_25 }}     1 1
-# 0 NH3_was $TMPDIR/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_was 2000-2022/1-12/1/0 C xy kg/m2/s NH3_oc {{ ct_25 }}     1 1
+# 0 NH3_agr $ROOT/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_agr 1994-2020/1-12/1/0 C xy kg/m2/s NH3_ag {{ ct_25 }}     1 1
+# 0 NH3_ene $ROOT/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_ene 2000-2022/1-12/1/0 C xy kg/m2/s NH3_en {{ ct_35}}{{ ct_44 }}  1 1
+# 0 NH3_ind $ROOT/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_ind 2000-2022/1-12/1/0 C xy kg/m2/s NH3_in {{ ct_25 }}     1 1
+# 0 NH3_rco $ROOT/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_rco 2000-2022/1-12/1/0 C xy kg/m2/s NH3_re {{ ct_28}}{{ ct_46 }}  1 1
+# 0 NH3_tra $ROOT/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_tra 2000-2022/1-12/1/0 C xy kg/m2/s NH3_tr {{ ct_37}}{{ ct_48 }}  1 1
+# 0 NH3_shp $ROOT/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_shp 2000-2022/1-12/1/0 C xy kg/m2/s NH3_tr {{ ct_25 }}     1 1
+# 0 NH3_sol $ROOT/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_sol 2000-2022/1-12/1/0 C xy kg/m2/s NH3_oc {{ ct_25 }}     1 1
+# 0 NH3_was $ROOT/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_was 2000-2022/1-12/1/0 C xy kg/m2/s NH3_oc {{ ct_25 }}     1 1
 )))CEDS
 {% elif NEXUS_DO_CAMS %}
 #==============================================================================
 # --- CAMS GLOBAL ANT 2024 ---
 #==============================================================================
-0 OC_awb $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc awb 2010-2026/1-12/1/0 C xy kg/m2/s OC {{ ct_25 }}     1 1
-0 OC_ene $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ene 2010-2026/1-12/1/0 C xy kg/m2/s OC_elev {{ ct_35}}{{ ct_44 }}  1 1
-0 OC_ind $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ind 2010-2026/1-12/1/0 C xy kg/m2/s OC {{ ct_25 }}     1 1
-0 OC_com $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc com 2010-2026/1-12/1/0 C xy kg/m2/s OC {{ ct_25 }}     1 1
-0 OC_res $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc res 2010-2026/1-12/1/0 C xy kg/m2/s OC {{ ct_28}}{{ ct_46 }}  1 1
-0 OC_sum $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc sum 2010-2026/1-12/1/0 C xy kg/m2/s OC {{ ct_37}}{{ ct_48 }}  1 1
-0 OC_shp $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc shp 2010-2026/1-12/1/0 C xy kg/m2/s OC_ship {{ ct_25 }}     1 1
-0 OC_ref $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ref 2010-2026/1-12/1/0 C xy kg/m2/s OC {{ ct_25 }}     1 1
-0 OC_fef $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc fef 2010-2026/1-12/1/0 C xy kg/m2/s OC {{ ct_25 }}     1 1
+0 OC_awb $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc awb 2010-2026/1-12/1/0 C xy kg/m2/s OC {{ ct_25 }}     1 1
+0 OC_ene $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ene 2010-2026/1-12/1/0 C xy kg/m2/s OC_elev {{ ct_35}}{{ ct_44 }}  1 1
+0 OC_ind $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ind 2010-2026/1-12/1/0 C xy kg/m2/s OC {{ ct_25 }}     1 1
+0 OC_com $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc com 2010-2026/1-12/1/0 C xy kg/m2/s OC {{ ct_25 }}     1 1
+0 OC_res $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc res 2010-2026/1-12/1/0 C xy kg/m2/s OC {{ ct_28}}{{ ct_46 }}  1 1
+0 OC_sum $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc sum 2010-2026/1-12/1/0 C xy kg/m2/s OC {{ ct_37}}{{ ct_48 }}  1 1
+0 OC_shp $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc shp 2010-2026/1-12/1/0 C xy kg/m2/s OC_ship {{ ct_25 }}     1 1
+0 OC_ref $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ref 2010-2026/1-12/1/0 C xy kg/m2/s OC {{ ct_25 }}     1 1
+0 OC_fef $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc fef 2010-2026/1-12/1/0 C xy kg/m2/s OC {{ ct_25 }}     1 1
 
-0 BC_awb $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc awb 2010-2026/1-12/1/0 C xy kg/m2/s BC {{ ct_25 }}     1 1
-0 BC_ene $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ene 2010-2026/1-12/1/0 C xy kg/m2/s BC_elev {{ ct_35}}{{ ct_44 }}  1 1
-0 BC_ind $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ind 2010-2026/1-12/1/0 C xy kg/m2/s BC {{ ct_25 }}     1 1
-0 BC_com $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc com 2010-2026/1-12/1/0 C xy kg/m2/s BC {{ ct_25 }}     1 1
-0 BC_res $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc res 2010-2026/1-12/1/0 C xy kg/m2/s BC {{ ct_28}}{{ ct_46 }}  1 1
-0 BC_sum $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc sum 2010-2026/1-12/1/0 C xy kg/m2/s BC {{ ct_37}}{{ ct_48 }}  1 1
-0 BC_shp $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc shp 2010-2026/1-12/1/0 C xy kg/m2/s BC_ship {{ ct_25 }}     1 1
-0 BC_ref $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ref 2010-2026/1-12/1/0 C xy kg/m2/s BC {{ ct_25 }}     1 1
-0 BC_fef $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc fef 2010-2026/1-12/1/0 C xy kg/m2/s BC {{ ct_25 }}     1 1
+0 BC_awb $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc awb 2010-2026/1-12/1/0 C xy kg/m2/s BC {{ ct_25 }}     1 1
+0 BC_ene $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ene 2010-2026/1-12/1/0 C xy kg/m2/s BC_elev {{ ct_35}}{{ ct_44 }}  1 1
+0 BC_ind $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ind 2010-2026/1-12/1/0 C xy kg/m2/s BC {{ ct_25 }}     1 1
+0 BC_com $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc com 2010-2026/1-12/1/0 C xy kg/m2/s BC {{ ct_25 }}     1 1
+0 BC_res $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc res 2010-2026/1-12/1/0 C xy kg/m2/s BC {{ ct_28}}{{ ct_46 }}  1 1
+0 BC_sum $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc sum 2010-2026/1-12/1/0 C xy kg/m2/s BC {{ ct_37}}{{ ct_48 }}  1 1
+0 BC_shp $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc shp 2010-2026/1-12/1/0 C xy kg/m2/s BC_ship {{ ct_25 }}     1 1
+0 BC_ref $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ref 2010-2026/1-12/1/0 C xy kg/m2/s BC {{ ct_25 }}     1 1
+0 BC_fef $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc fef 2010-2026/1-12/1/0 C xy kg/m2/s BC {{ ct_25 }}     1 1
 
-0 SO2_awb $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc awb 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
-0 SO2_ene $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ene 2010-2026/1-12/1/0 C xy kg/m2/s SO2_elev {{ ct_35}}{{ ct_44 }}  1 1
-0 SO2_ind $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ind 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
-0 SO2_com $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc com 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
-0 SO2_res $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc res 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_28}}{{ ct_46 }}  1 1
-0 SO2_sum $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc sum 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_37}}{{ ct_48 }}  1 1
-0 SO2_shp $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc shp 2010-2026/1-12/1/0 C xy kg/m2/s SO2_ship {{ ct_25 }}     1 1
-0 SO4_shp $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc shp 2010-2026/1-12/1/0 C xy kg/m2/s SO4_ship {{ ct25_199 }}     1 1
-0 SO2_ref $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ref 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
-0 SO2_fef $TMPDIR/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc fef 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
-{% endif %}
-
-{% if NEXUS_DO_HTAPv2 %}
-#==============================================================================
-# --- HTAP v2 ---
-#==============================================================================
-(((HTAP
-0 SO2_lto $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_so2.aviation_lto.x3600_y1800_t12.2010.nc4 so2_aviation 2010/1-12/1/0 C xy kg/m2/s SO2_lto - 1 1
-0 SO2_cds $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_so2.aviation_lto.x3600_y1800_t12.2010.nc4 so2_aviation 2010/1-12/1/0 C xy kg/m2/s SO2_cds - 1 1
-0 SO2_crs $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_so2.aviation_lto.x3600_y1800_t12.2010.nc4 so2_aviation 2010/1-12/1/0 C xy kg/m2/s SO2_crs - 1 1
-0 OC_lto $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_oc.aviation_lto.x3600_y1800_t12.2010.nc4 oc_aviation 2010/1-12/1/0 C xy kg/m2/s OC_lto - 1 1
-0 OC_cds $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_oc.aviation_lto.x3600_y1800_t12.2010.nc4 oc_aviation 2010/1-12/1/0 C xy kg/m2/s OC_cds - 1 1
-0 OC_crs $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_oc.aviation_lto.x3600_y1800_t12.2010.nc4 oc_aviation 2010/1-12/1/0 C xy kg/m2/s OC_crs - 1 1
-0 BC_lto $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_bc.aviation_lto.x3600_y1800_t12.2010.nc4 bc_aviation 2010/1-12/1/0 C xy kg/m2/s BC_lto - 1 1
-0 BC_cds $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_bc.aviation_lto.x3600_y1800_t12.2010.nc4 bc_aviation 2010/1-12/1/0 C xy kg/m2/s BC_cds - 1 1
-0 BC_crs $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_bc.aviation_lto.x3600_y1800_t12.2010.nc4 bc_aviation 2010/1-12/1/0 C xy kg/m2/s BC_crs - 1 1
-)))HTAP
-{% elif NEXUS_DO_HTAPv3 %}
-#==============================================================================
-# --- HTAP v3 ---
-#==============================================================================
-(((HTAP
-0 SO2_lto $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_so2.aviation_lto.x3600_y1800_t12.2010.nc4 so2_aviation 1994-2020/1-12/1/0 C xy kg/m2/s SO2_lto - 1 1
-0 SO2_cds $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_so2.aviation_lto.x3600_y1800_t12.2010.nc4 so2_aviation 1994-2020/1-12/1/0 C xy kg/m2/s SO2_cds - 1 1
-0 SO2_crs $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_so2.aviation_lto.x3600_y1800_t12.2010.nc4 so2_aviation 1994-2020/1-12/1/0 C xy kg/m2/s SO2_crs - 1 1
-0 OC_lto $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_oc.aviation_lto.x3600_y1800_t12.2010.nc4 oc_aviation 1994-2020/1-12/1/0 C xy kg/m2/s OC_lto - 1 1
-0 OC_cds $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_oc.aviation_lto.x3600_y1800_t12.2010.nc4 oc_aviation 1994-2020/1-12/1/0 C xy kg/m2/s OC_cds - 1 1
-0 OC_crs $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_oc.aviation_lto.x3600_y1800_t12.2010.nc4 oc_aviation 1994-2020/1-12/1/0 C xy kg/m2/s OC_crs - 1 1
-0 BC_lto $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_bc.aviation_lto.x3600_y1800_t12.2010.nc4 bc_aviation 1994-2020/1-12/1/0 C xy kg/m2/s BC_lto - 1 1
-0 BC_cds $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_bc.aviation_lto.x3600_y1800_t12.2010.nc4 bc_aviation 1994-2020/1-12/1/0 C xy kg/m2/s BC_cds - 1 1
-0 BC_crs $TMPDIR/../NASA/ExtData/PIESA/sfc/HTAP/v2.2/htap-v2.2.emis_bc.aviation_lto.x3600_y1800_t12.2010.nc4 bc_aviation 1994-2020/1-12/1/0 C xy kg/m2/s BC_crs - 1 1
-)))HTAP
-{% elif NEXUS_DO_CAMS %}
-# EMPTY FOR NOW
+0 SO2_awb $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc awb 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
+0 SO2_ene $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ene 2010-2026/1-12/1/0 C xy kg/m2/s SO2_elev {{ ct_35}}{{ ct_44 }}  1 1
+0 SO2_ind $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ind 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
+0 SO2_com $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc com 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
+0 SO2_res $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc res 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_28}}{{ ct_46 }}  1 1
+0 SO2_sum $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc sum 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_37}}{{ ct_48 }}  1 1
+0 SO2_shp $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc shp 2010-2026/1-12/1/0 C xy kg/m2/s SO2_ship {{ ct_25 }}     1 1
+0 SO4_shp $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc shp 2010-2026/1-12/1/0 C xy kg/m2/s SO4_ship {{ ct25_199 }}     1 1
+0 SO2_ref $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc ref 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
+0 SO2_fef $ROOT/CAMS-GLOBAL-ANT/so2/CAMS-GLOB-ANT_Glb_0.1x0.1_anthro_so2_v6.2_monthly_$YYYY.nc fef 2010-2026/1-12/1/0 C xy kg/m2/s SO2 {{ ct_25 }}     1 1
 {% endif %}
 
 ###############################################################################
@@ -366,7 +333,7 @@ Cap time shift              : true
 #==============================================================================
 # --- Time zones (offset to UTC) ---
 #==============================================================================
-* TIMEZONES /gpfs/f6/bil-fire3/world-shared/Emissions/nexus/TIMEZONES/v2015-02/timezones_voronoi_1x1.nc UTC_OFFSET 2000/1/1/0 C xy count * - 1 1
+* TIMEZONES $ROOT/TIMEZONES/v2015-02/timezones_voronoi_1x1.nc UTC_OFFSET 2000/1/1/0 C xy count * - 1 1
 
 ### END SECTION BASE EMISSIONS ###
 
@@ -385,8 +352,8 @@ Cap time shift              : true
 #==============================================================================
 # --- annual scale factors ---
 #==============================================================================
-1  TOTFUEL_THISYR    $TMPDIR/AnnualScalar/v2014-07/AnnualScalar.geos.1x1.nc NOxscalar 1985-2010/1/1/0 C xy 1  1
-27 TOTFUEL_2008_2010 $TMPDIR/AnnualScalar/v2014-07/AnnualScalar.geos.1x1.nc NOxscalar 2008-2010/1/1/0 C xy 1 -1
+1  TOTFUEL_THISYR    $ROOT/AnnualScalar/v2014-07/AnnualScalar.geos.1x1.nc NOxscalar 1985-2010/1/1/0 C xy 1  1
+27 TOTFUEL_2008_2010 $ROOT/AnnualScalar/v2014-07/AnnualScalar.geos.1x1.nc NOxscalar 2008-2010/1/1/0 C xy 1 -1
 
 63 SO2toSO4       0.031 - - - xy unitless 1
 64 SOX2SO4_EU     0.05  - - - xy unitless 1
@@ -396,44 +363,44 @@ Cap time shift              : true
 #==============================================================================
 # --- diurnal scale factors ---
 #==============================================================================
-25 EDGAR_TODNOX $TMPDIR/EDGARv42/v2015-02/NO/EDGAR_hourly_NOxScal.nc NOXscale 2000/1/1/HH C xy unitless 1
+25 EDGAR_TODNOX $ROOT/EDGARv42/v2015-02/NO/EDGAR_hourly_NOxScal.nc NOXscale 2000/1/1/HH C xy unitless 1
 
 {% if NEXUS_DO_CAMSTEMPO %}
 #==============================================================================
 # --- CAMS-TEMPO daily weights (Year Dependent) ---
 #==============================================================================
 
-28 CAMS_DAILY_RES $TMPDIR/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_daily.nc FD_res 2011-2021/1/DD/0 C xy 1 -1
+28 CAMS_DAILY_RES $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_daily.nc FD_res 2011-2021/1/DD/0 C xy 1 -1
 
 #==============================================================================
 # --- CAMS-TEMPO weekly (DOW) weights ---
 #==============================================================================
 
-29 CAMS_WEEKLY_ENE_CH4 $TMPDIR/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_ch4 2017/1/WD/0 C xy 1 -1
-30 CAMS_WEEKLY_ENE_CO $TMPDIR/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_co 2017/1/WD/0 C xy 1 -1
-31 CAMS_WEEKLY_ENE_CO2 $TMPDIR/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_co2 2017/1/WD/0 C xy 1 -1
-32 CAMS_WEEKLY_ENE_NMVOC $TMPDIR/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_nmvoc 2017/1/WD/0 C xy 1 -1
-33 CAMS_WEEKLY_ENE_NOX $TMPDIR/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_nox 2017/1/WD/0 C xy 1 -1
-34 CAMS_WEEKLY_ENE_PM10 $TMPDIR/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_pm10 2017/1/WD/0 C xy 1 -1
-35 CAMS_WEEKLY_ENE_PM25 $TMPDIR/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_pm25 2017/1/WD/0 C xy 1 -1
-36 CAMS_WEEKLY_ENE_SOX $TMPDIR/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_sox 2017/1/WD/0 C xy 1 -1
-37 CAMS_WEEKLY_TRO $TMPDIR/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_tro 2017/1/WD/0 C xy 1 -1
+29 CAMS_WEEKLY_ENE_CH4 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_ch4 2017/1/WD/0 C xy 1 -1
+30 CAMS_WEEKLY_ENE_CO $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_co 2017/1/WD/0 C xy 1 -1
+31 CAMS_WEEKLY_ENE_CO2 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_co2 2017/1/WD/0 C xy 1 -1
+32 CAMS_WEEKLY_ENE_NMVOC $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_nmvoc 2017/1/WD/0 C xy 1 -1
+33 CAMS_WEEKLY_ENE_NOX $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_nox 2017/1/WD/0 C xy 1 -1
+34 CAMS_WEEKLY_ENE_PM10 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_pm10 2017/1/WD/0 C xy 1 -1
+35 CAMS_WEEKLY_ENE_PM25 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_pm25 2017/1/WD/0 C xy 1 -1
+36 CAMS_WEEKLY_ENE_SOX $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_ene_sox 2017/1/WD/0 C xy 1 -1
+37 CAMS_WEEKLY_TRO $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc FW_tro 2017/1/WD/0 C xy 1 -1
 
 #==============================================================================
 # --- CAMS-TEMPO hourly weights ---
 #==============================================================================
 
-38 CAMS_HOURLY_ENE_CH4 $$TMPDIR/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_ch4 2017/1/1/HH C xy 1 -1
-39 CAMS_HOURLY_ENE_CO $TMPDIR/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_co 2017/1/1/HH C xy 1 -1
-40 CAMS_HOURLY_ENE_CO2 $TMPDIR/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_co2 2017/1/1/HH C xy 1 -1
-41 CAMS_HOURLY_ENE_NMVOC $TMPDIR/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_nmvoc 2017/1/1/HH C xy 1 -1
-42 CAMS_HOURLY_ENE_NOX $TMPDIR/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_nox 2017/1/1/HH C xy 1 -1
-43 CAMS_HOURLY_ENE_PM10 $TMPDIR/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_pm10 2017/1/1/HH C xy 1 -1
-44 CAMS_HOURLY_ENE_PM25 $TMPDIR/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_pm25 2017/1/1/HH C xy 1 -1
-45 CAMS_HOURLY_ENE_SOX $TMPDIR/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_sox 2017/1/1/HH C xy 1 -1
-46 CAMS_HOURLY_RES_PM10_PM25 $TMPDIR/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_res_pm10_pm25 2017/1/1/HH C xy 1 -1
-47 CAMS_HOURLY_RES_OTHERS $TMPDIR/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_res_others 2017/1/1/HH C xy 1 -1
-48 CAMS_HOURLY_TRO_WEEKDAY $TMPDIR/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_dow_tro 2017/1/1/HH C xy 1 -1
+38 CAMS_HOURLY_ENE_CH4 $$ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_ch4 2017/1/1/HH C xy 1 -1
+39 CAMS_HOURLY_ENE_CO $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_co 2017/1/1/HH C xy 1 -1
+40 CAMS_HOURLY_ENE_CO2 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_co2 2017/1/1/HH C xy 1 -1
+41 CAMS_HOURLY_ENE_NMVOC $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_nmvoc 2017/1/1/HH C xy 1 -1
+42 CAMS_HOURLY_ENE_NOX $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_nox 2017/1/1/HH C xy 1 -1
+43 CAMS_HOURLY_ENE_PM10 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_pm10 2017/1/1/HH C xy 1 -1
+44 CAMS_HOURLY_ENE_PM25 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_pm25 2017/1/1/HH C xy 1 -1
+45 CAMS_HOURLY_ENE_SOX $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_ene_sox 2017/1/1/HH C xy 1 -1
+46 CAMS_HOURLY_RES_PM10_PM25 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_res_pm10_pm25 2017/1/1/HH C xy 1 -1
+47 CAMS_HOURLY_RES_OTHERS $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_res_others 2017/1/1/HH C xy 1 -1
+48 CAMS_HOURLY_TRO_WEEKDAY $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc FH_dow_tro 2017/1/1/HH C xy 1 -1
 {% endif %}
 
 #==============================================================================
