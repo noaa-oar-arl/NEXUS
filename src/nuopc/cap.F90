@@ -3030,6 +3030,7 @@ contains
     type(ESMF_Field) :: field
     character(len=ESMF_MAXSTR), allocatable :: itemNameList(:)
     type(ESMF_StateItem_Flag),  allocatable :: itemTypeList(:)
+    type(ESMF_FieldBundle) :: bundle
 
     ! -- begin
     if (present(rc)) rc = ESMF_SUCCESS
@@ -3053,8 +3054,6 @@ contains
       line=__LINE__,  &
       file=__FILE__,  &
       rcToReturn=rc)) return  ! bail out
-
-    type(ESMF_FieldBundle) :: bundle
 
     bundle = ESMF_FieldBundleCreate( name="NEXUS_bundle", rc=localrc )
     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
