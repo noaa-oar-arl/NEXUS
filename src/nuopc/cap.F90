@@ -3086,18 +3086,18 @@ contains
       end if
     end do
 
-    bundle = ESMF_FieldBundleCreate( name="NEXUS_bundle", rc=localrc )
+    bundle = ESMF_FieldBundleCreate( name="NEXUS_bundle", fieldList=fieldList, rc=localrc )
     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__,  &
       file=__FILE__,  &
       rcToReturn=rc)) return  ! bail out
 
-    ! Add all fields to the bundle one by one using ESMF_FieldBundleAddField
-    call ESMF_FieldBundleAdd( bundle, fieldList, localrc )
-    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__,  &
-      file=__FILE__, &
-      rcToReturn=rc)) return  ! bail out
+    ! ! Add all fields to the bundle one by one using ESMF_FieldBundleAddField
+    ! call ESMF_FieldBundleAdd( bundle, fieldList, localrc )
+    ! if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+    !   line=__LINE__,  &
+    !   file=__FILE__, &
+    !   rcToReturn=rc)) return  ! bail out
 
     call ESMF_FieldBundleWrite( bundle, fileName=fileName, &
       iofmt=ESMF_IOFMT_NETCDF, timeslice=timeSlice, rc=localrc )
