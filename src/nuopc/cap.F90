@@ -3019,18 +3019,19 @@ contains
   !> Write an ESMF state using `ESMF_FieldWrite`.
   subroutine nxs_state_write( state, fileName, timeSlice, rc )
     type(ESMF_State)               :: state
-    character(len=*),  intent(in)  :: fileName
+    character(len=*), intent(in)  :: fileName
     integer, optional, intent(in)  :: timeSlice
     integer, optional, intent(out) :: rc
 
     ! -- local variables
     integer :: localrc
-    integer :: item, itemCount
+    integer :: item, itemCount, fieldCount
     integer :: stat
     type(ESMF_Field) :: field
     character(len=ESMF_MAXSTR), allocatable :: itemNameList(:)
     type(ESMF_StateItem_Flag),  allocatable :: itemTypeList(:)
     type(ESMF_FieldBundle) :: bundle
+    type(ESMF_Field), allocatable :: fieldList(:)
 
     ! -- begin
     if (present(rc)) rc = ESMF_SUCCESS
@@ -3045,7 +3046,7 @@ contains
     if (ESMF_LogFoundAllocError(statusToCheck=stat, &
       msg="Unable to allocate memory", &
       line=__LINE__,  &
-      file=__FILE__,  &
+      file=__FILE__, &
       rcToReturn=rc)) return  ! bail out
 
     call ESMF_StateGet( state, itemNameList=itemNameList, &
@@ -3055,33 +3056,55 @@ contains
       file=__FILE__,  &
       rcToReturn=rc)) return  ! bail out
 
-    bundle = ESMF_FieldBundleCreate( name="NEXUS_bundle", rc=localrc )
-    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+    ! Count the number of fields to allocate the fieldList array
+    fieldCount = 0
+    do item = 1, itemCount
+      if (itemTypeList(item) == ESMF_STATEITEM_FIELD) then
+        fieldCount = fieldCount + 1
+      end if
+    end do
+
+    ! Allocate fieldList to hold all the fields
+    allocate(fieldList(fieldCount), stat=stat)
+    if (ESMF_LogFoundAllocError(statusToCheck=stat, &
+      msg="Unable to allocate memory", &
       line=__LINE__,  &
       file=__FILE__,  &
       rcToReturn=rc)) return  ! bail out
 
+    ! Collect all fields into fieldList
+    fieldCount = 0
     do item = 1, itemCount
       if (itemTypeList(item) == ESMF_STATEITEM_FIELD) then
         call ESMF_StateGet( state, itemNameList(item), field, rc=localrc )
         if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
           line=__LINE__,  &
           file=__FILE__,  &
-          rcToReturn=rc)) return  ! bail out
-        call ESMF_FieldBundleAddField( bundle, field, localrc )
-        if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-          line=__LINE__,  &
-          file=__FILE__,  &
-          rcToReturn=rc)) return  ! bail out
+          rcToReturn=rc)) return ! bail out
+        fieldCount = fieldCount + 1
+        fieldList(fieldCount) = field
       end if
     end do
 
-    call ESMF_FieldBundleWrite( bundle, fileName=fileName, &
-      iofmt=ESMF_IOFMT_NETCDF, timeslice=timeSlice, rc=localrc )
+    bundle = ESMF_FieldBundleCreate( name="NEXUS_bundle", rc=localrc )
     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__,  &
       file=__FILE__,  &
       rcToReturn=rc)) return  ! bail out
+
+    ! Add all fields to the bundle at once using ESMF_FieldBundleAddList
+    call ESMF_FieldBundleAddList( bundle, fieldList, localrc )
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__,  &
+      file=__FILE__, &
+      rcToReturn=rc)) return  ! bail out
+
+    call ESMF_FieldBundleWrite( bundle, fileName=fileName, &
+      iofmt=ESMF_IOFMT_NETCDF, timeslice=timeSlice, rc=localrc )
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__,  &
+      rcToReturn=rc)) return ! bail out
 
     call ESMF_FieldBundleDestroy( bundle, rc=localrc )
     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
@@ -3089,7 +3112,7 @@ contains
       file=__FILE__,  &
       rcToReturn=rc)) return  ! bail out
 
-    deallocate(itemNameList, itemTypeList, stat=stat)
+    deallocate(itemNameList, itemTypeList, fieldList, stat=stat)
     if (ESMF_LogFoundDeallocError(statusToCheck=stat, &
       msg="Unable to deallocate memory", &
       line=__LINE__,  &
