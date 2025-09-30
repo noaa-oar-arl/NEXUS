@@ -498,6 +498,8 @@ contains
     integer :: localrc
     integer :: localPet
     logical :: am_I_Root
+    logical :: doVerbose
+    integer :: hcoLogLun
     integer :: nnMatch
     logical :: Dum, Found
     character(len=ESMF_MAXSTR) :: msgString
@@ -548,7 +550,8 @@ contains
     ! Open logfile
     !======================================================================
     if ( am_I_Root ) then
-      call HCO_LogFile_Open( HcoConfig%Err, RC=localrc )
+      doVerbose = HcoConfig%Err%doVerbose
+      call HCO_LogFile_Open( HcoConfig%Err, doVerbose, RC=localrc, logLUN=hcoLogLun )
       if (nxs_error_log(localrc, msg='Error encountered in routine "HCO_Logfile_Open_Readfile!"', &
         line=__LINE__, &
         file=__FILE__, &
@@ -966,7 +969,7 @@ contains
       OptValChar=MyGridFile,   Found=FOUND, RC=RC )
     if ( RC /= HCO_SUCCESS ) then
       ErrMsg = 'Error encountered in routine "GetExtOpt"!'
-      call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+      call HCO_Error( ErrMsg, RC, THISLOC=ThisLoc )
       return
     end if
     if ( FOUND ) GridFile = MyGridFile
@@ -985,7 +988,7 @@ contains
     OPEN( IU_FILE, FILE=trim(GridFile), STATUS='OLD', IOSTAT=IOS )
     if ( IOS /= 0 ) then
       ErrMsg = 'Error 1 reading ' // trim(GridFile)
-      call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
+      call HCO_Error( ErrMsg, RC, THISLOC=ThisLoc )
       return
     end if
 
@@ -1004,7 +1007,7 @@ contains
       call GetNextLine( IU_FILE, DUM, EOF, RC )
       if ( RC /= HCO_SUCCESS .OR. EOF ) then
         ErrMsg= 'Error 2 reading ' // trim(GridFile)
-        call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
+        call HCO_Error( ErrMsg, RC, THISLOC=ThisLoc )
         return
       end if
 
@@ -1013,7 +1016,7 @@ contains
       LOW = NextCharPos ( trim(DUM), COL, 1 )
       if ( LOW < 0 .OR. LOW == LNG ) then
         ErrMsg = 'Cannot extract size information from ' // trim(DUM)
-        call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
+        call HCO_Error( ErrMsg, RC, THISLOC=ThisLoc )
         return
       end if
       LOW = LOW + 1
@@ -1030,24 +1033,24 @@ contains
     ! Make sure values are in valid range
     if ( XMIN >= XMAX ) then
       write(ErrMsg,*) 'Lower lon must be smaller than upper lon: ', XMIN, XMAX
-      call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
+      call HCO_Error( ErrMsg, RC, THISLOC=ThisLoc )
       return
     end if
     if ( YMIN >= YMAX ) then
       write(ErrMsg,*) 'Lower lat must be smaller than upper lat: ', YMIN, YMAX
-      call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
+      call HCO_Error( ErrMsg, RC, THISLOC=ThisLoc )
       return
     end if
 
     ! Restrict latitude values to -90.0 and 90.0.
     if ( YMIN < -90.0_rk_hco ) then
       write(ErrMsg,*) 'Lower latitude must be between -90 and 90 degN: ', YMIN
-      call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
+      call HCO_Error( ErrMsg, RC, THISLOC=ThisLoc )
       return
     end if
     if ( YMAX > 90.0_rk_hco ) then
       write(ErrMsg,*) 'Upper latitude must be between -90 and 90 degN: ', YMAX
-      call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
+      call HCO_Error( ErrMsg, RC, THISLOC=ThisLoc )
       return
     end if
 
@@ -1064,7 +1067,7 @@ contains
       call GetNextLine( IU_FILE, DUM, EOF, RC )
       if ( RC /= HCO_SUCCESS .OR. EOF ) then
         ErrMsg = 'Error 3 reading ' // trim(GridFile)
-        call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
+        call HCO_Error( ErrMsg, RC, THISLOC=ThisLoc )
         return
       end if
 
@@ -1073,7 +1076,7 @@ contains
       LOW = NextCharPos ( trim(DUM), COL, 1 )
       if ( LOW < 0 .OR. LOW == LNG ) then
         ErrMsg = 'Cannot extract size information from ' // trim(DUM)
-        call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
+        call HCO_Error( ErrMsg, RC, THISLOC=ThisLoc )
         return
       end if
       LOW = LOW + 1
@@ -1119,7 +1122,7 @@ contains
       call GetNextLine( IU_FILE, DUM, EOF, RC )
       if ( RC /= HCO_SUCCESS ) then
         MSG = 'Error reading grid edges and/or midpoints in ' // trim(GridFile)
-        call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
+        call HCO_Error( MSG, RC, THISLOC=ThisLoc )
         return
       end if
 
@@ -1181,7 +1184,7 @@ contains
             if ( trim(DUM(1:5)) == 'XEDGE' ) then
               if ( I > NX+1 ) then
                 write(ErrMsg,*) 'More than ', NX+1, ' longitude edges found in ', trim(DUM)
-                call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
+                call HCO_Error( ErrMsg, RC, THISLOC=ThisLoc )
                 return
               end if
               XEDGE(I,:,1) = DVAL
@@ -1190,7 +1193,7 @@ contains
             else if ( trim(DUM(1:5)) == 'YEDGE' ) then
               if ( I > NY+1 ) then
                 write(ErrMsg,*) 'More than ', NY+1, ' latitude edges found in ', trim(DUM)
-                call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
+                call HCO_Error( ErrMsg, RC, THISLOC=ThisLoc )
                 return
               end if
               YEDGE(:,I,1) = DVAL
@@ -1199,7 +1202,7 @@ contains
             else if ( trim(DUM(1:4)) == 'XMID' ) then
               if ( I > NX ) then
                 write(ErrMsg,*) 'More than ', NX, ' latitude mid-points found in ', trim(DUM)
-                call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
+                call HCO_Error( ErrMsg, RC, THISLOC=ThisLoc )
                 return
               end if
               XMID(I,:,1) = DVAL
@@ -1208,7 +1211,7 @@ contains
             else if ( trim(DUM(1:4)) == 'YMID' ) then
               if ( I > NY ) then
                 write(ErrMsg,*) 'More than ', NY, ' latitude mid-points found in ', trim(DUM)
-                call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
+                call HCO_Error( ErrMsg, RC, THISLOC=ThisLoc )
                 return
               end if
               YMID(:,I,1) = DVAL
@@ -1217,7 +1220,7 @@ contains
             else if ( trim(DUM(1:2)) == 'AP' ) then
               if ( I > (NZ+1) ) then
                 write(ErrMsg,*) 'More than ', NZ+1, ' Ap values found in ', trim(DUM)
-                call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
+                call HCO_Error( ErrMsg, RC, THISLOC=ThisLoc )
                 return
               end if
               AP(I) = DVAL
@@ -1226,7 +1229,7 @@ contains
             else if ( trim(DUM(1:2)) == 'BP' ) then
               if ( I > (NZ+1) ) then
                 write(ErrMsg,*) 'More than ', NZ+1, ' Bp values found in ', trim(DUM)
-                call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
+                call HCO_Error( ErrMsg, RC, THISLOC=ThisLoc )
                 return
               end if
               BP(I) = DVAL
@@ -1240,32 +1243,32 @@ contains
         ! Error check: all values must have been filled
         if ( trim(DUM(1:5)) == 'XEDGE' .AND. I /= NX+1 ) then
           write(ErrMsg,*) 'Error reading XEDGES: exactly ', NX+1, ' values must be given: ', trim(DUM)
-          call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
+          call HCO_Error( ErrMsg, RC, THISLOC=ThisLoc )
           return
         end if
         if ( trim(DUM(1:5)) == 'YEDGE' .AND. I /= NY+1 ) then
           write(ErrMsg,*) 'Error reading YEDGES: exactly ', NY+1, ' values must be given: ', trim(DUM)
-          call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
+          call HCO_Error( ErrMsg, RC, THISLOC=ThisLoc )
           return
         end if
         if ( trim(DUM(1:4)) == 'XMID' .AND. I /= NX ) then
           write(ErrMsg,*) 'Error reading XMID: exactly ', NX, ' values must be given: ', trim(DUM)
-          call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
+          call HCO_Error( ErrMsg, RC, THISLOC=ThisLoc )
           return
         end if
         if ( trim(DUM(1:4)) == 'YMID' .AND. I /= NY ) then
           write(ErrMsg,*) 'Error reading YMID: exactly ', NY, ' values must be given: ', trim(DUM)
-          call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
+          call HCO_Error( ErrMsg, RC, THISLOC=ThisLoc )
           return
         end if
         if ( trim(DUM(1:2)) == 'AP' .AND. I /= NZ+1 ) then
           write(ErrMsg,*) 'Error reading AP: exactly ', NZ+1, ' values must be given: ', trim(DUM)
-          call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
+          call HCO_Error( ErrMsg, RC, THISLOC=ThisLoc )
           return
         end if
         if ( trim(DUM(1:2)) == 'BP' .AND. I /= NZ+1 ) then
           write(ErrMsg,*) 'Error reading BP: exactly ', NZ+1, ' values must be given: ', trim(DUM)
-          call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
+          call HCO_Error( ErrMsg, RC, THISLOC=ThisLoc )
           return
         end if
 
@@ -1276,12 +1279,12 @@ contains
     if ( ALL(AP==HCO_MISSVAL) .AND. .NOT. ALL(BP==HCO_MISSVAL) ) then
       write(ErrMsg,*) 'At least a few AP values are missing, please provide exactly ', &
         NZ+1, 'AP and BP values.'
-      call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
+      call HCO_Error( ErrMsg, RC, THISLOC=ThisLoc )
       return
     else if ( .NOT. ALL(AP==HCO_MISSVAL) .AND. ALL(BP==HCO_MISSVAL) ) then
       write(ErrMsg,*) 'At least a few BP values are missing, please provide exactly ', &
         NZ+1, 'AP and BP values.'
-      call HCO_Error( HcoState%Config%Err, ErrMsg, RC, THISLOC=ThisLoc )
+      call HCO_Error( ErrMsg, RC, THISLOC=ThisLoc )
       return
     end if
 
@@ -1400,7 +1403,10 @@ contains
       call HCO_VertGrid_Define( HcoState%Config, &
         HcoState%Grid%zGrid, NZ, RC=RC )
     end if
-    if ( RC /= HCO_SUCCESS ) return
+    if ( RC /= HCO_SUCCESS ) then
+      call HCO_Error( 'Cannot define vertical grid!', RC, THISLOC=ThisLoc )
+      return
+    end if
 
     ! Set pointers to grid variables
     HcoState%Grid%XMID%Val       => XMID   (:,:,1)
@@ -1427,18 +1433,18 @@ contains
 
     ! Write grid information to log-file
     write(Msg,*) 'HEMCO grid definitions:'
-    call HCO_MSG(HcoState%Config%Err,MSG)
+    call HCO_MSG(MSG)
 
     write(MSG,*) ' --> Number of longitude cells: ', NX
-    call HCO_MSG(HcoState%Config%Err,MSG)
+    call HCO_MSG(MSG)
     write(MSG,*) ' --> Number of latitude cells : ', NY
-    call HCO_MSG(HcoState%Config%Err,MSG)
+    call HCO_MSG(MSG)
     write(MSG,*) ' --> Number of levels         : ', NZ
-    call HCO_MSG(HcoState%Config%Err,MSG)
+    call HCO_MSG(MSG)
     write(MSG,*) ' --> Lon range [deg E]        : ', XMIN, XMAX
-    call HCO_MSG(HcoState%Config%Err,MSG)
+    call HCO_MSG(MSG)
     write(MSG,*) ' --> Lat range [deg N]        : ', YMIN, YMAX
-    call HCO_MSG(HcoState%Config%Err,MSG)
+    call HCO_MSG(MSG)
 
     ! Cleanup
     if ( allocated(AP) ) deallocate(AP)
@@ -1498,7 +1504,7 @@ contains
       OptValChar=MyTimeFile,   Found=FOUND, RC=RC )
     if ( RC /= HCO_SUCCESS ) then
       ErrMsg = 'Error encountered in routine "Hco_Run"!'
-      call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+      call HCO_Error( ErrMsg, RC, THISLOC=ThisLoc )
       return
     end if
     if ( FOUND ) TimeFile = MyTimeFile
@@ -1513,7 +1519,7 @@ contains
     OPEN( IU_FILE, FILE=trim(TimeFile), STATUS='OLD', IOSTAT=IOS )
     if ( IOS /= 0 ) then
       ErrMsg = 'Error 1 reading ' // trim(TimeFile)
-      call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+      call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
       return
     end if
 
@@ -1523,7 +1529,7 @@ contains
       call GetNextLine( IU_FILE, DUM, EOF, RC )
       if ( RC /= HCO_SUCCESS .OR. EOF ) then
         ErrMsg = 'Error reading time in ' // trim(TimeFile)
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         return
       end if
 
@@ -1532,7 +1538,7 @@ contains
       LOW = NextCharPos ( trim(DUM), COL, 1 )
       if ( LOW < 0 .OR. LOW == LNG ) then
         ErrMsg = 'Cannot extract index after colon: ' // trim(DUM)
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         return
       end if
       LOW = LOW + 1
@@ -1545,7 +1551,7 @@ contains
       if ( LNG /= 19 ) then
         ErrMsg = 'Provided time stamp is not `YYYY-MM-DD HH:MM:SS`! ' // &
           trim(DUM)
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         return
       end if
 
@@ -1562,7 +1568,7 @@ contains
     call GetNextLine( IU_FILE, DUM, EOF, RC )
     if ( (RC /= HCO_SUCCESS) .OR. EOF ) then
       ErrMsg = 'Cannot read emission time step from ' // trim(TimeFile)
-      call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+      call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
       return
     end if
 
@@ -1571,7 +1577,7 @@ contains
     LOW = NextCharPos ( trim(DUM), COL, 1 )
     if ( LOW < 0 .OR. LOW == LNG ) then
       ErrMsg = 'Cannot extract index after colon: ' // trim(DUM)
-      call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+      call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
       return
     end if
     LOW = LOW + 1
@@ -1656,7 +1662,7 @@ contains
     call HCO_Enter( HcoState%Config%Err, ThisLoc, RC )
     if ( RC /= HCO_SUCCESS ) then
       ErrMsg = 'Error encountered in "HCO_Enter"!'
-      call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+      call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
       return
     end if
 
@@ -1678,7 +1684,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -1691,7 +1697,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -1705,7 +1711,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -1719,7 +1725,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -1733,7 +1739,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -1747,7 +1753,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -1760,7 +1766,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -1774,7 +1780,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -1787,7 +1793,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -1801,7 +1807,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -1815,7 +1821,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg , RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -1829,7 +1835,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -1843,7 +1849,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -1856,7 +1862,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -1869,7 +1875,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -1883,7 +1889,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -1897,7 +1903,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -1911,7 +1917,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -1925,7 +1931,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -1939,7 +1945,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -1952,7 +1958,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -1965,7 +1971,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -1978,7 +1984,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -1991,7 +1997,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -2005,7 +2011,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -2019,7 +2025,7 @@ contains
       if ( RC == HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )             // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -2032,7 +2038,7 @@ contains
       if ( RC == HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )             // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -2054,7 +2060,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -2068,7 +2074,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -2082,7 +2088,7 @@ contains
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -2096,7 +2102,7 @@ contains
       if ( RC == HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -2109,7 +2115,7 @@ contains
       if ( RC == HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -2122,7 +2128,7 @@ contains
       if ( RC == HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -2136,7 +2142,7 @@ contains
       if ( RC == HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -2149,7 +2155,7 @@ contains
       if ( RC == HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -2162,7 +2168,7 @@ contains
       if ( RC == HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -2175,7 +2181,7 @@ contains
       if ( RC == HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -2189,7 +2195,7 @@ contains
       if ( RC == HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -2202,7 +2208,7 @@ contains
       if ( RC == HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -2216,7 +2222,7 @@ contains
       if ( RC == HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
           '" for the HEMCO standalone simulation!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
@@ -2255,7 +2261,7 @@ contains
         call HCO_ArrAssert( ExtState%SUNCOS%Arr, HcoState%NX, HcoState%NY, RC )
         if ( RC /= HCO_SUCCESS ) then
           ErrMsg = 'SUNCOS array is not the expected dimensions!'
-          call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+          call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
           call HCO_Leave( HcoState%Config%Err, RC )
           return
         end if
@@ -2264,7 +2270,7 @@ contains
       call HCO_GetSUNCOS( HcoState, ExtState%SUNCOS%Arr%Val, 0, RC )
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Error encountered in routine "HCO_GetSuncos"!'
-        call HCO_Error( HcoConfig%Err, ErrMsg, RC, ThisLoc )
+        call HCO_Error( ErrMsg, RC, ThisLoc=ThisLoc )
         call HCO_Leave( HcoState%Config%Err, RC )
         return
       end if
