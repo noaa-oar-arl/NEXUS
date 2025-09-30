@@ -3092,8 +3092,8 @@ contains
       file=__FILE__,  &
       rcToReturn=rc)) return  ! bail out
 
-    ! Add all fields to the bundle at once using ESMF_FieldBundleAddList
-    call ESMF_FieldBundleAddList( bundle, fieldList, localrc )
+    ! Add all fields to the bundle one by one using ESMF_FieldBundleAddField
+    call ESMF_FieldBundleAdd( bundle, fieldList, localrc )
     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__,  &
       file=__FILE__, &
