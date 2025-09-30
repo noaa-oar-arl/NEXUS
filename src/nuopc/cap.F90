@@ -3068,7 +3068,7 @@ contains
           line=__LINE__,  &
           file=__FILE__,  &
           rcToReturn=rc)) return  ! bail out
-        call ESMF_FieldBundleAdd( bundle, field, rc=localrc )
+        call ESMF_FieldBundleAddField( bundle, field, rc=localrc )
         if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
           line=__LINE__,  &
           file=__FILE__,  &
