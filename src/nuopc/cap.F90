@@ -74,6 +74,9 @@ module nexus_cap
 
   integer, parameter :: rootPet = 0
 
+  integer :: localPet = 0
+  integer :: petCount = 1
+
   type(ESMF_StaggerLoc), parameter :: staggerList(2) = &
     (/ ESMF_STAGGERLOC_CENTER, ESMF_STAGGERLOC_CORNER /)
 
@@ -496,7 +499,6 @@ contains
     integer, optional, intent(out) :: rc
 
     integer :: localrc
-    integer :: localPet
     logical :: am_I_Root
     logical :: doVerbose
     integer :: hcoLogLun
@@ -514,9 +516,9 @@ contains
       file=__FILE__,  &
       rcToReturn=rc)) return
 
-    call ESMF_VMGet(vm, localPet=localPet, rc=localrc)
+    call ESMF_VMGet(vm, localPet=localPet, petCount=petCount, rc=localrc)
     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__,  &
+      line=__LINE__, &
       file=__FILE__,  &
       rcToReturn=rc)) return
 
@@ -2729,6 +2731,24 @@ contains
           rcToReturn=rc)) return  ! bail out
       end select
 
+      call ESMF_AttributeSet(field, name="LongName", value=trim(thisDiagn % long_name), rc=localrc)
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__,  &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+
+      call ESMF_AttributeSet(field, name="Units", value=trim(thisDiagn % OutUnit), rc=localrc)
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__,  &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+
+      call ESMF_AttributeSet(field, name="StandardName", value=trim(thisDiagn % cName), rc=localrc)
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__,  &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+
       call ESMF_StateAdd( DiagState, (/ field /), rc=localrc )
       if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
         line=__LINE__,  &
@@ -3034,6 +3054,14 @@ contains
       file=__FILE__,  &
       rcToReturn=rc)) return  ! bail out
 
+    type(ESMF_FieldBundle) :: bundle
+
+    bundle = ESMF_FieldBundleCreate( name="NEXUS_bundle", rc=localrc )
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
+
     do item = 1, itemCount
       if (itemTypeList(item) == ESMF_STATEITEM_FIELD) then
         call ESMF_StateGet( state, itemNameList(item), field, rc=localrc )
@@ -3041,14 +3069,26 @@ contains
           line=__LINE__,  &
           file=__FILE__,  &
           rcToReturn=rc)) return  ! bail out
-        call ESMF_FieldWrite( field, fileName, overwrite=.true., &
-          timeslice=timeSlice, iofmt=ESMF_IOFMT_NETCDF, rc=localrc )
+        call ESMF_FieldBundleAdd( bundle, field, rc=localrc )
         if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
           line=__LINE__,  &
           file=__FILE__,  &
           rcToReturn=rc)) return  ! bail out
       end if
     end do
+
+    call ESMF_FieldBundleWrite( bundle, fileName=fileName, &
+      iofmt=ESMF_IOFMT_NETCDF, timeslice=timeSlice, rc=localrc )
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
+
+    call ESMF_FieldBundleDestroy( bundle, rc=localrc )
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
 
     deallocate(itemNameList, itemTypeList, stat=stat)
     if (ESMF_LogFoundDeallocError(statusToCheck=stat, &
