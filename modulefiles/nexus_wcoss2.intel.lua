@@ -1,5 +1,5 @@
 help([[
-loads UFS Model prerequisites on Cactus and Dogwood
+loads NEXUS Model prerequisites on Cactus and Dogwood
 ]])
 
 -- First, look for libraries in "prod" space
@@ -26,18 +26,7 @@ local ufs_modules = {
   {["netcdf-D"]    = "4.9.2"},
   {["pio-D"]       = "2.5.10"},
   {["esmf-D"]      = "8.8.0"},
-  {["fms-D"]       = "2024.01"},
-  {["bacio"]       = "2.4.1"},
-  {["crtm"]        = "2.4.0"},
-  {["g2"]          = "3.5.1"},
-  {["g2tmpl"]      = "1.13.0"},
-  {["ip"]          = "4.0.0"},
-  {["sp"]          = "2.3.3"},
-  {["w3emc"]       = "2.12.0"},
-  {["gftl-shared"] = "1.6.1"},
-  {["mapl-D"]      = "2.53.0"},
   {["pnetcdf-D"]   = "1.12.2"},
-  {["scotch"]      = "7.0.4"},
   {["zstd"]        = "1.5.0"},
 }
 
@@ -53,4 +42,4 @@ setenv("CXX", "CC")
 setenv("FC", "ftn")
 setenv("CMAKE_Platform", "wcoss2")
 
-whatis("Description: UFS build environment")
+whatis("Description: NEXUS build environment")

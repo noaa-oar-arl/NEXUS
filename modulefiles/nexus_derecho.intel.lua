@@ -1,5 +1,5 @@
 help([[
-loads UFS Model prerequisites for NOAA Parallelworks/Intel
+loads NEXUS Model prerequisites for NOAA Parallelworks/Intel
 ]])
 
 setenv("LMOD_TMOD_FIND_FIRST","yes")
@@ -26,4 +26,4 @@ load("sp/2.5.0")
 load("crtm/2.4.0.1")
 load("scotch/7.0.4")
 
-whatis("Description: UFS build environment")
+whatis("Description: NEXUS build environment")

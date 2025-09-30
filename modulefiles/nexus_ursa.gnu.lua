@@ -1,5 +1,5 @@
 help([[
-loads UFS Model prerequisites for Ursa/GNU
+loads NEXUS Model prerequisites for Ursa/GNU
 ]])
 
 prepend_path("MODULEPATH", "/contrib/spack-stack/spack-stack-1.9.2/envs/ue-gcc-12.4.0/install/modulefiles/Core")
@@ -13,7 +13,7 @@ load(pathJoin("stack-openmpi", stack_openmpi_ver))
 cmake_ver=os.getenv("cmake_ver") or "3.27.9"
 load(pathJoin("cmake", cmake_ver))
 
-load("ufs_common")
+load("nexus_common")
 
 nccmp_ver=os.getenv("nccmp_ver") or "1.9.1.0"
 load(pathJoin("nccmp", nccmp_ver))
@@ -25,4 +25,4 @@ setenv("FC", "mpifort")
 
 setenv("CMAKE_Platform", "ursa.gnu")
 
-whatis("Description: UFS build environment")
+whatis("Description: NEXUS build environment")

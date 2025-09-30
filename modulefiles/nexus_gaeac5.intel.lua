@@ -1,9 +1,9 @@
 help([[
-  This module loads libraries required for building and running UFS Weather Model
+  This module loads libraries required for building and running NEXUS Weather Model
   on the NOAA RDHPC machine Gaea C5 using Intel-2023.1.0.
 ]])
 
-whatis([===[Loads libraries needed for building the UFS Weather Model on Gaea C5 ]===])
+whatis([===[Loads libraries needed for building the NEXUS Weather Model on Gaea C5 ]===])
 
 prepend_path("MODULEPATH", "/ncrc/proj/epic/spack-stack/c5/spack-stack-1.9.1/envs/ue-intel-2023.2.0/install/modulefiles/Core")
 
@@ -19,7 +19,7 @@ load(pathJoin("stack-python", stack_python_ver))
 cmake_ver=os.getenv("cmake_ver") or "3.27.9"
 load(pathJoin("cmake", cmake_ver))
 
-load("ufs_common")
+load("nexus_common")
 
 nccmp_ver=os.getenv("nccmp_ver") or "1.9.0.1"
 load(pathJoin("nccmp", nccmp_ver))

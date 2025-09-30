@@ -1,5 +1,5 @@
 help([[
-loads UFS Model prerequisites for Hera/IntelLLVM
+loads NEXUS Model prerequisites for Hera/Intel
 ]])
 
 prepend_path("MODULEPATH", "/contrib/spack-stack/spack-stack-1.9.2/envs/ue-oneapi-2024.2.1/install/modulefiles/Core")
@@ -14,7 +14,7 @@ load(pathJoin("stack-intel-oneapi-mpi", stack_impi_ver))
 cmake_ver=os.getenv("cmake_ver") or "3.27.9"
 load(pathJoin("cmake", cmake_ver))
 
-load("ufs_common")
+load("nexus_common")
 load("zlib/1.2.11")
 
 nccmp_ver=os.getenv("nccmp_ver") or "1.9.0.1"
@@ -22,11 +22,11 @@ load(pathJoin("nccmp", nccmp_ver))
 
 setenv("CC", "mpiicx")
 setenv("CXX", "mpiicpx")
-setenv("FC", "mpiifx")
+setenv("FC", "mpiifort")
 setenv("I_MPI_CC", "icx")
 setenv("I_MPI_CXX", "icpx")
-setenv("I_MPI_F90", "ifx")
+setenv("I_MPI_F90", "ifort")
 
 setenv("CMAKE_Platform", "hera.intel")
 
-whatis("Description: UFS build environment")
+whatis("Description: NEXUS build environment")

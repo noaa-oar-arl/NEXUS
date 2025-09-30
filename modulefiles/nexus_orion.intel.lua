@@ -1,5 +1,5 @@
 help([[
-loads UFS Model prerequisites for Orion/Intel
+loads NEXUS Model prerequisites for Orion/Intel
 ]])
 
 prepend_path("MODULEPATH", "/apps/contrib/spack-stack/spack-stack-1.9.2/envs/ue-oneapi-2024.1.0/install/modulefiles/Core")
@@ -14,7 +14,7 @@ load(pathJoin("stack-intel-oneapi-mpi", stack_impi_ver))
 cmake_ver=os.getenv("cmake_ver") or "3.27.9"
 load(pathJoin("cmake", cmake_ver))
 
-load("ufs_common")
+load("nexus_common")
 load("zlib/1.2.13")
 
 -- HDF5 needed for LM4
@@ -30,4 +30,4 @@ setenv("CXX", "mpiicpc")
 setenv("FC", "mpiifort")
 setenv("CMAKE_Platform", "orion.intel")
 
-whatis("Description: UFS build environment")
+whatis("Description: NEXUS build environment")

@@ -1,5 +1,5 @@
 help([[
-loads UFS Model prerequisites for Derecho/GNU
+loads NEXUS Model prerequisites for Derecho/GNU
 ]])
 
 setenv("LMOD_TMOD_FIND_FIRST","yes")
@@ -22,4 +22,4 @@ load(pathJoin("stack-python", stack_python_ver))
 setenv("CMAKE_Platform", "derecho.gnu")
 load("ufs-weather-model-env")
 
-whatis("Description: UFS build environment")
+whatis("Description: NEXUS build environment")

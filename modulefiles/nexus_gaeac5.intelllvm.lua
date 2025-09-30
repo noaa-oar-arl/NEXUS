@@ -1,12 +1,11 @@
 help([[
-  This module loads libraries required for building and running UFS Weather Model 
-  on the NOAA RDHPC machine Gaea C6 using Intel-2023.2.0.
+  This module loads libraries required for building and running NEXUS Weather Model
+  on the NOAA RDHPC machine Gaea C5 using Intel-2023.1.0.
 ]])
 
-whatis([===[Loads libraries needed for building the UFS Weather Model on Gaea C6]===])
+whatis([===[Loads libraries needed for building the NEXUS Weather Model on Gaea C5]===])
 
-prepend_path("MODULEPATH", "/ncrc/proj/epic/spack-stack/c6/spack-stack-1.9.2/envs/ue-intel-2023.2.0/install/modulefiles/Core")
-prepend_path("MODULEPATH", "/ncrc/proj/epic/spack-stack/c6/modulefiles")
+prepend_path("MODULEPATH", "/ncrc/proj/epic/spack-stack/c5/spack-stack-1.9.1/envs/ue-intel-2023.2.0/install/modulefiles/Core")
 
 stack_intel_ver=os.getenv("stack_intel_ver") or "2023.2.0"
 load(pathJoin("stack-intel", stack_intel_ver))
@@ -20,8 +19,7 @@ load(pathJoin("stack-python", stack_python_ver))
 cmake_ver=os.getenv("cmake_ver") or "3.27.9"
 load(pathJoin("cmake", cmake_ver))
 
-load("ufs_common")
-load("zlib/1.2.13")
+load("nexus_common")
 
 nccmp_ver=os.getenv("nccmp_ver") or "1.9.0.1"
 load(pathJoin("nccmp", nccmp_ver))
@@ -29,8 +27,7 @@ load(pathJoin("nccmp", nccmp_ver))
 unload("darshan-runtime")
 unload("cray-libsci")
 
-unload("intel-classic/2023.2.0")
-load("intel-oneapi/2023.2.0")
+load("intel-classic/2023.2.0")
 
 setenv("I_MPI_CC", "icx")
 setenv("I_MPI_CXX", "icpx")
@@ -39,4 +36,4 @@ setenv("I_MPI_F90", "ifx")
 setenv("CC","cc")
 setenv("CXX","CC")
 setenv("FC","ftn")
-setenv("CMAKE_Platform","gaeac6.intelllvm")
+setenv("CMAKE_Platform","gaeac5.intelllvm")

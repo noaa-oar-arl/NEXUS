@@ -14,7 +14,7 @@ load(pathJoin("stack-intel-oneapi-mpi", stack_impi_ver))
 cmake_ver=os.getenv("cmake_ver") or "3.27.9"
 load(pathJoin("cmake", cmake_ver))
 
-load("ufs_common")
+load("nexus_common")
 
 nccmp_ver=os.getenv("nccmp_ver") or "1.9.0.1"
 load(pathJoin("nccmp", nccmp_ver))
@@ -28,4 +28,4 @@ setenv("I_MPI_F90", "ifort")
 
 setenv("CMAKE_Platform", "container.intel")
 
-whatis("Description: UFS build environment")
+whatis("Description: NEXUS build environment")

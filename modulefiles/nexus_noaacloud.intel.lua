@@ -1,5 +1,5 @@
 help([[
-loads UFS Model prerequisites for NOAA Parallelworks/Intel
+loads NEXUS Model prerequisites for NOAA Parallelworks/Intel
 ]])
 
 prepend_path("MODULEPATH", "/contrib/spack-stack-rocky8/spack-stack-1.9.2/envs/ue-oneapi-2024.2.1/install/modulefiles/Core")
@@ -8,22 +8,16 @@ prepend_path("MODULEPATH", "/contrib/spack-stack-rocky8/spack-stack-1.9.2/envs/u
 prepend_path("MODULEPATH", "/contrib/spack-stack-rocky8/spack-stack-1.9.2/envs/ue-oneapi-2024.2.1/install/modulefiles/intel-oneapi-mpi/2021.13-u7pshji/gcc/13.2.0")  -- path for NOAA Azure
 prepend_path("MODULEPATH", "/apps/modules/modulefiles")
 
-gnu_ver=os.getenv("gnu_ver") or "14.2.0"
-load(pathJoin("gnu", gnu_ver))
-
 stack_intel_ver=os.getenv("stack_intel_ver") or "2024.2.1"
 load(pathJoin("stack-oneapi", stack_intel_ver))
 
 stack_impi_ver=os.getenv("stack_impi_ver") or "2021.13"
 load(pathJoin("stack-intel-oneapi-mpi", stack_impi_ver))
 
-gnu_ver=os.getenv("gnu_ver") or "14.2.0"
-unload(pathJoin("gnu", gnu_ver))
-
 cmake_ver=os.getenv("cmake_ver") or "3.27.9"
 load(pathJoin("cmake", cmake_ver))
 
-load("ufs_common")
+load("nexus_common")
 load("zlib/1.2.11")
 
 nccmp_ver=os.getenv("nccmp_ver") or "1.9.0.1"
@@ -34,4 +28,4 @@ setenv("CXX", "mpiicpx")
 setenv("FC", "mpiifort")
 setenv("CMAKE_Platform", "noaacloud.intel")
 
-whatis("Description: UFS build environment")
+whatis("Description: NEXUS build environment")
