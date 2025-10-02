@@ -552,8 +552,7 @@ contains
     ! Open logfile
     !======================================================================
     if ( am_I_Root ) then
-      doVerbose = HcoConfig%Err%doVerbose
-      call HCO_LogFile_Open( HcoConfig%Err, doVerbose, RC=localrc, logLUN=hcoLogLun )
+      call HCO_LogFile_Open( HcoConfig%Err, RC=localrc )
       if (nxs_error_log(localrc, msg='Error encountered in routine "HCO_Logfile_Open_Readfile!"', &
         line=__LINE__, &
         file=__FILE__, &
