@@ -11,6 +11,7 @@ module nexus_cap
   use HCO_STATE_MOD, only: Hco_State
   use HCO_TYPES_MOD, only: ConfigObj
   use HCO_Error_Mod, only: rk_hco => hp, &
+    HcoErr, &
     HCO_LogFile_Open, &
     HCO_Error, HCO_MSG, HCO_Leave, HCO_Enter, &
     HCO_SUCCESS, HCO_MISSVAL
@@ -552,7 +553,8 @@ contains
     ! Open logfile
     !======================================================================
     if ( am_I_Root ) then
-      call HCO_LogFile_Open( HcoConfig%Err, RC=localrc )
+      doVerbose = HcoConfig%Err%doVerbose
+      call HCO_LogFile_Open( HcoConfig%Err, doVerbose, RC=localrc, logLUN=hcoLogLun )
       if (nxs_error_log(localrc, msg='Error encountered in routine "HCO_Logfile_Open_Readfile!"', &
         line=__LINE__, &
         file=__FILE__, &
