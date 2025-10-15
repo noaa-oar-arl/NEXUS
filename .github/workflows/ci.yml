@@ -73,22 +73,18 @@ jobs:
           # Install system dependencies needed for building
           sudo apt update
           sudo apt install -y cmake zlib1g-dev libxml2-dev pkg-config
-
+          
           # Find and configure compilers
           spack compiler find
           spack external find
-
-          # Configure system libraries for Spack
-          spack config add "packages:zlib:buildable:false"
-          spack config add "packages:zlib:externals:[{spec: zlib@1.2.11, prefix: /usr}]"
-
+          
           # Configure Intel MPI as external package if using Intel compiler
           if [ "${{ matrix.compiler }}" = "intel" ]; then
             intel_mpi_version=$(basename $(realpath /opt/intel/oneapi/mpi/latest))
             spack config add "packages:mpi:require:intel-oneapi-mpi"
             sed -i "s|^  packages:|  packages:\n    intel-oneapi-mpi:\n      buildable: false\n      externals:\n      - spec: intel-oneapi-mpi@${intel_mpi_version}\n        prefix: /opt/intel/oneapi|" $SPACK_ENV/spack.yaml
           fi
-
+          
           # Concretize to the specific ESMF version from the matrix
           spack concretize --force
           spack install --fail-fast esmf@${{ matrix.esmf_version }}
