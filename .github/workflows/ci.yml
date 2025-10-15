@@ -26,7 +26,7 @@ jobs:
       matrix:
         compiler: [gcc, intel]
         mpi: [true, false]
-        esmf_version: ["8.6.1", "8.8.0"]
+        esmf_version: ["8.6.0", "8.8.0"]
     env:
       cache_key: ${{ matrix.compiler }}
     steps:
@@ -75,14 +75,22 @@ jobs:
           
           # Install ESMF with the appropriate compiler
           if [ "${{ matrix.compiler }}" = "gcc" ]; then
-            spack add esmf@${{ matrix.esmf_version }} %gcc@12.3.0 +mpi=$([ "${{ matrix.mpi }}" = "true" ] && echo "True" || echo "False")
+            if [ "${{ matrix.mpi }}" = "true" ]; then
+              spack add esmf@${{ matrix.esmf_version }} %gcc@12.3.0 +mpi
+            else
+              spack add esmf@${{ matrix.esmf_version }} %gcc@12.3.0 ~mpi
+            fi
             spack config add "packages:all:prefer:'%gcc@12.3.0'"
           else
             # Configure Intel MPI as external package
             intel_mpi_version=$(basename $(realpath /opt/intel/oneapi/mpi/latest))
             spack config add "packages:mpi:require:intel-oneapi-mpi"
             spack config add "packages:all:prefer:'%oneapi@2023.2.0'"
-            spack add esmf@${{ matrix.esmf_version }} %oneapi@2023.2.0 +mpi=$([ "${{ matrix.mpi }}" = "true" ] && echo "True" || echo "False")
+            if [ "${{ matrix.mpi }}" = "true" ]; then
+              spack add esmf@${{ matrix.esmf_version }} %oneapi@2023.2.0 +mpi
+            else
+              spack add esmf@${{ matrix.esmf_version }} %oneapi@2023.2.0 ~mpi
+            fi
             sed -i "s|^  packages:|  packages:\n    intel-oneapi-mpi:\n      buildable: false\n      externals:\n      - spec: intel-oneapi-mpi@${intel_mpi_version}\n        prefix: /opt/intel/oneapi|" $SPACK_ENV/spack.yaml
           fi
           
@@ -97,7 +105,7 @@ jobs:
       matrix:
         compiler: [gcc, intel]
         mpi: [true, false]
-        esmf_version: ["8.6.0"]
+        esmf_version: ["8.6.0", "8.8.0"]
     steps:
       - name: checkout
         uses: actions/checkout@v4
