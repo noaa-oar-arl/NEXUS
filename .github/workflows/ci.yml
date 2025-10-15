@@ -124,6 +124,7 @@ jobs:
       - name: build-nexus
         run: |
           source spack/share/spack/setup-env.sh
+          source /opt/intel/oneapi/mpi/latest/env/vars.sh
           spack env activate nexus-env
 
           # Set environment variables for CMake
