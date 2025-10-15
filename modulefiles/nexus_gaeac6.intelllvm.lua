@@ -1,5 +1,5 @@
 help([[
-  This module loads libraries required for building and running NEXUS Weather Model 
+  This module loads libraries required for building and running NEXUS Weather Model
   on the NOAA RDHPC machine Gaea C6 using Intel-2023.2.0.
 ]])
 
