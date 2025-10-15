@@ -6,50 +6,143 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Use custom shell with -l so .bash_profile is sourced
+# without having to do it in manually every step
+defaults:
+  run:
+    shell: bash -leo pipefail {0}
+
+# The jobs are split into:
+# 1. a dependency build step (setup), and
+# 2. a NEXUS build and test step (build)
+# The setup is run once and the environment is cached,
+# so each subsequent build and test of NEXUS can reuse the cached
+# dependencies to save time (and compute).
+
 jobs:
-  build:
-    name: Build (APT, ${{ !matrix.mpi && 'no ' || '' }}MPI, pre-built ESMF)
+  setup:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
+        compiler: [gcc, intel]
         mpi: [true, false]
+        esmf_version: ["8.6.0"]
+    env:
+      cache_key: ${{ matrix.compiler }}
     steps:
-      - name: Check out
+      - name: checkout  # this is to get the spack configuration
         uses: actions/checkout@v4
         with:
-          submodules: true
-          fetch-depth: 0
+            submodules: true
+            fetch-depth: 0
 
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y
-          libnetcdf-dev libnetcdff-dev liblapack-dev libopenblas-dev
-          ${{ matrix.mpi && 'libopenmpi-dev openmpi-bin' || '' }}
+      # Cache spack, compiler and dependencies
+      - name: cache-env
+        id: cache-env
+        uses: actions/cache@v3
+        with:
+          path: |
+            spack
+            ~/.spack
+            ${{ matrix.compiler == 'intel' && '/opt/intel' || '' }}
+          key: spack-${{ runner.os }}-${{ matrix.compiler }}-${{ matrix.esmf_version }}-${{ hashFiles('**/CMakeLists.txt') }}
 
-      - name: Fetch pre-built ESMF
+      - name: install-intel-compilers
+        if: matrix.compiler == 'intel'
         run: |
-          v="8.3.1"  # ESMF
-          gcc="12"
-          esmf_base=$HOME/esmf
-          esmf=${v}-gcc-${gcc}-${{ matrix.mpi && 'mpi' || 'mpiuni' }}
+          wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | gpg --dearmor | sudo tee /usr/share/keyrings/Intel-SW-Product-PUB.gpg > /dev/null
+          echo "deb [signed-by=/usr/share/keyrings/Intel-SW-Product-PUB.gpg arch=amd64] https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+          sudo apt-get update
+          sudo apt-get install intel-oneapi-compiler-fortran intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic intel-oneapi-mkl intel-oneapi-mpi intel-oneapi-mpi-devel
+          echo "source /opt/intel/oneapi/setvars.sh" >> ~/.bash_profile
 
-          export ESMF_DIR=${esmf_base}/${esmf}
-          mkdir -p $ESMF_DIR
-          cd $ESMF_DIR
-          wget https://github.com/zmoon/gha-esmf/releases/download/v0.0.8/${esmf}.tar.gz
-          tar xzvf ${esmf}.tar.gz
-
-          echo "ESMFMKFILE=${ESMF_DIR}/lib/libO/\
-          Linux.gfortran.64.${{ matrix.mpi && 'mpi' || 'mpiuni' }}.default\
-          /esmf.mk" >> "$GITHUB_ENV"
-
-      - name: Configure
-        run: FC=gfortran-12 cmake -S . -B build
-
-      - name: Build
-        run: cmake --build build
-
-      - name: Run included test cases
+      # Install dependencies using Spack
+      - name: install-dependencies-with-spack
+        if: steps.cache-env.outputs.cache-hit != 'true'
         run: |
+          # Install Spack
+          git clone -c feature.manyFiles=true https://github.com/spack/spack.git
+          source spack/share/spack/setup-env.sh
+          
+          # Create spack environment for NEXUS
+          spack env create nexus-env
+          spack env activate nexus-env
+          
+          # Find and configure compilers
+          spack compiler find
+          sudo apt install cmake -y
+          spack external find
+          
+          # Install ESMF with the appropriate compiler
+          if [ "${{ matrix.compiler }}" = "gcc" ]; then
+            spack add esmf@${{ matrix.esmf_version }} %gcc@12.3.0 +mpi=$([ "${{ matrix.mpi }}" = "true" ] && echo "True" || echo "False")
+            spack config add "packages:all:prefer:'%gcc@12.3.0'"
+          else
+            # Configure Intel MPI as external package
+            intel_mpi_version=$(basename $(realpath /opt/intel/oneapi/mpi/latest))
+            spack config add "packages:mpi:require:intel-oneapi-mpi"
+            spack config add "packages:all:prefer:'%oneapi@2023.2.0'"
+            spack add esmf@${{ matrix.esmf_version }} %oneapi@2023.2.0 +mpi=$([ "${{ matrix.mpi }}" = "true" ] && echo "True" || echo "False")
+            sed -i "s|^  packages:|  packages:\n    intel-oneapi-mpi:\n      buildable: false\n      externals:\n      - spec: intel-oneapi-mpi@${intel_mpi_version}\n        prefix: /opt/intel/oneapi|" $SPACK_ENV/spack.yaml
+          fi
+          
+          spack concretize
+          spack install --dirty --show-log-on-error --fail-fast
+          spack clean --all
+
+  build:
+    needs: setup
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        compiler: [gcc, intel]
+        mpi: [true, false]
+        esmf_version: ["8.6.0"]
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+            submodules: true
+            fetch-depth: 0
+
+      - name: cache-env
+        id: cache-env
+        uses: actions/cache@v3
+        with:
+          path: |
+            spack
+            ~/.spack
+            ${{ matrix.compiler == 'intel' && '/opt/intel' || '' }}
+          key: spack-${{ runner.os }}-${{ matrix.compiler }}-${{ matrix.esmf_version }}-${{ hashFiles('**/CMakeLists.txt') }}
+
+      - name: install-intel
+        if: matrix.compiler == 'intel'
+        run: |
+          echo "source /opt/intel/oneapi/setvars.sh" >> ~/.bash_profile
+
+      - name: build-nexus
+        run: |
+          source spack/share/spack/setup-env.sh
+          spack env activate nexus-env
+          
+          # Set environment variables for CMake
+          echo "ESMFMKFILE=$(spack location -i esmf)/lib/esmf.mk" >> "$GITHUB_ENV"
+          
+          # Configure and build
+          if [ "${{ matrix.compiler }}" = "gcc" ]; then
+            cmake -S . -B build -DCMAKE_Fortran_COMPILER=gfortran-12
+          else
+            source /opt/intel/oneapi/setvars.sh intel64
+            cmake -S . -B build -DCMAKE_Fortran_COMPILER=ifx
+          fi
+          
+          cmake --build build
+
+      - name: run-test-cases
+        run: |
+          source spack/share/spack/setup-env.sh
+          spack env activate nexus-env
+          
           set -x
           bin="$PWD/build/bin/nexus"
           failed=0
