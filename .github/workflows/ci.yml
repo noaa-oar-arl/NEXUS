@@ -63,16 +63,16 @@ jobs:
           # Install Spack
           git clone -c feature.manyFiles=true https://github.com/spack/spack.git
           source spack/share/spack/setup-env.sh
-          
+
           # Create spack environment for NEXUS
           spack env create nexus-env
           spack env activate nexus-env
-          
+
           # Find and configure compilers
           spack compiler find
           sudo apt install cmake -y
           spack external find
-          
+
           # Install ESMF with the appropriate compiler
           if [ "${{ matrix.compiler }}" = "gcc" ]; then
             if [ "${{ matrix.mpi }}" = "true" ]; then
@@ -80,12 +80,12 @@ jobs:
             else
               spack add esmf@${{ matrix.esmf_version }} %gcc@12.3.0 ~mpi
             fi
-            spack config add "packages:all:prefer:'gcc@12.3.0'"
+            spack config add "packages:all:compiler:[gcc@12.3.0]"
           else
             # Configure Intel MPI as external package
             intel_mpi_version=$(basename $(realpath /opt/intel/oneapi/mpi/latest))
             spack config add "packages:mpi:require:intel-oneapi-mpi"
-            spack config add "packages:all:prefer:'oneapi@2023.2.0'"
+            spack config add "packages:all:compiler:[oneapi@2023.2.0]"
             if [ "${{ matrix.mpi }}" = "true" ]; then
               spack add esmf@${{ matrix.esmf_version }} %oneapi@2023.2.0 +mpi
             else
@@ -93,7 +93,7 @@ jobs:
             fi
             sed -i "s|^  packages:|  packages:\n    intel-oneapi-mpi:\n      buildable: false\n      externals:\n      - spec: intel-oneapi-mpi@${intel_mpi_version}\n        prefix: /opt/intel/oneapi|" $SPACK_ENV/spack.yaml
           fi
-          
+
           spack concretize
           spack install --dirty --show-log-on-error --fail-fast
           spack clean --all
@@ -132,10 +132,10 @@ jobs:
         run: |
           source spack/share/spack/setup-env.sh
           spack env activate nexus-env
-          
+
           # Set environment variables for CMake
           echo "ESMFMKFILE=$(spack location -i esmf)/lib/esmf.mk" >> "$GITHUB_ENV"
-          
+
           # Configure and build
           if [ "${{ matrix.compiler }}" = "gcc" ]; then
             cmake -S . -B build -DCMAKE_Fortran_COMPILER=gfortran-12
@@ -143,14 +143,14 @@ jobs:
             source /opt/intel/oneapi/setvars.sh intel64
             cmake -S . -B build -DCMAKE_Fortran_COMPILER=ifx
           fi
-          
+
           cmake --build build
 
       - name: run-test-cases
         run: |
           source spack/share/spack/setup-env.sh
           spack env activate nexus-env
-          
+
           set -x
           bin="$PWD/build/bin/nexus"
           failed=0
