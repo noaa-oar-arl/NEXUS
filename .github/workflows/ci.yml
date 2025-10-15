@@ -78,6 +78,10 @@ jobs:
           spack compiler find
           spack external find
 
+          # Configure system libraries for Spack
+          spack config add "packages:zlib:buildable:false"
+          spack config add "packages:zlib:externals:[{spec: zlib@1.2.11, prefix: /usr}]"
+
           # Configure Intel MPI as external package if using Intel compiler
           if [ "${{ matrix.compiler }}" = "intel" ]; then
             intel_mpi_version=$(basename $(realpath /opt/intel/oneapi/mpi/latest))
