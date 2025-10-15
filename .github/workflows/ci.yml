@@ -25,7 +25,7 @@ jobs:
     strategy:
       matrix:
         compiler: [gcc, intel]
-        esmf_version: ["8.6.0", "8.0"]
+        esmf_version: ["8.6.0", "8.8.0"]
     env:
       cache_key: ${{ matrix.compiler }}
     steps:
@@ -72,22 +72,14 @@ jobs:
           sudo apt install cmake -y
           spack external find
 
-          # Install ESMF with the appropriate compiler
+          # Install ESMF with the appropriate compiler and MPI
           if [ "${{ matrix.compiler }}" = "gcc" ]; then
-            if [ "${{ matrix.mpi }}" = "true" ]; then
-              spack add "esmf@${{ matrix.esmf_version }} %gcc@12.3.0 +mpi"
-            else
-              spack add "esmf@${{ matrix.esmf_version }} %gcc@12.3.0 ~mpi"
-            fi
+            spack add "esmf@${{ matrix.esmf_version }} %gcc@12.3.0 +mpi"
           else
             # Configure Intel MPI as external package
             intel_mpi_version=$(basename $(realpath /opt/intel/oneapi/mpi/latest))
             spack config add "packages:mpi:require:intel-oneapi-mpi"
-            if [ "${{ matrix.mpi }}" = "true" ]; then
-              spack add "esmf@${{ matrix.esmf_version }} %oneapi@2023.2.0 +mpi"
-            else
-              spack add "esmf@${{ matrix.esmf_version }} %oneapi@2023.2.0 ~mpi"
-            fi
+            spack add "esmf@${{ matrix.esmf_version }} %oneapi@2023.2.0 +mpi"
             sed -i "s|^  packages:|  packages:\n    intel-oneapi-mpi:\n      buildable: false\n      externals:\n      - spec: intel-oneapi-mpi@${intel_mpi_version}\n        prefix: /opt/intel/oneapi|" $SPACK_ENV/spack.yaml
           fi
 
@@ -101,7 +93,6 @@ jobs:
     strategy:
       matrix:
         compiler: [gcc, intel]
-        mpi: [true, false]
         esmf_version: ["8.6.0", "8.8.0"]
     steps:
       - name: checkout
@@ -154,7 +145,7 @@ jobs:
           cd tests/cases
           for d in *; do
             cd $d
-            $bin -c NEXUS_Config.rc ${{ matrix.mpi && '-r grid_spec.nc' || '' }} || failed=1
+            $bin -c NEXUS_Config.rc -r grid_spec.nc || failed=1
             if [[ "$failed" == 1 ]]; then
               tail -n 20 NEXUS.log
               cat PET0.ESMF_LogFile
