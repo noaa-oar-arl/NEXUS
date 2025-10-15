@@ -74,12 +74,12 @@ jobs:
 
           # Install ESMF with the appropriate compiler and MPI
           if [ "${{ matrix.compiler }}" = "gcc" ]; then
-            spack add esmf@${{ matrix.esmf_version }} +mpi %gcc@12.3.0
+            spack add esmf@${{ matrix.esmf_version }} +mpi %gcc
           else
             # Configure Intel MPI as external package
             intel_mpi_version=$(basename $(realpath /opt/intel/oneapi/mpi/latest))
             spack config add "packages:mpi:require:intel-oneapi-mpi"
-            spack add esmf@${{ matrix.esmf_version }} +mpi %oneapi@2023.2.0
+            spack add esmf@${{ matrix.esmf_version }} +mpi %oneapi
             sed -i "s|^  packages:|  packages:\n    intel-oneapi-mpi:\n      buildable: false\n      externals:\n      - spec: intel-oneapi-mpi@${intel_mpi_version}\n        prefix: /opt/intel/oneapi|" $SPACK_ENV/spack.yaml
           fi
 
