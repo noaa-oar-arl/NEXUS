@@ -25,7 +25,7 @@ jobs:
     strategy:
       matrix:
         compiler: [gcc, intel]
-        esmf_version: ["8.6.0", "8.8.0"]
+        esmf_version: ["8.8.0"]
     env:
       cache_key: ${{ matrix.compiler }}
     steps:
@@ -63,8 +63,8 @@ jobs:
           git clone -c feature.manyFiles=true https://github.com/spack/spack.git
           source spack/share/spack/setup-env.sh
 
-          # Create spack environment for NEXUS
-          spack env create nexus-env
+          # Create spack environment for NEXUS from yaml file
+          spack env create nexus-env $GITHUB_WORKSPACE/ci/spack.yaml
           spack env activate nexus-env
 
           # Configure to prefer binary packages when available
@@ -73,24 +73,21 @@ jobs:
           # Install system dependencies needed for building
           sudo apt update
           sudo apt install -y cmake zlib1g-dev libxml2-dev pkg-config
-          
+
           # Find and configure compilers
           spack compiler find
           spack external find
 
-          # Install ESMF with the appropriate compiler and MPI
-          if [ "${{ matrix.compiler }}" = "gcc" ]; then
-            spack add esmf@${{ matrix.esmf_version }} +mpi %gcc
-          else
-            # Configure Intel MPI as external package
+          # Configure Intel MPI as external package if using Intel compiler
+          if [ "${{ matrix.compiler }}" = "intel" ]; then
             intel_mpi_version=$(basename $(realpath /opt/intel/oneapi/mpi/latest))
             spack config add "packages:mpi:require:intel-oneapi-mpi"
-            spack add esmf@${{ matrix.esmf_version }} +mpi %oneapi
             sed -i "s|^  packages:|  packages:\n    intel-oneapi-mpi:\n      buildable: false\n      externals:\n      - spec: intel-oneapi-mpi@${intel_mpi_version}\n        prefix: /opt/intel/oneapi|" $SPACK_ENV/spack.yaml
           fi
 
+          # Concretize to the specific ESMF version from the matrix
           spack concretize --force
-          spack install --fail-fast
+          spack install --fail-fast esmf@${{ matrix.esmf_version }}
           # Create build cache for faster subsequent builds
           spack buildcache push --allow-root --unsigned $HOME/spack-cache
           spack clean --all
@@ -101,7 +98,7 @@ jobs:
     strategy:
       matrix:
         compiler: [gcc, intel]
-        esmf_version: ["8.6.0", "8.8.0"]
+        esmf_version: ["8.8.0"]
     steps:
       - name: checkout
         uses: actions/checkout@v4
