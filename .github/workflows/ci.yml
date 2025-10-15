@@ -87,8 +87,21 @@ jobs:
 
           # Concretize to the specific ESMF version from the matrix
           spack concretize --force
-          # Install only dependencies of ESMF to speed up the setup job
-          spack install --only dependencies --fail-fast esmf@${{ matrix.esmf_version }}
+          # Install dependencies in groups to avoid timeouts
+          # Group 1: Basic system dependencies
+          spack install --only dependencies --fail-fast cmake
+          # Group 2: Compression/IO libraries
+          spack install --only dependencies --fail-fast zlib xz bzip2 zstd libiconv libxml2
+          # Group 3: Graphics/Utility libraries
+          spack install --only dependencies --fail-fast libpng jasper util-macros
+          # Group 4: MPI and related
+          spack install --only dependencies --fail-fast openmpi hwloc libevent numactl pmix prrte openssh autoconf automake libtool m4 flex pkg-config
+          # Group 5: HDF5 and NetCDF stack
+          spack install --only dependencies --fail-fast hdf5 netcdf-c netcdf-fortran
+          # Group 6: ParallelIO and ESMF
+          spack install --only dependencies --fail-fast parallelio esmf@${{ matrix.esmf_version }}
+          # Group 7: BACIO
+          spack install --only dependencies --fail-fast bacio
           # Create build cache for faster subsequent builds
           spack buildcache push --allow-root --unsigned $HOME/spack-cache
           spack clean --all
@@ -127,7 +140,7 @@ jobs:
           source spack/share/spack/setup-env.sh
           spack env activate nexus-env
 
-          # Install ESMF itself
+          # Install ESMF and its direct dependencies (which should already be built, but this ensures they are available)
           spack install --fail-fast esmf@${{ matrix.esmf_version }}
 
           # Source Intel MPI environment variables if using Intel compiler
@@ -153,7 +166,7 @@ jobs:
           source spack/share/spack/setup-env.sh
           spack env activate nexus-env
 
-          # Install ESMF itself (it might not be installed if cache was hit in build step)
+          # Install ESMF and its direct dependencies (it might not be installed if cache was hit in build step)
           spack install --fail-fast esmf@${{ matrix.esmf_version }}
 
           set -x
