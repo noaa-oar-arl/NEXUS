@@ -25,8 +25,7 @@ jobs:
     strategy:
       matrix:
         compiler: [gcc, intel]
-        mpi: [true, false]
-        esmf_version: ["8.6.0", "8.8.0"]
+        esmf_version: ["8.6.0", "8.0"]
     env:
       cache_key: ${{ matrix.compiler }}
     steps:
