@@ -62,19 +62,19 @@ jobs:
           # Install Spack
           git clone -c feature.manyFiles=true https://github.com/spack/spack.git
           source spack/share/spack/setup-env.sh
-          
+
           # Create spack environment for NEXUS
           spack env create nexus-env
           spack env activate nexus-env
-          
+
           # Configure to prefer binary packages when available
           spack config add "config:binary:package-cache:buildcache"
-          
+
           # Find and configure compilers
           spack compiler find
           sudo apt install cmake -y
           spack external find
-          
+
           # Install ESMF with the appropriate compiler and MPI
           if [ "${{ matrix.compiler }}" = "gcc" ]; then
             spack add esmf@${{ matrix.esmf_version }} +mpi %gcc
@@ -85,9 +85,11 @@ jobs:
             spack add esmf@${{ matrix.esmf_version }} +mpi %oneapi
             sed -i "s|^  packages:|  packages:\n    intel-oneapi-mpi:\n      buildable: false\n      externals:\n      - spec: intel-oneapi-mpi@${intel_mpi_version}\n        prefix: /opt/intel/oneapi|" $SPACK_ENV/spack.yaml
           fi
-          
+
           spack concretize --force
-          spack install --fail-fast --cache-only
+          spack install --fail-fast
+          # Create build cache for faster subsequent builds
+          spack buildcache push --allow-root --unsigned $HOME/spack-cache
           spack clean --all
 
   build:
