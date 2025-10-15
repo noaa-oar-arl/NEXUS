@@ -80,12 +80,10 @@ jobs:
             else
               spack add esmf@${{ matrix.esmf_version }} %gcc@12.3.0 ~mpi
             fi
-            spack config add "packages:all:compiler:[gcc@12.3.0]"
           else
             # Configure Intel MPI as external package
             intel_mpi_version=$(basename $(realpath /opt/intel/oneapi/mpi/latest))
             spack config add "packages:mpi:require:intel-oneapi-mpi"
-            spack config add "packages:all:compiler:[oneapi@2023.2.0]"
             if [ "${{ matrix.mpi }}" = "true" ]; then
               spack add esmf@${{ matrix.esmf_version }} %oneapi@2023.2.0 +mpi
             else
