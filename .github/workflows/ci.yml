@@ -70,9 +70,12 @@ jobs:
           # Configure to prefer binary packages when available
           spack config add "config:binary:package-cache:buildcache"
 
+          # Install system dependencies needed for building
+          sudo apt update
+          sudo apt install -y cmake zlib1g-dev libxml2-dev pkg-config
+          
           # Find and configure compilers
           spack compiler find
-          sudo apt install cmake -y
           spack external find
 
           # Install ESMF with the appropriate compiler and MPI
