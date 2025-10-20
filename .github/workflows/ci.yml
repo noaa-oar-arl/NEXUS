@@ -70,7 +70,7 @@ jobs:
           # Add Spack's official binary cache mirrors for faster builds
           spack mirror add binary_mirror https://binaries.spack.io/releases/v0.21
           spack buildcache keys --install --trust
-          
+
           # Add local cache from previous runs for compiler-specific packages
           if [ -d "$HOME/spack-cache" ]; then
             spack mirror add local_cache file://$HOME/spack-cache
