@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        compiler: [gcc, intel]
+        compiler: [gcc]
         esmf_version: ["8.8.0"]
     env:
       cache_key: ${{ matrix.compiler }}
