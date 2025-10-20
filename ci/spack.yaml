@@ -4,6 +4,8 @@ spack:
     zlib:
       buildable: true
       externals: []
+    pmix:
+      variants: ~munge
   specs:
   - jasper@2.0.32
   - libpng@1.6.37
