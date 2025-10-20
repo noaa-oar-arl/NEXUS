@@ -137,7 +137,8 @@ jobs:
           spack env activate nexus-env
 
           # Install ESMF and its direct dependencies (which should already be built, but this ensures they are available)
-          spack install --fail-fast esmf@${{ matrix.esmf_version }}
+          # Force rebuild of ESMF with consistent compiler to avoid Fortran module compatibility issues
+          spack install --fail-fast --overwrite esmf@${{ matrix.esmf_version }}
 
           # Source Intel MPI environment variables if using Intel compiler
           if [ "${{ matrix.compiler }}" = "intel" ]; then
@@ -163,7 +164,8 @@ jobs:
           spack env activate nexus-env
 
           # Install ESMF and its direct dependencies (it might not be installed if cache was hit in build step)
-          spack install --fail-fast esmf@${{ matrix.esmf_version }}
+          # Force rebuild of ESMF with consistent compiler to avoid Fortran module compatibility issues
+          spack install --fail-fast --overwrite esmf@${{ matrix.esmf_version }}
 
           set -x
           bin="$PWD/build/bin/nexus"
