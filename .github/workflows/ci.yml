@@ -71,10 +71,6 @@ jobs:
           spack mirror add binary_mirror https://binaries.spack.io/releases/v0.21
           spack buildcache keys --install --trust
 
-          # Configure to prefer binary packages when available
-          spack config add "config:install_tree:padded_length:128"
-          spack config add "config:binary_index_root:https://binaries.spack.io/releases/v0.21"
-
           # Install system dependencies needed for building
           sudo apt update
           sudo apt install -y cmake zlib1g-dev libxml2-dev pkg-config libssl-dev
