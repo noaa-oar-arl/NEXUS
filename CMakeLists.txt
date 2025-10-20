@@ -16,6 +16,10 @@ else()
   endif()
 endif()
 
+# Set compiler ID to be used by Find modules for consistency checking
+set(ESMF_COMPILER_ID ${CMAKE_Fortran_COMPILER_ID})
+set(NetCDF_COMPILER_ID ${CMAKE_Fortran_COMPILER_ID})
+
 # Include local macros
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 

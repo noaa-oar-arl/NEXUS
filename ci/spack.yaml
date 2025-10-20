@@ -6,12 +6,20 @@ spack:
   packages:
     all:
       target: [x86_64]
-      compiler: gcc@12.3.0
+      compiler: [gcc@12.3.0]
     zlib:
       buildable: true
       externals: []
     pmix:
       variants: ~munge
+    netcdf-c:
+      compiler: [gcc@12.3.0]
+    netcdf-fortran:
+      compiler: [gcc@12.3.0]
+    esmf:
+      compiler: [gcc@12.3.0]
+    parallelio:
+      compiler: [gcc@12.3.0]
   specs:
   - jasper@2.0.32
   - libpng@1.6.37
