@@ -86,6 +86,7 @@ echo "Configuring ... `date`"
 set -x
 cmake \
   ${CMAKE_OPTS:-} \
+  -DCMAKE_Fortran_COMPILER_ID="${COMPILER^^}" \
   $dir_root
 set +x
 

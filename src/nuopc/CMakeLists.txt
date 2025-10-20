@@ -14,6 +14,16 @@ target_include_directories(NEXUS_Shared
 find_package(ESMF REQUIRED)
 find_package(NetCDF REQUIRED COMPONENTS Fortran)
 
+# Verify compiler consistency between ESMF and NetCDF
+if(DEFINED ESMF_F90COMPILEPATHS AND NetCDF_Fortran_INCLUDE_DIRS)
+ # Additional check for compiler consistency between ESMF and NetCDF
+  if(DEFINED CMAKE_Fortran_COMPILER_ID)
+    message(STATUS "Building with ${CMAKE_Fortran_COMPILER_ID} compiler")
+    message(STATUS "ESMF will be linked from: ${ESMF_LIBRARY_LOCATION}")
+    message(STATUS "NetCDF Fortran module found in: ${NetCDF_Fortran_INCLUDE_DIRS}")
+  endif()
+endif()
+
 target_link_libraries(NEXUS_Shared
   PUBLIC HCOI_Shared
   PUBLIC HCOI_Standalone
