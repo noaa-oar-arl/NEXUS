@@ -6,29 +6,22 @@ spack:
   packages:
     all:
       target: [x86_64]
-      compiler: [gcc@12.3.0]
+      providers:
+        mpi: [cray-mpich]
     zlib:
       buildable: true
       externals: []
     pmix:
       variants: ~munge
-    netcdf-c:
-      compiler: [gcc@12.3.0]
-    netcdf-fortran:
-      compiler: [gcc@12.3.0]
-    esmf:
-      compiler: [gcc@12.3.0]
-    parallelio:
-      compiler: [gcc@12.3.0]
   specs:
-  - jasper@2.0.32
-  - libpng@1.6.37
-  - hdf5@1.14.3
-  - netcdf-c@4.9.2
-  - netcdf-fortran@4.6.1
-  - parallelio@2.6.2+fortran~pnetcdf
-  - esmf@8.8.0+mpi
-  - bacio@2.4.1
+  - jasper@2.0.32 %gcc@12.3.0
+  - libpng@1.6.37 %gcc@12.3.0
+  - hdf5@1.14.3 %gcc@12.3.0
+  - netcdf-c@4.9.2 %gcc@12.3.0
+  - netcdf-fortran@4.6.1 %gcc@12.3.0
+  - parallelio@2.6.2+fortran~pnetcdf %gcc@12.3.0
+  - esmf@8.8.0+mpi %gcc@12.3.0
+  - bacio@2.4.1 %gcc@12.3.0
   view: true
   concretizer:
     unify: when_possible
