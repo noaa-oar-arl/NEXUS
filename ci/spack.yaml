@@ -6,6 +6,7 @@ spack:
   packages:
     all:
       target: [x86_64]
+      compiler: gcc@12.3.0
     zlib:
       buildable: true
       externals: []
