@@ -1,8 +1,6 @@
 # Spack environment file to build NEXUS dependencies
 spack:
   packages:
-    all:
-      compiler: [oneapi, "gcc@12:12", apple-clang@14]
     zlib:
       buildable: true
       externals: []
