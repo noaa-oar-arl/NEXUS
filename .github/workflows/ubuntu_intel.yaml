@@ -1,18 +1,21 @@
-name: GCC Linux Build and Test
+name: Intel Linux Build and Test
 on: [push, pull_request, workflow_dispatch]
 
-
-# Use custom shell with -l so .bash_profile is sourced
+# Use custom shell with -l so .bash_profile is sourced which loads intel/oneapi/setvars.sh
 # without having to do it in manually every step
 defaults:
   run:
     shell: bash -leo pipefail {0}
 
+# Set I_MPI_CC/F90 so IntelLLVM is used.
 env:
-  cache_key: gcc
-  CC: gcc-13
-  FC: gfortran-13
-  CXX: g++-13
+  cache_key: intel
+  CC: mpiicx
+  FC: mpiifx
+  CXX: mpiicpx
+  I_MPI_CC: icx
+  I_MPI_F90: ifx
+  I_MPI_CXX: icpx
 
 # The jobs are split into:
 # 1. a dependency build step (setup), and
@@ -39,22 +42,39 @@ jobs:
           path: |
             spack
             ~/.spack
+            /opt/intel
           key: spack-${{ runner.os }}-${{ env.cache_key }}-${{ hashFiles('nexus/ci/spack.yaml') }}
+
+      - name: install-intel-compilers
+        run: |
+          wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+          sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+          echo "deb https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+          sudo apt-get update
+          sudo apt-get install intel-oneapi-dev-utilities intel-oneapi-mpi-devel intel-oneapi-openmp intel-oneapi-compiler-fortran intel-oneapi-compiler-dpcpp-cpp
+          echo "source /opt/intel/oneapi/setvars.sh" >> ~/.bash_profile
 
       # Install dependencies using Spack
       - name: install-dependencies-with-spack
         if: steps.cache-env.outputs.cache-hit != 'true'
         run: |
+          sudo mv /usr/local /usr/local_mv
           git clone -c feature.manyFiles=true https://github.com/JCSDA/spack.git
           source spack/share/spack/setup-env.sh
-          sed "s/\[oneapi, gcc@13:13, apple-clang@14\]/\[gcc@13:13\]/g" nexus/ci/spack.yaml > spack_ci.yaml
+          sed "s/\[oneapi, gcc@10:10, apple-clang@14\]/\[oneapi\]/g" nexus/ci/spack.yaml > spack_ci.yaml
           spack env create nexus-env spack_ci.yaml
           spack env activate nexus-env
+          spack compiler find
           sudo apt install cmake
           spack external find
-          spack add mpich@3.4.2
+          spack config add "packages:all:prefer:'%oneapi'"
+          spack config add "packages:mpi:require:intel-oneapi-mpi"
+          intel_mpi_version=$(basename $(realpath /opt/intel/oneapi/mpi/latest))
+          sed -i "s|^  packages:|  packages:\n    intel-oneapi-mpi:\n      buildable: false\n      externals:\n      - spec: intel-oneapi-mpi@${intel_mpi_version}\n        prefix: /opt/intel/oneapi|" $SPACK_ENV/spack.yaml
+          spack config add "packages:python:require:'@3.11'"
+          cat $SPACK_ENV/spack.yaml
           spack concretize
-          spack install -v --fail-fast --dirty
+          spack install --dirty --show-log-on-error --fail-fast
           spack clean --all
 
   nexus:
@@ -62,6 +82,10 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
+      - name: install-intel
+        run: |
+          echo "source /opt/intel/oneapi/setvars.sh" >> ~/.bash_profile
+
       - name: checkout
         uses: actions/checkout@v3
         with:
@@ -75,21 +99,22 @@ jobs:
           path: |
             spack
             ~/.spack
+            /opt/intel
           key: spack-${{ runner.os }}-${{ env.cache_key }}-${{ hashFiles('nexus/ci/spack.yaml') }}
 
       - name: build
         run: |
           source spack/share/spack/setup-env.sh
           spack env activate nexus-env
-          export CC=mpicc
-          export FC=mpif90
+          export CC=mpiicx
+          export FC=mpiifx
           cd nexus
           mkdir -p build && cd build
           cmake -DCMAKE_INSTALL_PREFIX=../install ..
           make -j2 VERBOSE=1
           make install
 
-      - name: test
+      - name: ctest
         run: |
           source spack/share/spack/setup-env.sh
           spack env activate nexus-env
