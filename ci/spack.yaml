@@ -1,27 +1,49 @@
 # Spack environment file to build NEXUS dependencies
+# Spack environment file to build UFS utilities dependencies
 spack:
-  config:
-    install_tree:
-      padded_length: 128
   packages:
     all:
-      target: [x86_64]
-      providers:
-        mpi: [cray-mpich]
-    zlib:
-      buildable: true
-      externals: []
-    pmix:
-      variants: ~munge
+      compiler: [oneapi, gcc@13:13, apple-clang@14]
   specs:
-  - jasper@2.0.32 %gcc@12.3.0
-  - libpng@1.6.37 %gcc@12.3.0
-  - hdf5@1.14.3 %gcc@12.3.0
-  - netcdf-c@4.9.2 %gcc@12.3.0
-  - netcdf-fortran@4.6.1 %gcc@12.3.0
-  - parallelio@2.6.2+fortran~pnetcdf %gcc@12.3.0
-  - esmf@8.8.0+mpi %gcc@12.3.0
-  - bacio@2.4.1 %gcc@12.3.0
+  - netcdf-c@4.9.2
+  - netcdf-fortran@4.6.1
+  - bacio@2.4.1
+  - g2@3.5.1
+  - ip@5.1.0 precision=d
+  - sp@2.5.0
+  - nemsio@2.5.4
+  - w3emc@2.10.0
+  - sigio@2.3.3
+  - nccmp@1.9.0.1
+  - parallelio@2.5.10+fortran~pnetcdf
+  - esmf@8.8.0
   view: true
   concretizer:
     unify: when_possible
+
+# spack:
+#   config:
+#     install_tree:
+#       padded_length: 128
+#   packages:
+#     all:
+#       target: [x86_64]
+#       providers:
+#         mpi: [cray-mpich]
+#     zlib:
+#       buildable: true
+#       externals: []
+#     pmix:
+#       variants: ~munge
+#   specs:
+#   - jasper@2.0.32 %gcc@12.3.0
+#   - libpng@1.6.37 %gcc@12.3.0
+#   - hdf5@1.14.3 %gcc@12.3.0
+#   - netcdf-c@4.9.2 %gcc@12.3.0
+#   - netcdf-fortran@4.6.1 %gcc@12.3.0
+#   - parallelio@2.6.2+fortran~pnetcdf %gcc@12.3.0
+#   - esmf@8.8.0+mpi %gcc@12.3.0
+#   - bacio@2.4.1 %gcc@12.3.0
+#   view: true
+#   concretizer:
+#     unify: when_possible
