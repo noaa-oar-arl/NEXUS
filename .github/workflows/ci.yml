@@ -95,21 +95,9 @@ jobs:
 
           # Concretize to the specific ESMF version from the matrix
           spack concretize --force
-          # Install dependencies in groups to avoid timeouts
-          # Group 1: Basic system dependencies including zlib
-          spack install --only dependencies --fail-fast cmake zlib
-          # Group 2: Compression/IO libraries
-          spack install --only dependencies --fail-fast xz bzip2 zstd libiconv libxml2
-          # Group 3: Graphics/Utility libraries
-          spack install --only dependencies --fail-fast libpng jasper util-macros
-          # Group 4: MPI and related
-          spack install --only dependencies --fail-fast openmpi hwloc libevent numactl pmix prrte openssh autoconf automake libtool m4 flex pkg-config
-          # Group 5: HDF5 and NetCDF stack
-          spack install --only dependencies --fail-fast hdf5 netcdf-c netcdf-fortran
-          # Group 6: ParallelIO and ESMF
-          spack install --only dependencies --fail-fast parallelio esmf@${{ matrix.esmf_version }}
-          # Group 7: BACIO
-          spack install --only dependencies --fail-fast bacio
+          # Install dependencies of ESMF in groups to avoid timeouts
+          # This installs all dependencies needed for ESMF without installing ESMF itself
+          spack install --only dependencies --fail-fast esmf@${{ matrix.esmf_version }}
           # Create build cache for faster subsequent builds (only push actually installed packages)
           spack buildcache push --unsigned $HOME/spack-cache $(spack find --format /{hash})
           spack clean --all
