@@ -2,7 +2,7 @@
 spack:
   packages:
     all:
-      compiler: [oneapi, gcc@12:12, apple-clang@14]
+      compiler: [oneapi, "gcc@12:12", apple-clang@14]
   specs:
   - jasper@2.0.32
   - libpng@1.6.37
