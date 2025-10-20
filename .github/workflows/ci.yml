@@ -70,6 +70,11 @@ jobs:
           # Add Spack's official binary cache mirrors for faster builds
           spack mirror add binary_mirror https://binaries.spack.io/releases/v0.21
           spack buildcache keys --install --trust
+          
+          # Add local cache from previous runs for compiler-specific packages
+          if [ -d "$HOME/spack-cache" ]; then
+            spack mirror add local_cache file://$HOME/spack-cache
+          fi
 
           # Install system dependencies needed for building
           sudo apt update
@@ -77,10 +82,10 @@ jobs:
 
           # Find and configure compilers
           spack compiler find
-          
+
           # Configure external packages but exclude zlib to force Spack to build it
           spack external find --exclude zlib
-          
+
           # Configure Intel MPI as external package if using Intel compiler
           if [ "${{ matrix.compiler }}" = "intel" ]; then
             intel_mpi_version=$(basename $(realpath /opt/intel/oneapi/mpi/latest))
