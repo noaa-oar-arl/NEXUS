@@ -106,7 +106,7 @@ jobs:
           # Group 7: BACIO
           spack install --only dependencies --fail-fast bacio
           # Create build cache for faster subsequent builds
-          spack buildcache push --allow-root --unsigned $HOME/spack-cache
+          spack buildcache push --unsigned $HOME/spack-cache
           spack clean --all
 
   build:
