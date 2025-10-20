@@ -1,6 +1,11 @@
 # Spack environment file to build NEXUS dependencies
 spack:
+  config:
+    install_tree:
+      padded_length: 128
   packages:
+    all:
+      target: [x86_64]
     zlib:
       buildable: true
       externals: []
