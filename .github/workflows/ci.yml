@@ -105,8 +105,8 @@ jobs:
           spack install --only dependencies --fail-fast parallelio esmf@${{ matrix.esmf_version }}
           # Group 7: BACIO
           spack install --only dependencies --fail-fast bacio
-          # Create build cache for faster subsequent builds
-          spack buildcache push --unsigned $HOME/spack-cache
+          # Create build cache for faster subsequent builds (only push installed packages)
+          spack buildcache push --unsigned --only dependencies $HOME/spack-cache esmf@${{ matrix.esmf_version }}
           spack clean --all
 
   build:
