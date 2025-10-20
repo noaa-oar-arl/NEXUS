@@ -72,7 +72,7 @@ jobs:
 
           # Install system dependencies needed for building
           sudo apt update
-          sudo apt install -y cmake zlib1g-dev libxml2-dev pkg-config
+          sudo apt install -y cmake zlib1g-dev libxml2-dev pkg-config libssl-dev
 
           # Find and configure compilers
           spack compiler find
@@ -88,10 +88,10 @@ jobs:
           # Concretize to the specific ESMF version from the matrix
           spack concretize --force
           # Install dependencies in groups to avoid timeouts
-          # Group 1: Basic system dependencies
-          spack install --only dependencies --fail-fast cmake
+          # Group 1: Basic system dependencies including zlib
+          spack install --only dependencies --fail-fast cmake zlib
           # Group 2: Compression/IO libraries
-          spack install --only dependencies --fail-fast zlib xz bzip2 zstd libiconv libxml2
+          spack install --only dependencies --fail-fast xz bzip2 zstd libiconv libxml2
           # Group 3: Graphics/Utility libraries
           spack install --only dependencies --fail-fast libpng jasper util-macros
           # Group 4: MPI and related

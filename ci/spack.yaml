@@ -3,6 +3,9 @@ spack:
   packages:
     all:
       compiler: [oneapi, "gcc@12:12", apple-clang@14]
+    zlib:
+      buildable: true
+      externals: []
   specs:
   - jasper@2.0.32
   - libpng@1.6.37
