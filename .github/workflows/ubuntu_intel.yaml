@@ -7,15 +7,16 @@ defaults:
   run:
     shell: bash -leo pipefail {0}
 
-# Set I_MPI_CC/F90 so IntelLLVM is used.
+# Set I_MPI_CC/F90 to use Intel oneAPI LLVM for C/C++ (icx/icpx/mpiicx/mpiicpx)
+# but Intel Classic for Fortran (ifort/mpiifort) for compatibility reasons.
 env:
   cache_key: intel
-  CC: mpiicx
-  FC: mpiifx
-  CXX: mpiicpx
-  I_MPI_CC: icx
-  I_MPI_F90: ifx
-  I_MPI_CXX: icpx
+  CC: mpiicx      # Intel oneAPI LLVM C compiler with MPI wrapper
+  FC: mpiifort    # Intel Classic Fortran compiler with MPI wrapper
+  CXX: mpiicpx    # Intel oneAPI LLVM C++ compiler with MPI wrapper
+  I_MPI_CC: icx   # Intel oneAPI LLVM C compiler for MPI
+  I_MPI_F90: ifort # Intel Classic Fortran compiler for MPI
+  I_MPI_CXX: icpx # Intel oneAPI LLVM C++ compiler for MPI
 
 # The jobs are split into:
 # 1. a dependency build step (setup), and
@@ -51,7 +52,7 @@ jobs:
           sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
           echo "deb https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
           sudo apt-get update
-          sudo apt-get install intel-oneapi-dev-utilities intel-oneapi-mpi-devel intel-oneapi-openmp intel-oneapi-compiler-fortran intel-oneapi-compiler-dpcpp-cpp
+          sudo apt-get install intel-oneapi-dev-utilities intel-oneapi-mpi-devel intel-oneapi-openmp intel-oneapi-compiler-fortran intel-oneapi-compiler-dpcpp-cpp intel-oneapi-compiler-fc intel-oneapi-compiler-cc
           echo "source /opt/intel/oneapi/setvars.sh" >> ~/.bash_profile
 
       # Install dependencies using Spack
@@ -106,8 +107,9 @@ jobs:
         run: |
           source spack/share/spack/setup-env.sh
           spack env activate nexus-env
-          export CC=mpiicx
-          export FC=mpiifx
+          export CC=mpiicx    # Intel oneAPI LLVM C compiler with MPI wrapper
+          export CXX=mpiicpx  # Intel oneAPI LLVM C++ compiler with MPI wrapper
+          export FC=mpiifort  # Intel Classic Fortran compiler with MPI wrapper (compatibility)
           cd nexus
           mkdir -p build && cd build
           cmake -DCMAKE_INSTALL_PREFIX=../install ..
