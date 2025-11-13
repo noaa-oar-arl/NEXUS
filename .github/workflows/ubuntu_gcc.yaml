@@ -50,9 +50,11 @@ jobs:
           sed "s/\[oneapi, gcc@13:13, apple-clang@14\]/\[gcc@13:13\]/g" nexus/ci/spack.yaml > spack_ci.yaml
           spack env create nexus-env spack_ci.yaml
           spack env activate nexus-env
-          sudo apt install cmake
+          sudo apt update
+          sudo apt install -y cmake gfortran libgomp1
           spack external find
-          spack add mpich@3.4.2
+          # Ensure MPI with Fortran and OpenMP-capable toolchain
+          spack add mpich@3.4.2 %gcc
           spack concretize
           spack install -v --fail-fast --dirty
           spack clean --all

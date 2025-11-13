@@ -20,30 +20,3 @@ spack:
   view: true
   concretizer:
     unify: when_possible
-
-# spack:
-#   config:
-#     install_tree:
-#       padded_length: 128
-#   packages:
-#     all:
-#       target: [x86_64]
-#       providers:
-#         mpi: [cray-mpich]
-#     zlib:
-#       buildable: true
-#       externals: []
-#     pmix:
-#       variants: ~munge
-#   specs:
-#   - jasper@2.0.32 %gcc@12.3.0
-#   - libpng@1.6.37 %gcc@12.3.0
-#   - hdf5@1.14.3 %gcc@12.3.0
-#   - netcdf-c@4.9.2 %gcc@12.3.0
-#   - netcdf-fortran@4.6.1 %gcc@12.3.0
-#   - parallelio@2.6.2+fortran~pnetcdf %gcc@12.3.0
-#   - esmf@8.8.0+mpi %gcc@12.3.0
-#   - bacio@2.4.1 %gcc@12.3.0
-#   view: true
-#   concretizer:
-#     unify: when_possible
