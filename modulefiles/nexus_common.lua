@@ -1,14 +1,16 @@
+whatis("Description: NEXUS build environment common libraries")
 
 help([[Load NEXUS Model common libraries]])
 
 local ufs_modules = {
-  {["zlib"]            = "1.2.13"},
+  {["jasper"]          = "2.0.32"},
   {["libpng"]          = "1.6.37"},
-  {["hdf5"]            = "1.14.0"},
+  {["hdf5"]            = "1.14.3"},
   {["netcdf-c"]        = "4.9.2"},
   {["netcdf-fortran"]  = "4.6.1"},
-  {["parallelio"]      = "2.5.10"},
-  {["esmf"]            = "8.6.0"},
+  {["parallelio"]      = "2.6.2"},
+  {["esmf"]            = "8.8.0"},
+  {["bacio"]           = "2.4.1"},
 }
 
 for i = 1, #ufs_modules do

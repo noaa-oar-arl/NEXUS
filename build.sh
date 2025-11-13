@@ -60,11 +60,11 @@ while getopts "wt:c:hvfa" opt; do
 done
 
 case ${BUILD_TARGET} in
-  hera | orion | hercules | wcoss2 | noaacloud | gaeac5 | gaeac6 | ursa )
+  hera | orion | hercules | wcoss2 | noaacloud | gaeac5 | gaeac6 | ursa | derecho | frontera | container | linux | s4 | jet | acorn )
     echo "Building NEXUS on $BUILD_TARGET"
     source $dir_root/ush/module-setup.sh
     module use $dir_root/modulefiles
-    module load ufs_$BUILD_TARGET.$COMPILER
+    module load nexus_$BUILD_TARGET.$COMPILER
     module list
     ;;
   $(hostname))

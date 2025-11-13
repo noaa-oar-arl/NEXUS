@@ -17,7 +17,7 @@ cmake_ver=os.getenv("cmake_ver") or "3.24.2"
 load(pathJoin("cmake", cmake_ver))
 --load("cmake/3.24.2")
 
-load("ufs_common")
+load("nexus_common")
 
 stack_python_ver=os.getenv("stack_python_ver") or "3.10.13"
 load(pathJoin("stack-python", stack_python_ver))
@@ -30,4 +30,4 @@ setenv("CXX", "mpiicpc")
 setenv("FC", "mpiifort")
 setenv("CMAKE_Platform", "frontera.intel")
 
-whatis("Description: UFS build environment")
+whatis("Description: NEXUS build environment")

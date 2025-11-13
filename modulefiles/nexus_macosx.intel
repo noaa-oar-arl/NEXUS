@@ -2,9 +2,9 @@
 
 #%Module######################################################################
 ##
-##    UFS prerequisites: macOS with gcc/gfortran or clang/gfortran compilers
+##    UFS prerequisites: macOS with icc/ifort compilers
 
-echo "Setting environment variables for NEXUS Model on macOS with gcc/gfortran or clang/gfortran"
+echo "Setting environment variables for UFS Model on macOS with with icc/ifort"
 
 ##
 ## load programming environment: compiler, flags, paths
@@ -21,4 +21,4 @@ export MPIF90=${MPIF90:-mpif90}
 ##
 ## load cmake
 ##
-export CMAKE_Platform=macosx.gnu
+export CMAKE_Platform=macosx.intel

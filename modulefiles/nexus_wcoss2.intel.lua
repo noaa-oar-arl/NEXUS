@@ -22,22 +22,12 @@ local ufs_modules = {
   {["jasper"]      = "2.0.25"},
   {["zlib"]        = "1.2.11"},
   {["libpng"]      = "1.6.37"},
-  {["hdf5-C"]      = "1.14.0"},
-  {["netcdf-C"]    = "4.9.2"},
-  {["pio-C"]       = "2.5.10"},
-  {["esmf-C"]      = "8.6.0"},
-  {["fms"]         = "2024.01"},
-  {["bacio"]       = "2.4.1"},
-  {["crtm"]        = "2.4.0"},
-  {["g2"]          = "3.5.1"},
-  {["g2tmpl"]      = "1.13.0"},
-  {["ip"]          = "4.0.0"},
-  {["sp"]          = "2.3.3"},
-  {["w3emc"]       = "2.12.0"},
-  {["gftl-shared"] = "1.6.1"},
-  {["mapl-C"]      = "2.40.3"},
-  {["pnetcdf-C"]   = "1.12.2"},
-  {["scotch"]      = "7.0.4"},
+  {["hdf5-D"]      = "1.14.0"},
+  {["netcdf-D"]    = "4.9.2"},
+  {["pio-D"]       = "2.5.10"},
+  {["esmf-D"]      = "8.8.0"},
+  {["pnetcdf-D"]   = "1.12.2"},
+  {["zstd"]        = "1.5.0"},
 }
 
 for i = 1, #ufs_modules do
@@ -52,4 +42,4 @@ setenv("CXX", "CC")
 setenv("FC", "ftn")
 setenv("CMAKE_Platform", "wcoss2")
 
-whatis("Description: UFS build environment")
+whatis("Description: NEXUS build environment")
