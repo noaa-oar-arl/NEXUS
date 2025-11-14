@@ -1,5 +1,4 @@
 # Spack environment file to build NEXUS dependencies
-# Spack environment file to build UFS utilities dependencies
 spack:
   packages:
     all:
