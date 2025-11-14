@@ -118,6 +118,16 @@ endif()
 ## Finalize find_package
 include(FindPackageHandleStandardArgs)
 
+# Check compiler consistency for ESMF
+if(ESMF_F90COMPILEPATHS AND DEFINED CMAKE_Fortran_COMPILER_ID)
+  # Check if ESMF was built with the same compiler
+  if(DEFINED ESMF_COMPILER_ID)
+    if(NOT ESMF_COMPILER_ID STREQUAL CMAKE_Fortran_COMPILER_ID)
+      message(WARNING "ESMF was built with ${ESMF_COMPILER_ID} compiler, but current build uses ${CMAKE_Fortran_COMPILER_ID}. This may cause compatibility issues.")
+    endif()
+  endif()
+endif()
+
 find_package_handle_standard_args(
     ${CMAKE_FIND_PACKAGE_NAME}
     REQUIRED_VARS ESMF_LIBRARY_LOCATION

@@ -308,6 +308,16 @@ endif ()
 ## Finalize find_package
 include(FindPackageHandleStandardArgs)
 
+# Check compiler consistency for NetCDF
+if(NetCDF_Fortran_FOUND AND DEFINED CMAKE_Fortran_COMPILER_ID)
+  # Check if NetCDF was built with the same compiler
+  if(DEFINED NetCDF_COMPILER_ID)
+    if(NOT NetCDF_COMPILER_ID STREQUAL CMAKE_Fortran_COMPILER_ID)
+      message(WARNING "NetCDF was built with ${NetCDF_COMPILER_ID} compiler, but current build uses ${CMAKE_Fortran_COMPILER_ID}. This may cause compatibility issues.")
+    endif()
+  endif()
+endif()
+
 if(NOT NetCDF_FOUND OR _new_search_components)
     find_package_handle_standard_args( ${CMAKE_FIND_PACKAGE_NAME}
         REQUIRED_VARS NetCDF_INCLUDE_DIRS NetCDF_LIBRARIES
