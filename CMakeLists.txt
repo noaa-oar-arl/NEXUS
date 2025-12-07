@@ -19,6 +19,8 @@ endif()
 # Include local macros
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
+option(USE_MPI "Build with MPI" OFF)
+
 # Control where the static and shared libraries are built
 # so that on Windows we don't need to tinker with the path to run the executable
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
@@ -26,8 +28,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 
 # Do not build HEMCO standalone executable
-set(HEMCO_EXTERNAL_CONFIG TRUE)
-set(GCCLASSIC_WRAPPER TRUE)
+set(HEMCO_EXTERNAL_CONFIG ON CACHE BOOL "Build HEMCO as an external component")
+set(NUOPC_ESMF ON CACHE BOOL "Enable NUOPC interface for HEMCO")
 
 if(CMAKE_BUILD_TYPE)
   string(TOUPPER ${CMAKE_BUILD_TYPE} UPPER_CMAKE_BUILD_TYPE)

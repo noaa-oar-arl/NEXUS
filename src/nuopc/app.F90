@@ -4,33 +4,16 @@ program app
   ! Command-line interface for the NEXUS NUOPC Single-Model Driver
   !-----------------------------------------------------------------------------
 
+#ifdef USE_MPI
+  use mpi
+#endif
+
   use ESMF
 
   use nexus_cap, only: init_cap => nxs_init, finalize_cap => nxs_finalize
   use nexus_driver, only: driverSS => SetServices
 
   implicit none
-
-  character(len=*), parameter :: NEXUS_options(12,2) = reshape( &
-    (/ &
-    "-c           ", "c:           ", &
-    "--config     ", "c:           ", &
-    "--config-file", "c:           ", &
-    "-r           ", "r:           ", &
-    "--regrid-to  ", "r:           ", &
-    "-d           ", "d            ", &
-    "--debug      ", "d            ", &
-    "--wr         ", "wr           ", &
-    "-o           ", "o:           ", &
-    "--output     ", "o:           ", &
-    "-h           ", "h            ", &
-    "--help       ", "h            " &
-    /), (/ 12, 2 /), order=(/ 2, 1 /))
-
-  character(len=*), parameter :: usage = &
-    "Usage: nexus &
-    [-c|--config-file <file>] [-r|--regrid-to <file>] [-o|--output <file>] &
-    [-d|--debug] [--wr] [-h|--help]"
 
   character(1), parameter :: newline = new_line('a')
   character(len=*), parameter :: description = &
@@ -41,18 +24,22 @@ program app
   integer :: rc, localrc, userRc
   integer, parameter :: rootPet = 0
   integer :: localPet, petCount
-  integer :: idx, ind, item
   integer :: debugLevel
   logical :: writeRestart
   integer :: ibuf(2)
+#ifdef USE_MPI
+  integer :: mpi_ierr
+#endif
   character(ESMF_MAXSTR) :: ConfigFile
   character(ESMF_MAXSTR) :: ReGridFile
   character(ESMF_MAXSTR) :: OutputFile
-  character(ESMF_MAXSTR) :: optarg
   character(ESMF_MAXSTR) :: sbuf(3)
   type(ESMF_VM) :: vm
   type(ESMF_GridComp) :: drvComp
 
+#ifdef USE_MPI
+  call MPI_Init(mpi_ierr)
+#endif
 
   ! Initialize ESMF
   call ESMF_Initialize(defaultCalkind=ESMF_CALKIND_GREGORIAN, rc=rc)
@@ -67,7 +54,7 @@ program app
     file=__FILE__)) &
     call ESMF_Finalize(endflag=ESMF_END_ABORT)
 
-  ! Parse command line arguments and share information with other PETs
+  ! Parse control file and share information with other PETs
   call ESMF_VMGetCurrent(vm, rc=rc)
   if (ESMF_LogFoundError(rc, msg=ESMF_LOGERR_PASSTHRU, &
     line=__LINE__,  &
@@ -96,39 +83,8 @@ program app
   localrc = ESMF_SUCCESS
 
   if (localPet == rootPet) then
-    do item = 1, size(NEXUS_options, dim=1)
-      call ESMF_UtilGetArgIndex(NEXUS_options(item,1), argindex=ind, rc=localrc)
-      if (ESMF_LogFoundError(localrc, msg=ESMF_LOGERR_PASSTHRU, &
-        line=__LINE__,  &
-        file=__FILE__)) &
-        exit
-      if (ind > -1) then
-        idx = len_trim(NEXUS_options(item,2))
-        if (NEXUS_options(item,2)(idx:idx) == ":") then
-          call ESMF_UtilGetArg(ind+1, argvalue=optarg, rc=localrc)
-          if (ESMF_LogFoundError(localrc, msg=ESMF_LOGERR_PASSTHRU, &
-            line=__LINE__,  &
-            file=__FILE__)) &
-            exit
-        end if
-        select case (trim(NEXUS_options(item,2)))
-         case ("c:")
-          ConfigFile = optarg
-         case ("r:")
-          ReGridFile = optarg
-         case ("o:")
-          OutputFile = optarg
-         case ("d")
-          debugLevel = 1
-         case ("wr")
-          writeRestart = .true.
-         case ("h")
-          print "(a)", usage
-          stop
-         case default
-        end select
-      end if
-    end do
+    call parse_control_file("nexus.rc", ConfigFile, ReGridFile, OutputFile, &
+      debugLevel, writeRestart, localrc)
 
     call print_sep(char="=")
     print "(a)", description
@@ -142,6 +98,7 @@ program app
     call print_sep()
   end if
 
+  ! Broadcast settings to other PETs
   ibuf(1) = localrc
   ibuf(2) = debugLevel
   call ESMF_VMBroadcast(vm, ibuf, size(ibuf), rootPet, rc=rc)
@@ -151,7 +108,7 @@ program app
     call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
   localrc    = ibuf(1)
   debugLevel = ibuf(2)
-  if (ESMF_LogFoundError(localrc, msg="Failure retrieving command-line arguments", &
+  if (ESMF_LogFoundError(localrc, msg="Failure reading control file", &
     line=__LINE__,  &
     file=__FILE__)) &
     call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
@@ -238,6 +195,10 @@ program app
   ! Finalize ESMF
   call ESMF_Finalize()
 
+#ifdef USE_MPI
+  call MPI_Finalize(mpi_ierr)
+#endif
+
   print "('NEXUS: ', a)", "Done"
 
 contains
@@ -270,5 +231,54 @@ contains
 
     print "(a)", sep
   end subroutine print_sep
+
+  subroutine parse_control_file(file, ConfigFile, ReGridFile, OutputFile, &
+    debugLevel, writeRestart, rc)
+    character(len=*), intent(in) :: file
+    character(len=*), intent(out) :: ConfigFile
+    character(len=*), intent(out) :: ReGridFile
+    character(len=*), intent(out) :: OutputFile
+    integer, intent(out) :: debugLevel
+    logical, intent(out) :: writeRestart
+    integer, intent(out) :: rc
+
+    integer :: unit, stat
+    character(len=255) :: line, key, value
+
+    rc = ESMF_SUCCESS
+
+    open(newunit=unit, file=trim(file), status='old', iostat=stat)
+    if (stat /= 0) then
+      print *, "Error opening control file: ", trim(file)
+      rc = ESMF_RC_FILE_OPEN_ERR
+      return
+    end if
+
+    do
+      read(unit, '(a)', end=10) line
+      ! Skip comments and empty lines
+      if (len_trim(line) == 0 .or. line(1:1) == '#') cycle
+      
+      ! Parse key-value pair
+      key = trim(adjustl(line(1:index(line,':')-1)))
+      value = trim(adjustl(line(index(line,':')+1:)))
+
+      select case (key)
+        case ('CONFIG_FILE')
+          ConfigFile = value
+        case ('REGRID_FILE')
+          ReGridFile = value
+        case ('OUTPUT_FILE')
+          OutputFile = value
+        case ('DEBUG_LEVEL')
+          read(value, *) debugLevel
+        case ('WRITE_RESTART')
+          read(value, *) writeRestart
+      end select
+    end do
+10  continue
+    close(unit)
+
+  end subroutine parse_control_file
 
 end program app

@@ -1,0 +1,30 @@
+#
+# NEXUS I/O Configuration File
+#
+
+#==============================================================================
+# EXTDATA STREAMS (Input)
+#==============================================================================
+
+# :: EXTDATA ::
+#   NAME: met_fields
+#   FILE: /path/to/your/met_data.nc
+#   TIME_INTERPOLATION: linear
+#   VARIABLES:
+#     - U10M
+#     - V10M
+#   ::
+
+#==============================================================================
+# HISTORY STREAMS (Output)
+#==============================================================================
+
+# :: HISTORY ::
+#   NAME: hourly_diags
+#   FREQUENCY: 010000      # HHMMSS
+#   FILE: nexus_history.nc
+#   MODE: overwrite        # overwrite or append
+#   VARIABLES:
+#     - EMIS_NO
+#     - EMIS_CO
+#   ::

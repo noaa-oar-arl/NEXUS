@@ -102,7 +102,8 @@ contains
       file=__FILE__)) &
       call ESMF_Finalize(endflag=ESMF_END_ABORT)
 
-    call ESMF_TimeIntervalSet(timeStep, s_r8=real(HcoState%TS_EMIS, kind=ESMF_KIND_R8), rc=rc)
+    ! TODO: Timestep should be read from a config file
+    call ESMF_TimeIntervalSet(timeStep, s=3600, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &

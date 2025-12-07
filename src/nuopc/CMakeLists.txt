@@ -5,7 +5,13 @@ add_executable(nexus
 add_library(NEXUS_Shared STATIC EXCLUDE_FROM_ALL
   cap.F90
   driver.F90
+  nexus_io_mod.F90
 )
+
+if(USE_MPI)
+  find_package(MPI REQUIRED)
+  target_compile_definitions(nexus PRIVATE USE_MPI)
+endif()
 
 target_include_directories(NEXUS_Shared
   INTERFACE ${HEMCO_BINARY_DIR}/mod
@@ -14,9 +20,14 @@ target_include_directories(NEXUS_Shared
 find_package(ESMF REQUIRED)
 find_package(NetCDF REQUIRED COMPONENTS Fortran)
 
+target_compile_options(NEXUS_Shared PRIVATE
+  "-I${ESMF_INCLUDE_DIRS}"
+  "-I${NetCDF_Fortran_INCLUDE_DIRS}"
+)
+
 target_link_libraries(NEXUS_Shared
   PUBLIC HCOI_Shared
-  PUBLIC HCOI_Standalone
+  PUBLIC HCOI_NUOPC
   PUBLIC esmf
 )
 
@@ -25,6 +36,10 @@ target_link_libraries(nexus
   PUBLIC esmf
   PUBLIC NetCDF::NetCDF_Fortran
 )
+
+if(USE_MPI)
+  target_link_libraries(nexus PUBLIC MPI::MPI_Fortran)
+endif()
 
 set_target_properties(nexus PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin

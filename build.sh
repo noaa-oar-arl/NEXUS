@@ -67,6 +67,10 @@ case ${BUILD_TARGET} in
     module load nexus_$BUILD_TARGET.$COMPILER
     module list
     ;;
+  macosx)
+    echo "Building NEXUS on $BUILD_TARGET"
+    source $dir_root/modulefiles/nexus_macosx.gnu
+    ;;
   $(hostname))
     echo "Building NEXUS on $BUILD_TARGET"
     ;;
@@ -85,6 +89,8 @@ mkdir -p ${BUILD_DIR} && cd ${BUILD_DIR}
 echo "Configuring ... `date`"
 set -x
 cmake \
+  -DHEMCO_EXTERNAL_CONFIG=ON \
+  -DNUOPC_ESMF=ON \
   ${CMAKE_OPTS:-} \
   $dir_root
 set +x
