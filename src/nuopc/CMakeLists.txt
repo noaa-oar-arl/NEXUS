@@ -20,6 +20,11 @@ target_include_directories(NEXUS_Shared
 find_package(ESMF REQUIRED)
 find_package(NetCDF REQUIRED COMPONENTS Fortran)
 
+if(NetCDF_PARALLEL)
+  target_compile_definitions(NEXUS_Shared PRIVATE USE_PNETCDF)
+  target_compile_definitions(nexus PRIVATE USE_PNETCDF)
+endif()
+
 target_compile_options(NEXUS_Shared PRIVATE
   "-I${ESMF_INCLUDE_DIRS}"
   "-I${NetCDF_Fortran_INCLUDE_DIRS}"

@@ -59,6 +59,9 @@ contains
   !============================================================================
   subroutine IO_Init(dstGrid, rc)
     use netcdf
+#ifdef USE_MPI
+    use mpi
+#endif
     integer, intent(out) :: rc
     type(ESMF_Grid), intent(in) :: dstGrid
 
@@ -263,6 +266,28 @@ contains
       lon_var = "lon"
       lat_var = "lat"
 
+#ifdef USE_MPI
+      call ESMF_VMBroadcast(vm, root_rc, 1, 0, rc=rc)
+#endif
+      if (root_rc /= ESMF_SUCCESS) cycle
+#ifdef USE_MPI
+      call ESMF_VMBroadcast(vm, dimLengths, 2, 0, rc=rc)
+#endif
+
+#ifdef USE_PNETCDF
+      ! In parallel, all PETs open the file and read the metadata.
+      ncerr = nf90_open_par(trim(extDataStreams(i)%fileName), NF90_NOWRITE, MPI_COMM_WORLD, MPI_INFO_NULL, ncid)
+      if (ncerr /= nf90_noerr) then
+        print *, "Error opening ", trim(extDataStreams(i)%fileName)
+        rc = ESMF_FAILURE
+      else
+        ncerr = nf90_inq_dimid(ncid, lon_var, dimid)
+        ncerr = nf90_inquire_dimension(ncid, dimid, len=dimLengths(1))
+        ncerr = nf90_inq_dimid(ncid, lat_var, dimid)
+        ncerr = nf90_inquire_dimension(ncid, dimid, len=dimLengths(2))
+        ncerr = nf90_close(ncid)
+      endif
+#else
       root_rc = ESMF_SUCCESS
       ! Read dimensions on root PET and broadcast
       if (localPet == 0) then
@@ -285,6 +310,7 @@ contains
 #ifdef USE_MPI
       call ESMF_VMBroadcast(vm, dimLengths, 2, 0, rc=rc)
 #endif
+#endif
 
 
       extDataStreams(i)%srcGrid = ESMF_GridCreateNoPeriDim(maxIndex=dimLengths, &
@@ -293,6 +319,26 @@ contains
       ! Add coordinates to srcGrid
       call ESMF_GridAddCoord(extDataStreams(i)%srcGrid, staggerloc=ESMF_STAGGERLOC_CENTER, rc=rc)
 
+
+#ifdef USE_PNETCDF
+      ! In parallel, all PETs open the file and read the coordinates.
+      ncerr = nf90_open_par(trim(extDataStreams(i)%fileName), NF90_NOWRITE, MPI_COMM_WORLD, MPI_INFO_NULL, ncid)
+      if (ncerr /= nf90_noerr) then
+        print *, "Error opening ", trim(extDataStreams(i)%fileName)
+        rc = ESMF_FAILURE
+      else
+        ! Get pointer to lon coord and read from file
+        call ESMF_GridGetCoord(extDataStreams(i)%srcGrid, 1, staggerloc=ESMF_STAGGERLOC_CENTER, farrayPtr=fp, rc=rc)
+        ncerr = nf90_inq_varid(ncid, lon_var, varid)
+        ncerr = nf90_get_var(ncid, varid, fp)
+
+        ! Get pointer to lat coord and read from file
+        call ESMF_GridGetCoord(extDataStreams(i)%srcGrid, 2, staggerloc=ESMF_STAGGERLOC_CENTER, farrayPtr=fp, rc=rc)
+        ncerr = nf90_inq_varid(ncid, lat_var, varid)
+        ncerr = nf90_get_var(ncid, varid, fp)
+        ncerr = nf90_close(ncid)
+      endif
+#else
       ! Read coordinates on root and broadcast. This part is not fully parallel
       ! but is required to set up the distributed grid correctly.
       if (localPet == 0) then
@@ -312,6 +358,7 @@ contains
 #ifdef USE_MPI
       ! Broadcast coordinates to all PETs
       call ESMF_GridBroadcast(extDataStreams(i)%srcGrid, rootPet=0, rc=rc)
+#endif
 #endif
 
       ! Create source and destination fields
@@ -343,6 +390,9 @@ contains
   !============================================================================
   subroutine IO_Read(state, clock, rc)
     use netcdf
+#ifdef USE_MPI
+    use mpi
+#endif
     type(ESMF_State), intent(inout) :: state
     type(ESMF_Clock), intent(in)    :: clock
     integer, intent(out)           :: rc
@@ -377,6 +427,66 @@ contains
     call ESMF_VMGet(vm, localPet=localPet, rc=rc)
 
     do i = 1, size(extDataStreams)
+
+#ifdef USE_PNETCDF
+      ! In parallel, all PETs open the file and read the time metadata.
+      localrc = nf90_open_par(trim(extDataStreams(i)%fileName), NF90_NOWRITE, MPI_COMM_WORLD, MPI_INFO_NULL, ncid)
+      if (localrc /= nf90_noerr) then
+        root_rc = ESMF_FAILURE
+      else
+        ! Read time coordinate and units
+        localrc = nf90_inq_varid(ncid, "time", timeid)
+        if (localrc == nf90_noerr) then
+          localrc = nf90_get_att(ncid, timeid, "units", time_units)
+          call parse_time_units(time_units, base_time, rc=localrc)
+
+          localrc = nf90_inquire_variable(ncid, timeid, ndims=time_ndims, dimids=time_dimids)
+          allocate(time_dimlens(time_ndims))
+          localrc = nf90_inquire_dimension(ncid, time_dimids(1), len=time_dimlens(1))
+          allocate(time_vals(time_dimlens(1)))
+          localrc = nf90_get_var(ncid, timeid, time_vals)
+
+          ! Find bracketing indices and weights
+          t1_idx = -1
+          t2_idx = -1
+          do k = 1, size(time_vals) - 1
+            call ESMF_TimeIntervalSet(ti, s_r8=time_vals(k), rc=localrc)
+            t1 = base_time + ti
+            call ESMF_TimeIntervalSet(ti, s_r8=time_vals(k+1), rc=localrc)
+            t2 = base_time + ti
+            if (t1 <= currTime .and. currTime <= t2) then
+              t1_idx = k
+              t2_idx = k + 1
+              exit
+            end if
+          end do
+
+          if (t1_idx < 0) then
+            if (currTime < t1) then
+              t1_idx = 1; t2_idx = 1; w1 = 1.0_ESMF_KIND_R8; w2 = 0.0_ESMF_KIND_R8
+            else
+              t1_idx = size(time_vals); t2_idx = size(time_vals); w1 = 1.0_ESMF_KIND_R8; w2 = 0.0_ESMF_KIND_R8
+            end if
+          else if (t1_idx == t2_idx) then
+            w1 = 1.0_ESMF_KIND_R8; w2 = 0.0_ESMF_KIND_R8
+          else
+            call ESMF_TimeGet(t1, s_r8=time_diff, rc=localrc)
+            call ESMF_TimeGet(t2, s_r8=total_diff, rc=localrc)
+            total_diff = total_diff - time_diff
+            call ESMF_TimeGet(currTime, s_r8=time_diff, rc=localrc)
+            call ESMF_TimeGet(t1, s_r8=w1, rc=localrc)
+            time_diff = time_diff - w1
+            if (total_diff > 0) then
+              w2 = time_diff / total_diff
+              w1 = 1.0_ESMF_KIND_R8 - w2
+            else
+              w1 = 1.0_ESMF_KIND_R8; w2 = 0.0_ESMF_KIND_R8
+            endif
+          endif
+        endif
+        localrc = nf90_close(ncid)
+      endif
+#else
       ! Time information is read on root PET and broadcasted
       if (localPet == 0) then
         localrc = nf90_open(extDataStreams(i)%fileName, NF90_NOWRITE, ncid)
@@ -436,6 +546,7 @@ contains
           localrc = nf90_close(ncid)
         endif
       endif
+#endif
 
 #ifdef USE_MPI
       ! Broadcast time interpolation data
@@ -452,7 +563,7 @@ contains
       do j = 1, size(extDataStreams(i)%variables)
         ! Read data for t1_idx
         call ESMF_FieldRead(extDataStreams(i)%srcField, trim(extDataStreams(i)%fileName), &
-                             iofmt=ESMF_IOFMT_NETCDF, varname=trim(extDataStreams(i)%variables(j)), &
+                             iofmt=ESMF_IOFMT_NETCDF, fieldName=trim(extDataStreams(i)%variables(j)), &
                              timesliceList=(/t1_idx/), rc=localrc)
         call ESMF_FieldRegrid(extDataStreams(i)%srcField, extDataStreams(i)%dstField, &
                               routehandle=extDataStreams(i)%routeHandle, rc=localrc)
@@ -460,7 +571,7 @@ contains
         if (t1_idx /= t2_idx) then
           ! Read data for t2_idx
           call ESMF_FieldRead(extDataStreams(i)%srcField2, trim(extDataStreams(i)%fileName), &
-                               iofmt=ESMF_IOFMT_NETCDF, varname=trim(extDataStreams(i)%variables(j)), &
+                               iofmt=ESMF_IOFMT_NETCDF, fieldName=trim(extDataStreams(i)%variables(j)), &
                                timesliceList=(/t2_idx/), rc=localrc)
           call ESMF_FieldRegrid(extDataStreams(i)%srcField2, extDataStreams(i)%dstField2, &
                                 routehandle=extDataStreams(i)%routeHandle, rc=localrc)
@@ -488,8 +599,7 @@ contains
           final_ptr(:,:) = w1 * dst_ptr_t1 + w2 * dst_ptr_t2
         endif
       enddo
-    end do
-    end do
+    enddo
 
   end subroutine IO_Read
 
