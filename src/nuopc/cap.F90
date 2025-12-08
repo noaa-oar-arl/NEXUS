@@ -155,7 +155,7 @@ contains
       return  ! bail out
 
     ! We use the standard Initialize phase
-    call NUOPC_CompSpecialize(model, specLabel=label_Initialize, &
+    call NUOPC_CompSpecialize(model, specLabel=label_DataInitialize, &
       specRoutine=Initialize, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
@@ -520,14 +520,10 @@ contains
     integer :: localrc
     logical :: am_I_Root
     type(ESMF_VM) :: vm
+    type(ESMF_State) :: importState, exportState
     rc = ESMF_SUCCESS
 
-    ! Initialize I/O
-    call IO_Init(HCO_Grid, rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__, &
-      rcToReturn=rc)) return
+    ! Initialize I/O (moved after getting grid)
 
     ! Get VM and pet info
     call ESMF_VMGetCurrent(vm, rc=localrc)
@@ -556,8 +552,17 @@ contains
       line=__LINE__, &
       file=__FILE__)) &
       return  ! bail out
-    call ESMF_StateGetGrid(exportState, HCO_Grid, rc=localrc)
+
+    ! Get grid from component
+    call ESMF_GridCompGet(model, grid=HCO_Grid, rc=localrc)
     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
+    ! Initialize I/O
+    call IO_Init(HCO_Grid, rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__, &
       rcToReturn=rc)) return

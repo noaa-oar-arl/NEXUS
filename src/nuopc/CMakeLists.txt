@@ -10,6 +10,7 @@ add_library(NEXUS_Shared STATIC EXCLUDE_FROM_ALL
 
 if(USE_MPI)
   find_package(MPI REQUIRED)
+  target_compile_definitions(NEXUS_Shared PRIVATE USE_MPI)
   target_compile_definitions(nexus PRIVATE USE_MPI)
 endif()
 

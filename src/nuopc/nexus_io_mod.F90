@@ -13,7 +13,7 @@
 !> Inspired by MAPL ExtData and History components.
 module nexus_io_mod
 
-#ifdef USE_MPI
+#if defined(USE_MPI) || defined(USE_PNETCDF)
   use mpi
 #endif
   use ESMF
@@ -531,16 +531,16 @@ contains
       do j = 1, size(extDataStreams(i)%variables)
         ! Read data for t1_idx
         call ESMF_FieldRead(extDataStreams(i)%srcField, trim(extDataStreams(i)%fileName), &
-                             iofmt=ESMF_IOFMT_NETCDF, fieldName=trim(extDataStreams(i)%variables(j)), &
-                             timesliceList=(/t1_idx/), rc=localrc)
+                             iofmt=ESMF_IOFMT_NETCDF, variableName=trim(extDataStreams(i)%variables(j)), &
+                             timeslice=t1_idx, rc=localrc)
         call ESMF_FieldRegrid(extDataStreams(i)%srcField, extDataStreams(i)%dstField, &
                               routehandle=extDataStreams(i)%routeHandle, rc=localrc)
 
         if (t1_idx /= t2_idx) then
           ! Read data for t2_idx
           call ESMF_FieldRead(extDataStreams(i)%srcField2, trim(extDataStreams(i)%fileName), &
-                               iofmt=ESMF_IOFMT_NETCDF, fieldName=trim(extDataStreams(i)%variables(j)), &
-                               timesliceList=(/t2_idx/), rc=localrc)
+                               iofmt=ESMF_IOFMT_NETCDF, variableName=trim(extDataStreams(i)%variables(j)), &
+                               timeslice=t2_idx, rc=localrc)
           call ESMF_FieldRegrid(extDataStreams(i)%srcField2, extDataStreams(i)%dstField2, &
                                 routehandle=extDataStreams(i)%routeHandle, rc=localrc)
         endif

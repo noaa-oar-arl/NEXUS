@@ -259,7 +259,7 @@ contains
     open(newunit=unit, file=trim(file), status='old', iostat=stat)
     if (stat /= 0) then
       print *, "Error opening control file: ", trim(file)
-      rc = ESMF_RC_FILE_OPEN_ERR
+      rc = ESMF_FAILURE
       return
     end if
 
