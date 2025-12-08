@@ -8,6 +8,9 @@
 !
 !==============================================================================
 
+!> @brief Handles I/O operations for the NEXUS component.
+!>
+!> Inspired by MAPL ExtData and History components.
 module nexus_io_mod
 
 #ifdef USE_MPI
@@ -24,6 +27,7 @@ module nexus_io_mod
   ! Derived types for managing I/O streams
   !----------------------------------------------------------------------------
 
+  !> @brief Type for managing history streams (output).
   type :: HistoryStream
     character(len=255) :: name
     character(len=255) :: fileName
@@ -34,6 +38,7 @@ module nexus_io_mod
     logical :: initialized = .false.
   end type HistoryStream
 
+  !> @brief Type for managing external data streams (input).
   type :: ExtDataStream
     character(len=255) :: name
     character(len=255) :: fileName
@@ -52,11 +57,10 @@ module nexus_io_mod
 
 contains
 
-  !============================================================================
-  ! !ROUTINE: IO_Init
-  !
-  ! !DESCRIPTION: Initializes the I/O layer by reading the io.rc file.
-  !============================================================================
+  !> @brief Initializes the I/O layer by reading the io.rc file.
+  !>
+  !> @param dstGrid The destination grid to regrid to.
+  !> @param rc      Return code.
   subroutine IO_Init(dstGrid, rc)
     use netcdf
 #ifdef USE_MPI
@@ -383,11 +387,11 @@ contains
 
   end subroutine IO_Init
 
-  !============================================================================
-  ! !ROUTINE: IO_Read
-  !
-  ! !DESCRIPTION: Reads data from external files into the importState.
-  !============================================================================
+  !> @brief Reads data from external files into the importState.
+  !>
+  !> @param state The ESMF state to read data into (importState).
+  !> @param clock The current ESMF clock.
+  !> @param rc    Return code.
   subroutine IO_Read(state, clock, rc)
     use netcdf
 #ifdef USE_MPI
@@ -577,10 +581,6 @@ contains
                                 routehandle=extDataStreams(i)%routeHandle, rc=localrc)
         endif
 
-        call ESMF_FieldRegrid(extDataStreams(i)%srcField2, extDataStreams(i)%dstField2, &
-                              routehandle=extDataStreams(i)%routeHandle, rc=localrc)
-      enddo
-
         ! Get pointers to destination fields
         call ESMF_FieldGet(extDataStreams(i)%dstField, farrayPtr=dst_ptr_t1, rc=localrc)
         if (t1_idx /= t2_idx) then
@@ -598,21 +598,17 @@ contains
         else
           final_ptr(:,:) = w1 * dst_ptr_t1 + w2 * dst_ptr_t2
         endif
+
       enddo
     enddo
 
   end subroutine IO_Read
 
-    !============================================================================
-
-    ! !ROUTINE: IO_Write
-
-    !
-
-    ! !DESCRIPTION: Writes data from the exportState to history files.
-
-    !============================================================================
-
+    !> @brief Writes data from the exportState to history files.
+    !>
+    !> @param state The ESMF state containing data to write (exportState).
+    !> @param clock The current ESMF clock.
+    !> @param rc    Return code.
     subroutine IO_Write(state, clock, rc)
 
       type(ESMF_State), intent(in) :: state
@@ -725,16 +721,11 @@ contains
 
 
 
-    !============================================================================
-
-    ! !ROUTINE: parse_time_units
-
-    !
-
-    ! !DESCRIPTION: Parses a time unit string like "seconds since YYYY-MM-DD..."
-
-    !============================================================================
-
+    !> @brief Parses a time unit string like "seconds since YYYY-MM-DD..."
+    !>
+    !> @param unit_string The time unit string to parse.
+    !> @param base_time   The parsed base time.
+    !> @param rc          Return code.
     subroutine parse_time_units(unit_string, base_time, rc)
 
       character(len=*), intent(in) :: unit_string

@@ -1,8 +1,5 @@
+!> @brief Command-line interface for the NEXUS NUOPC Single-Model Driver.
 program app
-
-  !-----------------------------------------------------------------------------
-  ! Command-line interface for the NEXUS NUOPC Single-Model Driver
-  !-----------------------------------------------------------------------------
 
 #ifdef USE_MPI
   use mpi
@@ -203,7 +200,10 @@ program app
 
 contains
 
-  !> By default, 60 hyphens.
+  !> @brief Prints a separator line.
+  !>
+  !> @param char The character to use for the separator (default: "-").
+  !> @param n    The length of the separator (default: 60).
   subroutine print_sep(char, n)
     character(len=1), intent(in), optional :: char
     integer, intent(in), optional :: n
@@ -232,6 +232,15 @@ contains
     print "(a)", sep
   end subroutine print_sep
 
+  !> @brief Parses the control file.
+  !>
+  !> @param file         The path to the control file.
+  !> @param ConfigFile   (Out) Path to the configuration file.
+  !> @param ReGridFile   (Out) Path to the regridding file.
+  !> @param OutputFile   (Out) Path to the output file.
+  !> @param debugLevel   (Out) Debug level.
+  !> @param writeRestart (Out) Flag to write restart file.
+  !> @param rc           (Out) Return code.
   subroutine parse_control_file(file, ConfigFile, ReGridFile, OutputFile, &
     debugLevel, writeRestart, rc)
     character(len=*), intent(in) :: file

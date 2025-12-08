@@ -1,8 +1,5 @@
+!> @brief NEXUS NUOPC Component.
 module nexus_cap
-
-  !-----------------------------------------------------------------------------
-  ! NEXUS NUOPC Component.
-  !-----------------------------------------------------------------------------
 
   use ESMF
   use NUOPC
@@ -95,6 +92,10 @@ contains
   !-----------------------------------------------------------------------------
   ! NUOPC routines
 
+  !> @brief Sets services for the NEXUS component.
+  !>
+  !> @param model The ESMF grid component.
+  !> @param rc    Return code.
   subroutine SetServices(model, rc)
     type(ESMF_GridComp)  :: model
     integer, intent(out) :: rc
@@ -163,6 +164,10 @@ contains
 
   end subroutine
 
+  !> @brief Advertises fields to the NUOPC driver.
+  !>
+  !> @param model The ESMF grid component.
+  !> @param rc    Return code.
   subroutine Advertise(model, rc)
     use HCO_TYPES_MOD, only: DiagnCont
     use HCO_Diagn_Mod, only: Diagn_Get
@@ -235,6 +240,10 @@ contains
 
   end subroutine
 
+  !> @brief Realizes fields for the NUOPC driver.
+  !>
+  !> @param model The ESMF grid component.
+  !> @param rc    Return code.
   subroutine Realize(model, rc)
     type(ESMF_GridComp)  :: model
     integer, intent(out) :: rc
@@ -299,6 +308,10 @@ contains
 
   end subroutine
 
+  !> @brief Advances the model by one timestep.
+  !>
+  !> @param model The ESMF grid component.
+  !> @param rc    Return code.
   subroutine Advance(model, rc)
     use HCO_Clock_Mod,   only : HcoClock_Set
     use HCO_FluxArr_Mod, only : HCO_FluxarrReset
@@ -496,6 +509,10 @@ contains
 
   end subroutine
 
+  !> @brief Initializes the model.
+  !>
+  !> @param model The ESMF grid component.
+  !> @param rc    Return code.
   subroutine Initialize(model, rc)
     type(ESMF_GridComp)  :: model
     integer, intent(out) :: rc
@@ -601,17 +618,25 @@ contains
   !-----------------------------------------------------------------------------
   ! Cap routines
 
-  !> NEXUS initialization
-  !> (read HEMCO config, initialize HEMCO state, create grid objects, etc.)
-      subroutine nxs_init(ConfigFile, ReGridFile, OutputFile, debugLevel, writeRestart, rc)
-        character(len=*),  intent(in)  :: ConfigFile
-        character(len=*),  intent(in)  :: ReGridFile
-        character(len=*),  intent(in)  :: OutputFile
-        integer,           intent(in)  :: debugLevel
-        logical,           intent(in)  :: writeRestart
-        integer, optional, intent(out) :: rc
+  !> @brief NEXUS initialization.
+  !>
+  !> Read HEMCO config, initialize HEMCO state, create grid objects, etc.
+  !>
+  !> @param ConfigFile   Path to the configuration file.
+  !> @param ReGridFile   Path to the regridding file.
+  !> @param OutputFile   Path to the output file.
+  !> @param debugLevel   Debug level.
+  !> @param writeRestart Flag to write restart file.
+  !> @param rc           Return code (optional).
+  subroutine nxs_init(ConfigFile, ReGridFile, OutputFile, debugLevel, writeRestart, rc)
+    character(len=*),  intent(in)  :: ConfigFile
+    character(len=*),  intent(in)  :: ReGridFile
+    character(len=*),  intent(in)  :: OutputFile
+    integer,           intent(in)  :: debugLevel
+    logical,           intent(in)  :: writeRestart
+    integer, optional, intent(out) :: rc
 
-        if (present(rc)) rc = ESMF_SUCCESS
+    if (present(rc)) rc = ESMF_SUCCESS
 
         ConfigFile_   = ConfigFile
         ReGridFile_   = ReGridFile
@@ -620,8 +645,11 @@ contains
         writeRestart_ = writeRestart
 
       end subroutine nxs_init
-  !> NEXUS finalization
-  !> (write last restart file, clean up HEMCO and grid objects, etc.)
+  !> @brief NEXUS finalization.
+  !>
+  !> Write last restart file, clean up HEMCO and grid objects, etc.
+  !>
+  !> @param rc Return code (optional).
   subroutine nxs_finalize( rc )
 
     use HCO_Clock_Mod,   only : HcoClock_Increase
@@ -769,6 +797,11 @@ contains
   !-----------------------------------------------------------------------------
   ! NEXUS methods
 
+  !> @brief Sets up the NEXUS grid from a file.
+  !>
+  !> @param fileName Path to the grid file.
+  !> @param rc       Return code (optional).
+  !> @return         The created ESMF grid.
   function nxs_set_grid( fileName, rc ) result ( grid )
 
     use netcdf
@@ -890,6 +923,12 @@ contains
 
   end function nxs_set_grid
 
+  !> @brief Initializes the diagnostics state.
+  !>
+  !> @param HcoGrid   The HEMCO grid.
+  !> @param HcoState  The HEMCO state.
+  !> @param DiagState The diagnostics state to initialize.
+  !> @param rc        Return code (optional).
   subroutine nxs_diag_state_init( HcoGrid, HcoState, DiagState, rc )
     use HCO_TYPES_MOD, only: DiagnCont  ! diagnostics container
     use HCO_Diagn_Mod, only: Diagn_Get
@@ -977,6 +1016,11 @@ contains
 
   end subroutine nxs_diag_state_init
 
+  !> @brief Updates the diagnostics state.
+  !>
+  !> @param HcoState  The HEMCO state.
+  !> @param DiagState The diagnostics state to update.
+  !> @param rc        Return code (optional).
   subroutine nxs_diag_state_update( HcoState, DiagState, rc )
     use HCO_TYPES_MOD, only: DiagnCont
     use HCO_Diagn_Mod, only: Diagn_Get
@@ -1039,6 +1083,12 @@ contains
 
   end subroutine nxs_diag_state_update
 
+  !> @brief Initializes the export state (regridded diagnostics).
+  !>
+  !> @param grid        The destination grid.
+  !> @param importState The import state (source).
+  !> @param exportState The export state (destination).
+  !> @param rc          Return code (optional).
   subroutine nxs_expt_state_init( grid, importState, exportState, rc )
     type(ESMF_Grid)                :: grid
     type(ESMF_State)               :: importState
@@ -1163,6 +1213,11 @@ contains
 
   end subroutine nxs_expt_state_init
 
+  !> @brief Updates the export state (performs regridding).
+  !>
+  !> @param importState The import state (source).
+  !> @param exportState The export state (destination).
+  !> @param rc          Return code (optional).
   subroutine nxs_expt_state_update( importState, exportState, rc )
     type(ESMF_State)               :: importState
     type(ESMF_State)               :: exportState
@@ -1233,6 +1288,10 @@ contains
 
   end subroutine nxs_expt_state_update
 
+  !> @brief Finalizes a state (destroys fields).
+  !>
+  !> @param state The state to finalize.
+  !> @param rc    Return code (optional).
   subroutine nxs_state_finalize( state, rc )
     type(ESMF_State)               :: state
     integer, optional, intent(out) :: rc
@@ -1292,8 +1351,17 @@ contains
 
   end subroutine nxs_state_finalize
 
+  !> @brief Helper function to check for errors and log them.
+  !>
   !> If `rcToCheck` is not `HCO_SUCCESS`, log error message with ESMF
   !> and return.
+  !>
+  !> @param rcToCheck  The return code to check.
+  !> @param msg        The error message (optional).
+  !> @param line       The line number (optional).
+  !> @param file       The file name (optional).
+  !> @param rcToReturn The return code to set (optional).
+  !> @return           True if an error occurred.
   logical function nxs_error_log(rcToCheck, msg, line, file, rcToReturn) result(not_ok)
     integer,                    intent(in)  :: rcToCheck
     character(len=*), optional, intent(in)  :: msg

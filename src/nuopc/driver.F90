@@ -1,8 +1,5 @@
+!> @brief Code that specializes generic NUOPC_Driver for NEXUS
 module nexus_driver
-
-  !-----------------------------------------------------------------------------
-  ! Code that specializes generic NUOPC_Driver
-  !-----------------------------------------------------------------------------
 
   use ESMF
   use NUOPC
@@ -20,6 +17,10 @@ module nexus_driver
 contains
   !-----------------------------------------------------------------------------
 
+  !> @brief Sets services for the driver.
+  !>
+  !> @param driver The ESMF grid component.
+  !> @param rc     Return code.
   subroutine SetServices(driver, rc)
     type(ESMF_GridComp)  :: driver
     integer, intent(out) :: rc
@@ -52,6 +53,10 @@ contains
 
   !-----------------------------------------------------------------------------
 
+  !> @brief Specialization to set model services.
+  !>
+  !> @param driver The ESMF grid component.
+  !> @param rc     Return code.
   subroutine SetModelServices(driver, rc)
     use nexus_cap, only: T_YY, T_MM, T_DD, T_H, T_M, T_S, HcoState
 
@@ -65,6 +70,7 @@ contains
     type(ESMF_Time)               :: stopTime
     type(ESMF_TimeInterval)       :: timeStep
     type(ESMF_Clock)              :: internalClock
+    integer                       :: dt
 
     rc = ESMF_SUCCESS
 
@@ -102,8 +108,14 @@ contains
       file=__FILE__)) &
       call ESMF_Finalize(endflag=ESMF_END_ABORT)
 
-    ! TODO: Timestep should be read from a config file
-    call ESMF_TimeIntervalSet(timeStep, s=3600, rc=rc)
+    ! Read timestep from config file
+    call read_timestep("nexus.rc", dt, rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__)) &
+      call ESMF_Finalize(endflag=ESMF_END_ABORT)
+
+    call ESMF_TimeIntervalSet(timeStep, s=dt, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
@@ -123,6 +135,50 @@ contains
       return  ! bail out
 
   end subroutine
+
+  !-----------------------------------------------------------------------------
+
+  !> @brief Reads the timestep from the configuration file.
+  !>
+  !> @param file The configuration file name.
+  !> @param dt   The timestep in seconds.
+  !> @param rc   Return code.
+  subroutine read_timestep(file, dt, rc)
+    character(len=*), intent(in) :: file
+    integer, intent(out) :: dt
+    integer, intent(out) :: rc
+
+    integer :: unit, stat
+    character(len=255) :: line, key, value
+
+    rc = ESMF_SUCCESS
+    dt = 3600 ! Default value
+
+    open(newunit=unit, file=trim(file), status='old', iostat=stat)
+    if (stat /= 0) then
+      ! If file not found, use default and log warning
+      call ESMF_LogWrite("Warning: Control file not found, using default timestep", ESMF_LOGMSG_WARNING, rc=rc)
+      return
+    end if
+
+    do
+      read(unit, '(a)', end=10) line
+      ! Skip comments and empty lines
+      if (len_trim(line) == 0 .or. line(1:1) == '#') cycle
+
+      ! Parse key-value pair
+      key = trim(adjustl(line(1:index(line,':')-1)))
+      value = trim(adjustl(line(index(line,':')+1:)))
+
+      if (trim(key) == 'TIMESTEP') then
+        read(value, *) dt
+        exit
+      end if
+    end do
+10  continue
+    close(unit)
+
+  end subroutine read_timestep
 
   !-----------------------------------------------------------------------------
 

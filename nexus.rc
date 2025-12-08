@@ -16,3 +16,6 @@ DEBUG_LEVEL: 0
 
 # Write restart file (true or false)
 WRITE_RESTART: false
+
+# Timestep in seconds
+TIMESTEP: 3600
