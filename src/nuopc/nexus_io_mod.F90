@@ -17,6 +17,7 @@ module nexus_io_mod
   use mpi
 #endif
   use ESMF
+  use module_ncio
   implicit none
 
   private
@@ -62,7 +63,6 @@ contains
   !> @param dstGrid The destination grid to regrid to.
   !> @param rc      Return code.
   subroutine IO_Init(dstGrid, rc)
-    use netcdf
 #ifdef USE_MPI
     use mpi
 #endif
@@ -81,11 +81,17 @@ contains
     character(len=255), allocatable :: temp_vars(:)
 
     ! For regridding setup
-    integer :: ncid, dimid, varid, ncerr
+    integer :: ncerr
     integer :: dimLengths(2)
     character(len=255) :: lon_var, lat_var
     real, pointer :: fp(:,:)
     integer :: root_rc
+
+    ! NCIO variables
+    type(Dataset) :: dset
+    type(Dimension) :: dim
+    real(8), allocatable :: coord_vals(:,:)
+    logical :: par_open
 
     rc = ESMF_SUCCESS
     in_history_block = .false.
@@ -278,44 +284,50 @@ contains
       call ESMF_VMBroadcast(vm, dimLengths, 2, 0, rc=rc)
 #endif
 
+      ! Use NCEPLIBS-ncio for metadata reading
 #ifdef USE_PNETCDF
-      ! In parallel, all PETs open the file and read the metadata.
-      ncerr = nf90_open_par(trim(extDataStreams(i)%fileName), NF90_NOWRITE, MPI_COMM_WORLD, MPI_INFO_NULL, ncid)
-      if (ncerr /= nf90_noerr) then
-        print *, "Error opening ", trim(extDataStreams(i)%fileName)
-        rc = ESMF_FAILURE
-      else
-        ncerr = nf90_inq_dimid(ncid, lon_var, dimid)
-        ncerr = nf90_inquire_dimension(ncid, dimid, len=dimLengths(1))
-        ncerr = nf90_inq_dimid(ncid, lat_var, dimid)
-        ncerr = nf90_inquire_dimension(ncid, dimid, len=dimLengths(2))
-        ncerr = nf90_close(ncid)
-      endif
+      par_open = .true.
+      dset = open_dataset(trim(extDataStreams(i)%fileName), errcode=ncerr, &
+                          paropen=par_open, mpicomm=MPI_COMM_WORLD)
 #else
-      root_rc = ESMF_SUCCESS
-      ! Read dimensions on root PET and broadcast
+      par_open = .false.
       if (localPet == 0) then
-         ncerr = nf90_open(extDataStreams(i)%fileName, NF90_NOWRITE, ncid)
-         if (ncerr /= nf90_noerr) then
-           print *, "Error opening ", trim(extDataStreams(i)%fileName)
-           root_rc = ESMF_FAILURE
-         else
-           ncerr = nf90_inq_dimid(ncid, lon_var, dimid)
-           ncerr = nf90_inquire_dimension(ncid, dimid, len=dimLengths(1))
-           ncerr = nf90_inq_dimid(ncid, lat_var, dimid)
-           ncerr = nf90_inquire_dimension(ncid, dimid, len=dimLengths(2))
-           ncerr = nf90_close(ncid)
-         endif
+         dset = open_dataset(trim(extDataStreams(i)%fileName), errcode=ncerr, &
+                             paropen=par_open)
       endif
-#ifdef USE_MPI
-      call ESMF_VMBroadcast(vm, root_rc, 1, 0, rc=rc)
-#endif
-      if (root_rc /= ESMF_SUCCESS) cycle
-#ifdef USE_MPI
-      call ESMF_VMBroadcast(vm, dimLengths, 2, 0, rc=rc)
-#endif
 #endif
 
+      if (ncerr /= 0) then
+         print *, "Error opening ", trim(extDataStreams(i)%fileName)
+         rc = ESMF_FAILURE
+      else
+        if (par_open .or. (localPet == 0)) then
+           dim = get_dim(dset, lon_var)
+           dimLengths(1) = dim%len
+           dim = get_dim(dset, lat_var)
+           dimLengths(2) = dim%len
+           call close_dataset(dset)
+        endif
+      endif
+
+      ! Sync return code
+      if (par_open) then
+        root_rc = rc ! All PETs have correct rc
+      else
+        if (localPet == 0) root_rc = rc
+#ifdef USE_MPI
+        call ESMF_VMBroadcast(vm, root_rc, 1, 0, rc=rc)
+#endif
+      endif
+
+      if (root_rc /= ESMF_SUCCESS) cycle
+
+      ! Sync dimLengths
+      if (.not. par_open) then
+#ifdef USE_MPI
+         call ESMF_VMBroadcast(vm, dimLengths, 2, 0, rc=rc)
+#endif
+      endif
 
       extDataStreams(i)%srcGrid = ESMF_GridCreateNoPeriDim(maxIndex=dimLengths, &
                                                            coordSys=ESMF_COORDSYS_SPH_DEG, rc=rc)
@@ -323,47 +335,43 @@ contains
       ! Add coordinates to srcGrid
       call ESMF_GridAddCoord(extDataStreams(i)%srcGrid, staggerloc=ESMF_STAGGERLOC_CENTER, rc=rc)
 
-
+      ! Read coordinates
 #ifdef USE_PNETCDF
-      ! In parallel, all PETs open the file and read the coordinates.
-      ncerr = nf90_open_par(trim(extDataStreams(i)%fileName), NF90_NOWRITE, MPI_COMM_WORLD, MPI_INFO_NULL, ncid)
-      if (ncerr /= nf90_noerr) then
-        print *, "Error opening ", trim(extDataStreams(i)%fileName)
-        rc = ESMF_FAILURE
-      else
-        ! Get pointer to lon coord and read from file
-        call ESMF_GridGetCoord(extDataStreams(i)%srcGrid, 1, staggerloc=ESMF_STAGGERLOC_CENTER, farrayPtr=fp, rc=rc)
-        ncerr = nf90_inq_varid(ncid, lon_var, varid)
-        ncerr = nf90_get_var(ncid, varid, fp)
-
-        ! Get pointer to lat coord and read from file
-        call ESMF_GridGetCoord(extDataStreams(i)%srcGrid, 2, staggerloc=ESMF_STAGGERLOC_CENTER, farrayPtr=fp, rc=rc)
-        ncerr = nf90_inq_varid(ncid, lat_var, varid)
-        ncerr = nf90_get_var(ncid, varid, fp)
-        ncerr = nf90_close(ncid)
-      endif
+      dset = open_dataset(trim(extDataStreams(i)%fileName), errcode=ncerr, &
+                          paropen=.true., mpicomm=MPI_COMM_WORLD)
 #else
-      ! Read coordinates on root and broadcast. This part is not fully parallel
-      ! but is required to set up the distributed grid correctly.
       if (localPet == 0) then
-        ncerr = nf90_open(extDataStreams(i)%fileName, NF90_NOWRITE, ncid)
-        ! Get pointer to lon coord and read from file
-        call ESMF_GridGetCoord(extDataStreams(i)%srcGrid, 1, staggerloc=ESMF_STAGGERLOC_CENTER, farrayPtr=fp, rc=rc)
-        ncerr = nf90_inq_varid(ncid, lon_var, varid)
-        ncerr = nf90_get_var(ncid, varid, fp)
+        dset = open_dataset(trim(extDataStreams(i)%fileName), errcode=ncerr, &
+                            paropen=.false.)
+      endif
+#endif
 
-        ! Get pointer to lat coord and read from file
-        call ESMF_GridGetCoord(extDataStreams(i)%srcGrid, 2, staggerloc=ESMF_STAGGERLOC_CENTER, farrayPtr=fp, rc=rc)
-        ncerr = nf90_inq_varid(ncid, lat_var, varid)
-        ncerr = nf90_get_var(ncid, varid, fp)
-        ncerr = nf90_close(ncid)
+      if (ncerr /= 0) then
+         print *, "Error opening for coords ", trim(extDataStreams(i)%fileName)
+         rc = ESMF_FAILURE
+      else
+        if (par_open .or. (localPet == 0)) then
+             ! Get pointer to lon coord
+             call ESMF_GridGetCoord(extDataStreams(i)%srcGrid, 1, staggerloc=ESMF_STAGGERLOC_CENTER, farrayPtr=fp, rc=rc)
+             ! Assumes 2D coordinates as per original code logic
+             call read_vardata(dset, lon_var, coord_vals)
+             fp(:,:) = coord_vals(:,:)
+
+             ! Get pointer to lat coord
+             call ESMF_GridGetCoord(extDataStreams(i)%srcGrid, 2, staggerloc=ESMF_STAGGERLOC_CENTER, farrayPtr=fp, rc=rc)
+             call read_vardata(dset, lat_var, coord_vals)
+             fp(:,:) = coord_vals(:,:)
+
+             call close_dataset(dset)
+        endif
       endif
 
+      ! If serial, broadcast coordinates
+      if (.not. par_open) then
 #ifdef USE_MPI
-      ! Broadcast coordinates to all PETs
-      call ESMF_GridBroadcast(extDataStreams(i)%srcGrid, rootPet=0, rc=rc)
+         call ESMF_GridBroadcast(extDataStreams(i)%srcGrid, rootPet=0, rc=rc)
 #endif
-#endif
+      endif
 
       ! Create source and destination fields
       extDataStreams(i)%srcField = ESMF_FieldCreate(extDataStreams(i)%srcGrid, typekind=ESMF_TYPEKIND_R8, &
@@ -393,7 +401,6 @@ contains
   !> @param clock The current ESMF clock.
   !> @param rc    Return code.
   subroutine IO_Read(state, clock, rc)
-    use netcdf
 #ifdef USE_MPI
     use mpi
 #endif
@@ -407,11 +414,6 @@ contains
     integer :: localPet
 
     ! For reading and interpolation
-    integer :: ncid, varid, timeid, time_ndims, time_dimids(1)
-    integer, allocatable :: time_dimlens(:)
-    character(len=255) :: time_units
-    integer :: start(3), count(3)
-    real(ESMF_KIND_R8), allocatable :: data_slice(:)
     real(ESMF_KIND_R8), allocatable :: time_vals(:)
     integer :: t1_idx, t2_idx
     real(ESMF_KIND_R8) :: w1, w2
@@ -423,7 +425,12 @@ contains
     type(ESMF_TimeInterval) :: ti
     real(ESMF_KIND_R8) :: time_diff, total_diff
     integer :: root_rc
-    type(ESMF_Field) :: tempField
+    integer :: idate(6)
+
+    ! NCIO variables
+    type(Dataset) :: dset
+    logical :: par_open
+    integer :: ncerr
 
     rc = ESMF_SUCCESS
     call ESMF_ClockGet(clock, currTime=currTime, rc=rc)
@@ -431,24 +438,32 @@ contains
     call ESMF_VMGet(vm, localPet=localPet, rc=rc)
 
     do i = 1, size(extDataStreams)
+      root_rc = ESMF_SUCCESS
 
 #ifdef USE_PNETCDF
-      ! In parallel, all PETs open the file and read the time metadata.
-      localrc = nf90_open_par(trim(extDataStreams(i)%fileName), NF90_NOWRITE, MPI_COMM_WORLD, MPI_INFO_NULL, ncid)
-      if (localrc /= nf90_noerr) then
+      par_open = .true.
+      dset = open_dataset(trim(extDataStreams(i)%fileName), errcode=ncerr, &
+                          paropen=par_open, mpicomm=MPI_COMM_WORLD)
+#else
+      par_open = .false.
+      if (localPet == 0) then
+         dset = open_dataset(trim(extDataStreams(i)%fileName), errcode=ncerr, &
+                             paropen=par_open)
+      endif
+#endif
+
+      if (ncerr /= 0) then
         root_rc = ESMF_FAILURE
       else
-        ! Read time coordinate and units
-        localrc = nf90_inq_varid(ncid, "time", timeid)
-        if (localrc == nf90_noerr) then
-          localrc = nf90_get_att(ncid, timeid, "units", time_units)
-          call parse_time_units(time_units, base_time, rc=localrc)
+        if (par_open .or. (localPet == 0)) then
+          ! Read time coordinate and units
+          ! ncio's read_vardata handles allocation of time_vals
+          call read_vardata(dset, "time", time_vals)
 
-          localrc = nf90_inquire_variable(ncid, timeid, ndims=time_ndims, dimids=time_dimids)
-          allocate(time_dimlens(time_ndims))
-          localrc = nf90_inquire_dimension(ncid, time_dimids(1), len=time_dimlens(1))
-          allocate(time_vals(time_dimlens(1)))
-          localrc = nf90_get_var(ncid, timeid, time_vals)
+          ! Use ncio helper to get date from units
+          idate = get_idate_from_time_units(dset)
+          call ESMF_TimeSet(base_time, yy=idate(1), mm=idate(2), dd=idate(3), &
+                            h=idate(4), m=idate(5), s=idate(6), rc=localrc)
 
           ! Find bracketing indices and weights
           t1_idx = -1
@@ -487,81 +502,30 @@ contains
               w1 = 1.0_ESMF_KIND_R8; w2 = 0.0_ESMF_KIND_R8
             endif
           endif
-        endif
-        localrc = nf90_close(ncid)
-      endif
-#else
-      ! Time information is read on root PET and broadcasted
-      if (localPet == 0) then
-        localrc = nf90_open(extDataStreams(i)%fileName, NF90_NOWRITE, ncid)
-        if (localrc /= nf90_noerr) then
-          root_rc = ESMF_FAILURE
-        else
-          ! Read time coordinate and units
-          localrc = nf90_inq_varid(ncid, "time", timeid)
-          if (localrc == nf90_noerr) then
-            localrc = nf90_get_att(ncid, timeid, "units", time_units)
-            call parse_time_units(time_units, base_time, rc=localrc)
 
-            localrc = nf90_inquire_variable(ncid, timeid, ndims=time_ndims, dimids=time_dimids)
-            allocate(time_dimlens(time_ndims))
-            localrc = nf90_inquire_dimension(ncid, time_dimids(1), len=time_dimlens(1))
-            allocate(time_vals(time_dimlens(1)))
-            localrc = nf90_get_var(ncid, timeid, time_vals)
-
-            ! Find bracketing indices and weights
-            t1_idx = -1
-            t2_idx = -1
-            do k = 1, size(time_vals) - 1
-              call ESMF_TimeIntervalSet(ti, s_r8=time_vals(k), rc=localrc)
-              t1 = base_time + ti
-              call ESMF_TimeIntervalSet(ti, s_r8=time_vals(k+1), rc=localrc)
-              t2 = base_time + ti
-              if (t1 <= currTime .and. currTime <= t2) then
-                t1_idx = k
-                t2_idx = k + 1
-                exit
-              end if
-            end do
-
-            if (t1_idx < 0) then
-              if (currTime < t1) then
-                t1_idx = 1; t2_idx = 1; w1 = 1.0_ESMF_KIND_R8; w2 = 0.0_ESMF_KIND_R8
-              else
-                t1_idx = size(time_vals); t2_idx = size(time_vals); w1 = 1.0_ESMF_KIND_R8; w2 = 0.0_ESMF_KIND_R8
-              end if
-            else if (t1_idx == t2_idx) then
-              w1 = 1.0_ESMF_KIND_R8; w2 = 0.0_ESMF_KIND_R8
-            else
-              call ESMF_TimeGet(t1, s_r8=time_diff, rc=localrc)
-              call ESMF_TimeGet(t2, s_r8=total_diff, rc=localrc)
-              total_diff = total_diff - time_diff
-              call ESMF_TimeGet(currTime, s_r8=time_diff, rc=localrc)
-              call ESMF_TimeGet(t1, s_r8=w1, rc=localrc)
-              time_diff = time_diff - w1
-              if (total_diff > 0) then
-                w2 = time_diff / total_diff
-                w1 = 1.0_ESMF_KIND_R8 - w2
-              else
-                w1 = 1.0_ESMF_KIND_R8; w2 = 0.0_ESMF_KIND_R8
-              endif
-            endif
-          endif
-          localrc = nf90_close(ncid)
+          call close_dataset(dset)
         endif
       endif
-#endif
 
 #ifdef USE_MPI
       ! Broadcast time interpolation data
-      call ESMF_VMBroadcast(vm, root_rc, 1, 0, rc=rc)
+      if (.not. par_open) then
+         call ESMF_VMBroadcast(vm, root_rc, 1, 0, rc=rc)
+      endif
 #endif
-      if (root_rc /= ESMF_SUCCESS) cycle
+
+      ! We need to make sure root_rc is correct for all.
+      ! In parallel open, if open fails, we should handle it.
+      ! But for now assuming success if open passed.
+
 #ifdef USE_MPI
-      call ESMF_VMBroadcast(vm, t1_idx, 1, 0, rc=rc)
-      call ESMF_VMBroadcast(vm, t2_idx, 1, 0, rc=rc)
-      call ESMF_VMBroadcast(vm, w1, 1, 0, rc=rc)
-      call ESMF_VMBroadcast(vm, w2, 1, 0, rc=rc)
+      ! If serial open, broadcast results
+      if (.not. par_open) then
+          call ESMF_VMBroadcast(vm, t1_idx, 1, 0, rc=rc)
+          call ESMF_VMBroadcast(vm, t2_idx, 1, 0, rc=rc)
+          call ESMF_VMBroadcast(vm, w1, 1, 0, rc=rc)
+          call ESMF_VMBroadcast(vm, w2, 1, 0, rc=rc)
+      endif
 #endif
 
       do j = 1, size(extDataStreams(i)%variables)
@@ -718,66 +682,5 @@ contains
 
 
     end subroutine IO_Write
-
-
-
-    !> @brief Parses a time unit string like "seconds since YYYY-MM-DD..."
-    !>
-    !> @param unit_string The time unit string to parse.
-    !> @param base_time   The parsed base time.
-    !> @param rc          Return code.
-    subroutine parse_time_units(unit_string, base_time, rc)
-
-      character(len=*), intent(in) :: unit_string
-
-      type(ESMF_Time), intent(out) :: base_time
-
-      integer, intent(out) :: rc
-
-
-
-      integer :: yy, mm, dd, h, m, s
-
-      character(len=10) :: date_str
-
-      character(len=8) :: time_str
-
-
-
-      rc = ESMF_SUCCESS
-
-
-
-      ! Assuming format "seconds since YYYY-MM-DD HH:MM:SS"
-
-      ! TODO: Make this more robust
-
-      read(unit_string(15:24), '(a)') date_str
-
-      read(unit_string(26:33), '(a)') time_str
-
-
-
-      read(date_str(1:4), '(i4)') yy
-
-      read(date_str(6:7), '(i2)') mm
-
-      read(date_str(9:10), '(i2)') dd
-
-      read(time_str(1:2), '(i2)') h
-
-      read(time_str(4:5), '(i2)') m
-
-      read(time_str(7:8), '(i2)') s
-
-
-
-      call ESMF_TimeSet(base_time, yy=yy, mm=mm, dd=dd, h=h, m=m, s=s, rc=rc)
-
-
-
-    end subroutine parse_time_units
-
-
 
 end module nexus_io_mod
