@@ -1,0 +1,112 @@
+name: GCC Linux Build and Test
+on: [push, pull_request, workflow_dispatch]
+
+
+# Use custom shell with -l so .bash_profile is sourced
+# without having to do it in manually every step
+defaults:
+  run:
+    shell: bash -leo pipefail {0}
+
+env:
+  cache_key: gcc
+  CC: gcc-13
+  FC: gfortran-13
+  CXX: g++-13
+
+# The jobs are split into:
+# 1. a dependency build step (setup), and
+# 2. a nexus build and test step (nexus)
+# The setup is run once and the environment is cached,
+# so each subsequent build and test of nexus can reuse the cached
+# dependencies to save time (and compute).
+
+jobs:
+  setup:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: checkout  # this is to get the ci/spack.yaml file
+        uses: actions/checkout@v3
+        with:
+            path: nexus
+
+      # Cache spack, compiler and dependencies
+      - name: cache-env
+        id: cache-env
+        uses: actions/cache@v3
+        with:
+          path: |
+            spack
+            ~/.spack
+          key: spack-${{ runner.os }}-${{ env.cache_key }}-${{ hashFiles('nexus/ci/spack.yaml') }}
+
+      # Install dependencies using Spack
+      - name: install-dependencies-with-spack
+        if: steps.cache-env.outputs.cache-hit != 'true'
+        run: |
+          git clone -c feature.manyFiles=true https://github.com/JCSDA/spack.git
+          source spack/share/spack/setup-env.sh
+          sed "s/\[oneapi, gcc@13:13, apple-clang@14\]/\[gcc@13:13\]/g" nexus/ci/spack.yaml > spack_ci.yaml
+          spack env create nexus-env spack_ci.yaml
+          spack env activate nexus-env
+          sudo apt update
+          sudo apt install -y cmake gfortran libgomp1
+          spack external find
+          # Ensure MPI with Fortran and OpenMP-capable toolchain
+          spack add mpich@3.4.2 %gcc
+          spack concretize
+          spack install -v --fail-fast --dirty
+          spack clean --all
+
+  nexus:
+    needs: setup
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+            path: nexus
+            submodules: recursive
+
+      - name: cache-env
+        id: cache-env
+        uses: actions/cache@v3
+        with:
+          path: |
+            spack
+            ~/.spack
+          key: spack-${{ runner.os }}-${{ env.cache_key }}-${{ hashFiles('nexus/ci/spack.yaml') }}
+
+      - name: build
+        run: |
+          source spack/share/spack/setup-env.sh
+          spack env activate nexus-env
+          export CC=mpicc
+          export FC=mpif90
+          cd nexus
+          mkdir -p build && cd build
+          cmake -DCMAKE_INSTALL_PREFIX=../install ..
+          make -j2 VERBOSE=1
+          make install
+
+      - name: test
+        run: |
+          source spack/share/spack/setup-env.sh
+          spack env activate nexus-env
+          cd nexus
+          set -x
+          bin="$PWD/build/bin/nexus"
+          failed=0
+          cd tests/cases
+          for d in *; do
+            cd $d
+            $bin -c NEXUS_Config.rc -r grid_spec.nc || failed=1
+            if [[ "$failed" == 1 ]]; then
+              tail -n 20 NEXUS.log
+              cat PET0.ESMF_LogFile
+              exit 1
+            fi
+            cd ..
+          done
