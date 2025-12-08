@@ -6,7 +6,7 @@
 CONFIG_FILE: HEMCO_Config.rc
 
 # Regridding file (optional)
-REGRID_FILE: 
+REGRID_FILE:
 
 # Output file name (optional)
 OUTPUT_FILE: nexus_output.nc

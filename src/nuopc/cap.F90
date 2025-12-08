@@ -1381,4 +1381,3 @@ contains
   end function nxs_error_log
 
 end module nexus_cap
-

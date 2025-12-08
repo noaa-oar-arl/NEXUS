@@ -267,7 +267,7 @@ contains
       read(unit, '(a)', end=10) line
       ! Skip comments and empty lines
       if (len_trim(line) == 0 .or. line(1:1) == '#') cycle
-      
+
       ! Parse key-value pair
       key = trim(adjustl(line(1:index(line,':')-1)))
       value = trim(adjustl(line(index(line,':')+1:)))
