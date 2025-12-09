@@ -10,6 +10,7 @@ module nexus_cap
   use HCO_Driver_Mod,  only: HCO_Init
   use HCOX_Driver_Mod, only: HCOX_Init
   use HCO_STATE_MOD, only: Hco_State, HcoState_Init, HcoState_Final
+  use HCO_ARR_MOD,   only: HCO_ArrInit
   use HCO_TYPES_MOD, only: ConfigObj
   use HCO_Error_Mod, only: rk_hco => hp, &
     HcoErr, &
@@ -18,7 +19,7 @@ module nexus_cap
     HCO_SUCCESS, HCO_MISSVAL
   use HCOX_STATE_MOD, only: Ext_State, ExtStateInit
   use HCOX_Driver_Mod, only: HCOX_Init, HCOX_Run, HCOX_Final
-  use nexus_io_mod, only: IO_Init, IO_Read, IO_Write
+  use nexus_io_mod, only: IO_Init, IO_Read, IO_Write, ResolveFileName
 
   implicit none
 
@@ -110,6 +111,7 @@ contains
       return  ! bail out
 
     ! Initialize HEMCO services
+    if (localPet == rootPet) print *, "NEXUS: Calling HCO_SetServices_NUOPC"
     call HCO_SetServices_NUOPC( (localPet == rootPet), model, HcoConfig, &
       trim(ConfigFile_), rc )
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
@@ -118,6 +120,7 @@ contains
       return  ! bail out
 
     ! Create HcoState
+    if (localPet == rootPet) print *, "NEXUS: Calling HcoState_Init"
     call HcoState_Init( HcoState, HcoConfig, 0, rc )
     if (nxs_error_log(rc, msg='Error encountered in routine "HcoState_Init"!', &
       line=__LINE__, &
@@ -128,25 +131,39 @@ contains
     ! HcoState%GridComp => model
 
     ! Initialize HEMCO core
-    call HCO_Init( HcoState, rc )
-    if (nxs_error_log(rc, msg='Error encountered in routine "HCO_Init"!', &
-      line=__LINE__, &
-      file=__FILE__, &
-      rcToReturn=rc)) return
+    ! MOVED TO Initialize phase because we need the grid!
+    ! call HCO_Init( HcoState, rc )
+    ! if (nxs_error_log(rc, msg='Error encountered in routine "HCO_Init"!', &
+    !   line=__LINE__, &
+    !   file=__FILE__, &
+    !   rcToReturn=rc)) return
 
-    ! Specialize model
-    call NUOPC_CompSpecialize(model, specLabel=label_Advertise, &
-      specRoutine=Advertise, rc=rc)
+    ! Register SetClock to be called
+    call NUOPC_CompSpecialize(model, specLabel=label_SetClock, &
+      specRoutine=SetClock, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
       return  ! bail out
+
+    ! Specialize model
+    if (localPet == rootPet) print *, "NEXUS: Specialize Advertise (SKIPPED)"
+    ! call NUOPC_CompSpecialize(model, specLabel=label_Advertise, &
+    !   specRoutine=Advertise, rc=rc)
+    ! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+    !   line=__LINE__, &
+    !   file=__FILE__)) &
+    !   return  ! bail out
+
+    if (localPet == rootPet) print *, "NEXUS: Specialize Realize"
     call NUOPC_CompSpecialize(model, specLabel=label_RealizeProvided, &
       specRoutine=Realize, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
       return  ! bail out
+
+    if (localPet == rootPet) print *, "NEXUS: Specialize Advance"
     call NUOPC_CompSpecialize(model, specLabel=label_Advance, &
       specRoutine=Advance, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
@@ -155,12 +172,15 @@ contains
       return  ! bail out
 
     ! We use the standard Initialize phase
+    if (localPet == rootPet) print *, "NEXUS: Specialize DataInitialize"
     call NUOPC_CompSpecialize(model, specLabel=label_DataInitialize, &
       specRoutine=Initialize, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
       return  ! bail out
+
+    if (localPet == rootPet) print *, "NEXUS: SetServices Done"
 
   end subroutine
 
@@ -169,8 +189,7 @@ contains
   !> @param model The ESMF grid component.
   !> @param rc    Return code.
   subroutine Advertise(model, rc)
-    use HCO_TYPES_MOD, only: DiagnCont
-    use HCO_Diagn_Mod, only: Diagn_Get
+    use HCO_Diagn_Mod, only: DiagnFileOpen, DiagnFileGetNext, DiagnFileClose
 
     type(ESMF_GridComp)  :: model
     integer, intent(out) :: rc
@@ -178,11 +197,26 @@ contains
     ! Local variables
     type(ESMF_State) :: importState, exportState
     integer :: localrc
-    integer :: flag
-    logical :: EOI
-    type(DiagnCont), pointer :: thisDiagn
-    character(len=:), allocatable :: name, long_name, units
+    integer :: lun
+    logical :: eof
+    character(len=63) :: cName, spcName, outUnit
+    character(len=127) :: lName, unitName
+    integer :: extNr, cat, hier, spaceDim
 
+    ! Note: Advertise doesn't have localPet defined, need to get it or assume root calls it?
+    ! Actually, Advertise is a NUOPC entry point, called by all PETs?
+    ! We should check if we can get localPet.
+    ! But wait, `Advertise` subroutine doesn't have `localPet` variable.
+    ! We should add it.
+
+    ! Adding localPet logic
+    type(ESMF_VM) :: vm
+    integer :: localPet
+
+    call ESMF_VMGetCurrent(vm, rc=rc)
+    call ESMF_VMGet(vm, localPet=localPet, rc=rc)
+
+    if (localPet == 0) print *, "NEXUS: Entering Advertise"
     rc = ESMF_SUCCESS
 
     ! Query for importState and exportState
@@ -193,50 +227,55 @@ contains
       file=__FILE__)) &
       return  ! bail out
 
-    ! Advertise NEXUS output variables
-    EOI = .false.
-    nullify(thisDiagn)
-    call Diagn_Get(HcoState, EOI, thisDiagn, flag, localrc)
-    if (nxs_error_log(localrc, msg='Error encountered in routine "Diagn_Get!"', &
-      line=__LINE__, &
-      file=__FILE__, &
-      rcToReturn=rc)) return
+    ! Advertise NEXUS output variables by reading DiagnFile directly
+    ! (Avoiding HCO_Init dependency here)
+    if (.not. associated(HcoConfig)) then
+       if (localPet == 0) print *, "NEXUS: HcoConfig is NOT associated in Advertise!"
+       rc = ESMF_FAILURE
+       return
+    endif
 
-    do while (flag == HCO_SUCCESS)
+    if (localPet == 0) print *, "NEXUS: Calling DiagnFileOpen"
+    call DiagnFileOpen( HcoConfig, lun, localrc )
+    if (nxs_error_log(localrc, msg='Error opening diagnostics file', &
+      line=__LINE__, file=__FILE__, rcToReturn=rc)) return
 
-      name = trim(thisDiagn % cName)
-      long_name = trim(thisDiagn % long_name)
-      units = trim(thisDiagn % OutUnit)
+    if (localPet == 0) print *, "NEXUS: DiagnFileOpen returned lun=", lun
+    if (lun > 0) then
+       do
+          call DiagnFileGetNext( HcoConfig, lun, cName, spcName, extNr, cat, &
+                                 hier, spaceDim, outUnit, eof, localrc, &
+                                 lName=lName, unitName=unitName )
+          if (localrc /= HCO_SUCCESS) then
+             if (localPet == 0) print *, "NEXUS: DiagnFileGetNext failed"
+             exit
+          endif
+          if (eof) then
+             if (localPet == 0) print *, "NEXUS: DiagnFileGetNext EOF"
+             exit
+          endif
 
-      print "('NEXUS: Advertising ''', a, ''' (long_name=''', a, ''', units=''', a, ''')')", &
-        name, long_name, units
+          if (localPet == 0) print "('NEXUS: Advertising ''', a, ''' (long_name=''', a, ''', units=''', a, ''')')", &
+             trim(cName), trim(lName), trim(outUnit)
 
-      ! Add to field dictionary
-      call NUOPC_FieldDictionaryAddEntry(name, units, rc=rc)
-      if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-        line=__LINE__, &
-        file=__FILE__, &
-        rcToReturn=rc)) return  ! bail out
+          ! Add to field dictionary
+          call NUOPC_FieldDictionaryAddEntry(trim(cName), trim(outUnit), rc=rc)
+          if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+            line=__LINE__, file=__FILE__, rcToReturn=rc)) return
 
-      ! Advertise field
-      call NUOPC_Advertise(exportState, &
-        name=name, &
-        StandardName=name, &
-        LongName=long_name, &
-        Units=units, &
-        rc=rc)
-      if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-        line=__LINE__, &
-        file=__FILE__,  &
-        rcToReturn=rc)) return  ! bail out
-
-      ! Next
-      call Diagn_Get(HcoState, EOI, thisDiagn, flag, localrc)
-      if (nxs_error_log(localrc, msg='Error encountered in routine "Diagn_Get!"', &
-        line=__LINE__, &
-        file=__FILE__, &
-        rcToReturn=rc)) return
-    end do
+          ! Advertise field
+          call NUOPC_Advertise(exportState, &
+            name=trim(cName), &
+            StandardName=trim(cName), &
+            LongName=trim(lName), &
+            Units=trim(outUnit), &
+            rc=rc)
+          if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+            line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+       end do
+       call DiagnFileClose(lun)
+    endif
+    if (localPet == 0) print *, "NEXUS: Exiting Advertise"
 
   end subroutine
 
@@ -256,6 +295,13 @@ contains
     integer :: item, itemCount, localrc, stat
     character(len=ESMF_MAXSTR), allocatable :: itemNameList(:)
     type(ESMF_StateItem_Flag),  allocatable :: itemTypeList(:)
+
+    ! Adding localPet logic
+    type(ESMF_VM) :: vm
+    integer :: localPet
+
+    call ESMF_VMGetCurrent(vm, rc=rc)
+    call ESMF_VMGet(vm, localPet=localPet, rc=rc)
 
     rc = ESMF_SUCCESS
 
@@ -297,7 +343,7 @@ contains
         file=__FILE__,  &
         rcToReturn=rc)) return  ! bail out
 
-      print "('NEXUS: Realizing ''', a, '''')", trim(itemNameList(item))
+      if (localPet == 0) print "('NEXUS: Realizing ''', a, '''')", trim(itemNameList(item))
       call NUOPC_Realize(exportState, field=field, rc=localrc)
       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
         line=__LINE__, &
@@ -332,6 +378,7 @@ contains
     character(len=255)    :: msg
     integer               :: localrc
     integer               :: timeSlice
+    type(ESMF_VM)         :: vm
 
     timeSlice = 0
     rc = ESMF_SUCCESS
@@ -339,6 +386,13 @@ contains
     ! Query for clock, importState and exportState
     call ESMF_GridCompGet(model, clock=clock, importState=importState, &
       exportState=exportState, rc=rc)
+
+    call ESMF_VMGetCurrent(vm, rc=rc)
+    call ESMF_VMGet(vm, localPet=localPet, rc=rc)
+    if (localPet == 0) then
+        call ESMF_LogWrite("NEXUS DEBUG: Entered Advance", ESMF_LOGMSG_INFO)
+        call ESMF_LogFlush(rc=localrc)
+    endif
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
@@ -348,7 +402,15 @@ contains
     HcoState%IMPORT = importState
 
     ! Read external data into importState
+    if (localPet == 0) then
+        call ESMF_LogWrite("NEXUS DEBUG: Calling IO_Read", ESMF_LOGMSG_INFO)
+        call ESMF_LogFlush(rc=localrc)
+    endif
     call IO_Read(importState, clock, rc=localrc)
+    if (localPet == 0) then
+        call ESMF_LogWrite("NEXUS DEBUG: IO_Read done", ESMF_LOGMSG_INFO)
+        call ESMF_LogFlush(rc=localrc)
+    endif
     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__, &
@@ -360,7 +422,10 @@ contains
     ! Get some Clock info
     call ESMF_ClockGet(clock, advanceCount=advanceCount, currTime=time)
 
-    print "('NEXUS: ESMF Clock advanceCount: ', i0)", advanceCount
+    call ESMF_VMGetCurrent(vm, rc=rc)
+    call ESMF_VMGet(vm, localPet=localPet, rc=rc)
+
+    if (localPet == 0) print "('NEXUS: ESMF Clock advanceCount: ', i0)", advanceCount
     timeSlice = advanceCount + 1
 
     ! Because of the way that the internal Clock was set by default,
@@ -406,7 +471,7 @@ contains
       "('Calculate emissions at ', i0.4, '-', i0.2, '-', i0.2, ' ', i2.2, ':', i0.2, ':', i0.2)") &
       yy, mm, dd, h, m, s
     call ESMF_LogWrite(msg)
-    print "('NEXUS: ', a)", trim(msg)
+    if (localPet == 0) print "('NEXUS: ', a)", trim(msg)
 
     ! ================================================================
     ! Reset all emission and deposition values
@@ -509,6 +574,98 @@ contains
 
   end subroutine
 
+  !> @brief Set the clock for the model.
+  !>
+  !> @param model The ESMF grid component.
+  !> @param rc    Return code.
+  subroutine SetClock(model, rc)
+    type(ESMF_GridComp)  :: model
+    integer, intent(out) :: rc
+
+    type(ESMF_Clock) :: clock
+    integer :: localrc
+
+    rc = ESMF_SUCCESS
+
+    ! Get the clock from the model
+    call ESMF_GridCompGet(model, clock=clock, rc=localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
+    ! Set logical flags from stored command-line args
+    ! These flags are used in Initialize, but we can set them here too if needed
+    ! or just ensure they are available via module variables.
+    ! They are already module variables, so they persist.
+
+    do_Regrid = (len_trim(ReGridFile_) > 0)
+    do_Debug  = (debugLevel_ > 0)
+    do_NEXUS  = (do_Debug .or. do_Regrid)
+    alwaysWriteRestartFile = writeRestart_
+    if (len_trim(OutputFile_) > 0) ExptFile = OutputFile_
+
+    ! Create the grid here because we need it for Initialize
+    ! But wait, SetClock is usually for setting the clock.
+    ! However, NUOPC phases are:
+    ! 1. Advertise
+    ! 2. Realize
+    ! 3. DataInitialize
+
+    ! If we use standard phases, DataInitialize calls Initialize.
+    ! But we need the grid BEFORE Realize if we want to advertise fields on the grid?
+    ! Actually, Advertise is for advertising fields.
+    ! Realize is for creating fields.
+    ! DataInitialize is for initializing data.
+
+    ! The issue "State object is invalid! Not created or deleted!" suggests
+    ! that we might be trying to access states that are not ready or
+    ! we are not correctly initializing things in the right order.
+
+    ! Also, InitializeP0 is called by the driver.
+
+    ! Let's look at Initialize again.
+    ! It creates the grid and sets it on the component.
+    ! It initializes HEMCO.
+
+    ! The log shows:
+    ! PET0     >>>driver: entered Initialize (phase=<none>) without valid internal Clock.
+    ! ...
+    ! PET0       >>>NEXUS: entered Initialize (phase=<none>) without valid internal Clock.
+
+    ! This means Initialize is being called at phase 0 (InitializeP0).
+    ! And at that point, the clock might not be valid yet?
+    ! Or maybe it is valid but just not set on the component yet?
+
+    ! In NUOPC, InitializeP0 (IPDv00) is usually empty or for very basic setup.
+    ! IPDv01 is Advertise.
+    ! IPDv02 is Realize.
+    ! IPDv03 is DataInitialize.
+
+    ! If we register Initialize for DataInitialize (IPDv03), it should be called then.
+    ! But the log says "phase=<none>". This usually means IPDv00.
+
+    ! Wait, if we use NUOPC_CompSpecialize for label_DataInitialize, it should be called at IPDv03.
+
+    ! The error "State object is invalid" happens during Advertise?
+    ! No, it happens during InitializeP0, InitializeIPDv02p1, etc.
+    ! It seems like some internal state check is failing.
+
+    ! One possibility is that we are not creating the states correctly or
+    ! we are accessing them when they are not created.
+
+    ! In Advertise:
+    ! call NUOPC_ModelGet(model, importState=importState, exportState=exportState, rc=rc)
+    ! ...
+    ! call DiagnFileOpen( ... )
+
+    ! If HcoConfig is not associated, we return.
+    ! But HcoConfig is associated in SetServices.
+
+    ! Let's check Initialize routine again.
+
+  end subroutine SetClock
+
   !> @brief Initializes the model.
   !>
   !> @param model The ESMF grid component.
@@ -521,9 +678,17 @@ contains
     logical :: am_I_Root
     type(ESMF_VM) :: vm
     type(ESMF_State) :: importState, exportState
+    type(ESMF_Clock) :: clock
     rc = ESMF_SUCCESS
 
     ! Initialize I/O (moved after getting grid)
+
+    ! Get Clock
+    call ESMF_GridCompGet(model, clock=clock, rc=localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
 
     ! Get VM and pet info
     call ESMF_VMGetCurrent(vm, rc=localrc)
@@ -553,16 +718,41 @@ contains
       file=__FILE__)) &
       return  ! bail out
 
-    ! Get grid from component
-    call ESMF_GridCompGet(model, grid=HCO_Grid, rc=localrc)
+    ! Create grid
+    if (localPet == rootPet) print *, "NEXUS: Creating HCO_Grid"
+    call nxs_create_hco_grid( ConfigFile_, HCO_Grid, clock, rc=localrc )
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
+    ! Set grid on component
+    call ESMF_GridCompSet(model, grid=HCO_Grid, rc=localrc)
     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__, &
       rcToReturn=rc)) return
 
     ! Initialize I/O
-    call IO_Init(HCO_Grid, rc)
+    if (localPet == rootPet) print *, "NEXUS: Calling IO_Init"
+    call IO_Init(HCO_Grid, clock, rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
+    ! Set up HEMCO grid from ESMF grid
+    if (localPet == rootPet) print *, "NEXUS: Calling nxs_set_hco_grid"
+    call nxs_set_hco_grid( HcoState, HCO_Grid, rc )
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
+    ! Initialize HEMCO core (moved from SetServices)
+    if (localPet == rootPet) print *, "NEXUS: Calling HCO_Init"
+    call HCO_Init( HcoState, rc )
+    if (nxs_error_log(rc, msg='Error encountered in routine "HCO_Init"!', &
       line=__LINE__, &
       file=__FILE__, &
       rcToReturn=rc)) return
@@ -581,41 +771,74 @@ contains
       file=__FILE__, &
       rcToReturn=rc)) return
 
+    if (localPet == 0) then
+        call ESMF_LogWrite("NEXUS DEBUG: HCOX_Init done", ESMF_LOGMSG_INFO)
+        call ESMF_LogFlush(rc=localrc)
+    endif
+
     !=======================================================================
     ! Start NEXUS Init
     !=======================================================================
     if (do_NEXUS) then
+      if (localPet == 0) then
+          call ESMF_LogWrite("NEXUS DEBUG: Creating NXS_Diag_State", ESMF_LOGMSG_INFO)
+          call ESMF_LogFlush(rc=localrc)
+      endif
       NXS_Diag_State = ESMF_StateCreate( rc=localrc )
       if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
         line=__LINE__,  &
         file=__FILE__,  &
         rcToReturn=rc)) return  ! bail out
 
+      if (localPet == 0) then
+          call ESMF_LogWrite("NEXUS DEBUG: Calling nxs_diag_state_init", ESMF_LOGMSG_INFO)
+          call ESMF_LogFlush(rc=localrc)
+      endif
       call nxs_diag_state_init( HCO_Grid, HcoState, NXS_Diag_State, rc=localrc )
       if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
         line=__LINE__,  &
         file=__FILE__,  &
         rcToReturn=rc)) return  ! bail out
+      if (localPet == 0) then
+          call ESMF_LogWrite("NEXUS DEBUG: nxs_diag_state_init done", ESMF_LOGMSG_INFO)
+          call ESMF_LogFlush(rc=localrc)
+      endif
     end if
 
     if (do_Regrid) then
-      NXS_Grid = nxs_set_grid( ReGridFile_, rc=localrc )
+      if (localPet == 0) then
+          call ESMF_LogWrite("NEXUS DEBUG: Calling nxs_set_grid", ESMF_LOGMSG_INFO)
+          call ESMF_LogFlush(rc=localrc)
+      endif
+      NXS_Grid = nxs_set_grid( ReGridFile_, clock, rc=localrc )
       if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
         line=__LINE__,  &
         file=__FILE__,  &
         rcToReturn=rc)) return  ! bail out
 
+      if (localPet == 0) then
+          call ESMF_LogWrite("NEXUS DEBUG: Creating NXS_Expt_State", ESMF_LOGMSG_INFO)
+          call ESMF_LogFlush(rc=localrc)
+      endif
       NXS_Expt_State = ESMF_StateCreate( rc=localrc )
       if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
         line=__LINE__,  &
         file=__FILE__,  &
         rcToReturn=rc)) return  ! bail out
 
+      if (localPet == 0) then
+          call ESMF_LogWrite("NEXUS DEBUG: Calling nxs_expt_state_init", ESMF_LOGMSG_INFO)
+          call ESMF_LogFlush(rc=localrc)
+      endif
       call nxs_expt_state_init( NXS_Grid, NXS_Diag_State, NXS_Expt_State, rc=localrc )
       if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
         line=__LINE__,  &
         file=__FILE__,  &
         rcToReturn=rc)) return  ! bail out
+      if (localPet == 0) then
+          call ESMF_LogWrite("NEXUS DEBUG: nxs_expt_state_init done", ESMF_LOGMSG_INFO)
+          call ESMF_LogFlush(rc=localrc)
+      endif
     end if
 
   end subroutine Initialize
@@ -641,6 +864,8 @@ contains
     logical,           intent(in)  :: writeRestart
     integer, optional, intent(out) :: rc
 
+    integer :: localrc
+
     if (present(rc)) rc = ESMF_SUCCESS
 
         ConfigFile_   = ConfigFile
@@ -648,6 +873,13 @@ contains
         OutputFile_   = OutputFile
         debugLevel_   = debugLevel
         writeRestart_ = writeRestart
+
+        ! Read time settings from configuration files
+        call nxs_read_time_config(ConfigFile_, rc=localrc)
+        if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+          line=__LINE__, &
+          file=__FILE__, &
+          rcToReturn=rc)) return
 
       end subroutine nxs_init
   !> @brief NEXUS finalization.
@@ -805,13 +1037,15 @@ contains
   !> @brief Sets up the NEXUS grid from a file.
   !>
   !> @param fileName Path to the grid file.
+  !> @param clock    ESMF Clock for resolving filename.
   !> @param rc       Return code (optional).
   !> @return         The created ESMF grid.
-  function nxs_set_grid( fileName, rc ) result ( grid )
+  function nxs_set_grid( fileName, clock, rc ) result ( grid )
 
     use netcdf
 
     character(len=*),  intent(in)  :: fileName
+    type(ESMF_Clock),  intent(in)  :: clock
     integer, optional, intent(out) :: rc
 
     type(ESMF_Grid) :: grid
@@ -824,6 +1058,10 @@ contains
     integer :: dimLengths(2)
     integer :: lb(2), ub(2)
     real(ESMF_KIND_R8), pointer :: fp(:,:)
+    character(len=255) :: resolvedFileName
+
+    type(ESMF_VM) :: vm
+    integer :: localPet
 
     character(len=*), parameter :: dimNames(2) = (/ "grid_xt", "grid_yt" /)
     character(len=*), parameter :: coordNames(2,2) = reshape( &
@@ -833,8 +1071,43 @@ contains
     ! -- begin
     if (present(rc)) rc = ESMF_SUCCESS
 
-    print "('NEXUS: Input grid nc fn:', x, a)", trim(filename)
-    ncerr = nf90_open(fileName, NF90_NOWRITE, ncid)
+    call ResolveFileName(fileName, clock, resolvedFileName, localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
+
+    ! We need localPet to restrict printing.
+    ! Since this function doesn't have it, we can get it from VM?
+    ! Or assume only root calls this?
+    ! nxs_set_grid is called by Initialize, which is called by all PETs?
+    ! In Initialize:
+    ! if (do_Regrid) then
+    !   NXS_Grid = nxs_set_grid( ReGridFile_, clock, rc=localrc )
+    ! So all PETs call it.
+    ! We should restrict printing.
+    ! We can add type(ESMF_VM) :: vm, integer :: localPet
+
+    ! (Wait, I can't add variables in the middle of declarations without being careful)
+    ! I will add declarations at the top of the function
+
+    ! Actually, I can just not print it or use a utility.
+    ! But let's try to add localPet check if possible.
+    ! For now, I will just suppress the print or check if I can get VM.
+
+    ! print "('NEXUS: Input grid nc fn:', x, a)", trim(resolvedFileName)
+
+    ! To do it properly:
+    ! integer :: localPet
+    ! type(ESMF_VM) :: vm
+    ! call ESMF_VMGetCurrent(vm, rc=localrc)
+    ! call ESMF_VMGet(vm, localPet=localPet, rc=localrc)
+    ! if (localPet == 0) print ...
+
+    ! But I need to insert variables declarations.
+    ! I will modify the variable declaration part too.
+
+    ncerr = nf90_open(trim(resolvedFileName), NF90_NOWRITE, ncid)
     if (ESMF_LogFoundNetCDFError(ncerrToCheck=ncerr, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__,  &
       file=__FILE__,  &
@@ -962,7 +1235,7 @@ contains
       rcToReturn=rc)) return
 
     do while (flag == HCO_SUCCESS)
-      print "('NEXUS: Initializing Diag variable ''', a, '''')", trim(thisDiagn%cName)
+      if (localPet == 0) print "('NEXUS: Initializing Diag variable ''', a, '''')", trim(thisDiagn%cName)
       select case ( thisDiagn % spaceDim )
        case (2)
         field = ESMF_FieldCreate( HcoGrid, ESMF_TYPEKIND_R4, &
@@ -1135,7 +1408,7 @@ contains
       rcToReturn=rc)) return  ! bail out
 
     do item = 1, itemCount
-      print "('NEXUS: Initializing Expt variable ''', a, '''')", trim(itemNameList(item))
+      if (localPet == 0) print "('NEXUS: Initializing Expt variable ''', a, '''')", trim(itemNameList(item))
       if (itemTypeList(item) == ESMF_STATEITEM_FIELD) then
         call ESMF_StateGet( importState, itemNameList(item), srcfield, rc=localrc )
         if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
@@ -1384,5 +1657,354 @@ contains
     end if
 
   end function nxs_error_log
+
+  !> @brief Populates HcoState%Grid from ESMF Grid.
+  subroutine nxs_set_hco_grid( HcoState, Grid, rc )
+    type(HCO_State), intent(inout) :: HcoState
+    type(ESMF_Grid), intent(in)    :: Grid
+    integer,         intent(out)   :: rc
+
+    integer :: localrc
+    integer :: dimLengths(2)
+    integer :: NX, NY
+    real(ESMF_KIND_R8), pointer :: ptr_d(:,:)
+    real(ESMF_KIND_R4), allocatable :: tmp_r4(:,:)
+
+    rc = ESMF_SUCCESS
+
+    ! Get grid dimensions from coords
+    call ESMF_GridGetCoord(Grid, 1, staggerloc=ESMF_STAGGERLOC_CENTER, farrayPtr=ptr_d, rc=localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+
+    NX = size(ptr_d, 1)
+    NY = size(ptr_d, 2)
+    HcoState%NX = NX
+    HcoState%NY = NY
+    HcoState%NZ = 1
+
+    ! Allocate HEMCO grid arrays
+    ! XMID (Center Longitudes)
+    call HCO_ArrInit( HcoState%Grid%XMID, NX, NY, rc )
+    HcoState%Grid%XMID%Val = real(ptr_d, kind=4)
+
+    ! YMID (Center Latitudes)
+    call HCO_ArrInit( HcoState%Grid%YMID, NX, NY, rc )
+    call ESMF_GridGetCoord(Grid, 2, staggerloc=ESMF_STAGGERLOC_CENTER, farrayPtr=ptr_d, rc=localrc)
+    HcoState%Grid%YMID%Val = real(ptr_d, kind=4)
+
+    ! XEDGE (Corner Longitudes) - simplified
+    call HCO_ArrInit( HcoState%Grid%XEDGE, NX, NY, rc )
+    HcoState%Grid%XEDGE%Val = HcoState%Grid%XMID%Val ! Placeholder
+
+    call HCO_ArrInit( HcoState%Grid%YEDGE, NX, NY, rc )
+    HcoState%Grid%YEDGE%Val = HcoState%Grid%YMID%Val ! Placeholder
+
+    ! AREA
+    call HCO_ArrInit( HcoState%Grid%AREA_M2, NX, NY, rc )
+    call ESMF_GridGetItem(Grid, ESMF_GRIDITEM_AREA, farrayPtr=ptr_d, rc=localrc)
+    if (localrc == ESMF_SUCCESS) then
+       HcoState%Grid%AREA_M2%Val = real(ptr_d, kind=4)
+    else
+       HcoState%Grid%AREA_M2%Val = 1.0 ! Placeholder
+    endif
+
+  end subroutine nxs_set_hco_grid
+
+  !> @brief Creates the HEMCO grid from configuration.
+  !>
+  !> @param ConfigFile Path to the main configuration file.
+  !> @param Grid       The created ESMF grid.
+  !> @param Clock      ESMF Clock for resolving filename.
+  !> @param rc         Return code.
+  subroutine nxs_create_hco_grid( ConfigFile, Grid, Clock, rc )
+    character(len=*), intent(in)  :: ConfigFile
+    type(ESMF_Grid),  intent(out) :: Grid
+    type(ESMF_Clock), intent(in)  :: Clock
+    integer,          intent(out) :: rc
+
+    integer :: unit, stat
+    character(len=255) :: line, key, value
+    character(len=255) :: GridFileLocal
+    character(len=255) :: resolvedGridFile
+    integer :: i
+    integer :: NX, NY
+    real(ESMF_KIND_R8) :: XMIN, XMAX, YMIN, YMAX
+    integer :: dimLengths(2)
+    real(ESMF_KIND_R8) :: centerXMin, centerXMax, centerYMin, centerYMax
+    integer :: localrc
+
+    rc = ESMF_SUCCESS
+    GridFileLocal = GridFile ! Default
+
+    ! Open main config file to find GridFile
+    open(newunit=unit, file=trim(ConfigFile), status='old', iostat=stat)
+    if (stat /= 0) then
+      if (localPet == 0) print *, "Error opening config file: ", trim(ConfigFile)
+      rc = ESMF_FAILURE
+      return
+    end if
+
+    do
+      read(unit, '(a)', end=10) line
+      ! Skip comments and empty lines
+      if (len_trim(line) == 0 .or. line(1:1) == '#') cycle
+
+      ! Parse key-value pair
+      i = index(line, ':')
+      if (i > 0) then
+        key = trim(adjustl(line(1:i-1)))
+        value = trim(adjustl(line(i+1:)))
+
+        if (trim(key) == 'GridFile') then
+          GridFileLocal = value
+          exit
+        end if
+      end if
+    end do
+10  continue
+    close(unit)
+
+    ! Open grid config file
+    call ResolveFileName(GridFileLocal, Clock, resolvedGridFile, localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+
+    if (localPet == 0) print *, "NEXUS: Reading grid settings from ", trim(resolvedGridFile)
+    open(newunit=unit, file=trim(resolvedGridFile), status='old', iostat=stat)
+    if (stat /= 0) then
+      if (localPet == 0) print *, "Error opening grid file: ", trim(resolvedGridFile)
+      rc = ESMF_FAILURE
+      return
+    end if
+
+    do
+      read(unit, '(a)', end=20) line
+      ! Skip comments and empty lines
+      if (len_trim(line) == 0 .or. line(1:1) == '#') cycle
+
+      ! Parse key-value pair
+      i = index(line, ':')
+      if (i > 0) then
+        key = trim(adjustl(line(1:i-1)))
+        value = trim(adjustl(line(i+1:)))
+
+        ! Remove comments from value if any
+        i = index(value, '#')
+        if (i > 0) value = trim(value(1:i-1))
+
+        if (trim(key) == 'NX') then
+          read(value, *) NX
+        else if (trim(key) == 'NY') then
+          read(value, *) NY
+        else if (trim(key) == 'XMIN') then
+          read(value, *) XMIN
+        else if (trim(key) == 'XMAX') then
+          read(value, *) XMAX
+        else if (trim(key) == 'YMIN') then
+          read(value, *) YMIN
+        else if (trim(key) == 'YMAX') then
+          read(value, *) YMAX
+        end if
+      end if
+    end do
+20  continue
+    close(unit)
+
+    dimLengths(1) = NX
+    dimLengths(2) = NY
+
+    if (localPet == 0) print "('NEXUS: Grid NX=', i0, ' NY=', i0)", NX, NY
+    if (localPet == 0) print "('NEXUS: Grid XMIN=', f0.2, ' XMAX=', f0.2)", XMIN, XMAX
+    if (localPet == 0) print "('NEXUS: Grid YMIN=', f0.2, ' YMAX=', f0.2)", YMIN, YMAX
+
+    ! Create ESMF Grid
+    ! Assuming global grid if XMAX-XMIN >= 360
+    if (abs(XMAX - XMIN) >= 360.0) then
+        Grid = ESMF_GridCreate1PeriDim( &
+          maxIndex = dimLengths, &
+          coordSys = ESMF_COORDSYS_SPH_DEG, &
+          indexflag= ESMF_INDEX_GLOBAL, &
+          rc=rc)
+    else
+        Grid = ESMF_GridCreateNoPeriDim( &
+          maxIndex = dimLengths, &
+          coordSys = ESMF_COORDSYS_SPH_DEG, &
+          indexflag= ESMF_INDEX_GLOBAL, &
+          rc=rc)
+    endif
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+
+    ! Add coordinates
+    call ESMF_GridAddCoord(Grid, staggerloc=ESMF_STAGGERLOC_CENTER, rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+
+    ! For center coordinates
+    ! X coordinates
+    centerXMin = XMIN + (XMAX - XMIN) / (2.0 * real(NX, kind=8))
+    centerXMax = XMAX - (XMAX - XMIN) / (2.0 * real(NX, kind=8))
+    call set_1d_coord(Grid, 1, ESMF_STAGGERLOC_CENTER, NX, NY, centerXMin, centerXMax, rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+
+    ! Y coordinates
+    centerYMin = YMIN + (YMAX - YMIN) / (2.0 * real(NY, kind=8))
+    centerYMax = YMAX - (YMAX - YMIN) / (2.0 * real(NY, kind=8))
+    call set_1d_coord(Grid, 2, ESMF_STAGGERLOC_CENTER, NX, NY, centerYMin, centerYMax, rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+
+    ! Add Area Item
+    call ESMF_GridAddItem(Grid, itemflag=ESMF_GRIDITEM_AREA, rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+
+    ! Note: Area calculation is complex, here we might skip filling it or use dummy
+    ! HEMCO will probably recalculate it or use 1.0 if not provided properly?
+    ! nxs_set_hco_grid tries to get it.
+    ! For now, let's leave it uninitialized or set to 1.0.
+    ! nxs_set_hco_grid handles failure to get area by setting to 1.0.
+
+  end subroutine nxs_create_hco_grid
+
+  !> @brief Helper to set 1D coordinates on a 2D grid.
+  subroutine set_1d_coord(grid, dim, stagger, nx, ny, minVal, maxVal, rc)
+    type(ESMF_Grid), intent(inout) :: grid
+    integer, intent(in) :: dim
+    type(ESMF_StaggerLoc), intent(in) :: stagger
+    integer, intent(in) :: nx, ny
+    real(ESMF_KIND_R8), intent(in) :: minVal, maxVal
+    integer, intent(out) :: rc
+
+    real(ESMF_KIND_R8), pointer :: ptr(:,:)
+    integer :: i, j
+    integer :: lb(2), ub(2)
+    real(ESMF_KIND_R8) :: step
+
+    call ESMF_GridGetCoord(grid, dim, staggerloc=stagger, farrayPtr=ptr, &
+      computationalLBound=lb, computationalUBound=ub, rc=rc)
+    if (rc /= ESMF_SUCCESS) return
+
+    if (dim == 1) then
+       step = (maxVal - minVal) / real(nx - 1, kind=8)
+       if (nx == 1) step = 0.0
+       do j = lb(2), ub(2)
+          do i = lb(1), ub(1)
+             ptr(i,j) = minVal + real(i - 1, kind=8) * step
+          end do
+       end do
+    else
+       step = (maxVal - minVal) / real(ny - 1, kind=8)
+       if (ny == 1) step = 0.0
+       do j = lb(2), ub(2)
+          do i = lb(1), ub(1)
+             ptr(i,j) = minVal + real(j - 1, kind=8) * step
+          end do
+       end do
+    end if
+
+  end subroutine set_1d_coord
+
+  !> @brief Reads time settings from configuration files.
+  !>
+  !> @param ConfigFile Path to the main configuration file.
+  !> @param rc         Return code.
+  subroutine nxs_read_time_config(ConfigFile, rc)
+    character(len=*), intent(in)  :: ConfigFile
+    integer,          intent(out) :: rc
+
+    integer :: unit, stat
+    character(len=255) :: line, key, value
+    character(len=255) :: TimeFileLocal
+    character(len=255) :: DateStr
+    integer :: i
+
+    rc = ESMF_SUCCESS
+    TimeFileLocal = TimeFile ! Default
+
+    ! Open main config file to find TimeFile
+    open(newunit=unit, file=trim(ConfigFile), status='old', iostat=stat)
+    if (stat /= 0) then
+      if (localPet == 0) print *, "Error opening config file: ", trim(ConfigFile)
+      rc = ESMF_FAILURE
+      return
+    end if
+
+    do
+      read(unit, '(a)', end=10) line
+      ! Skip comments and empty lines
+      if (len_trim(line) == 0 .or. line(1:1) == '#') cycle
+
+      ! Parse key-value pair
+      i = index(line, ':')
+      if (i > 0) then
+        key = trim(adjustl(line(1:i-1)))
+        value = trim(adjustl(line(i+1:)))
+
+        if (trim(key) == 'TimeFile') then
+          TimeFileLocal = value
+          exit
+        end if
+      end if
+    end do
+10  continue
+    close(unit)
+
+    ! Open time config file
+    if (localPet == 0) print *, "NEXUS: Reading time settings from ", trim(TimeFileLocal)
+    open(newunit=unit, file=trim(TimeFileLocal), status='old', iostat=stat)
+    if (stat /= 0) then
+      if (localPet == 0) print *, "Error opening time file: ", trim(TimeFileLocal)
+      rc = ESMF_FAILURE
+      return
+    end if
+
+    do
+      read(unit, '(a)', end=20) line
+      ! Skip comments and empty lines
+      if (len_trim(line) == 0 .or. line(1:1) == '#') cycle
+
+      ! Parse key-value pair
+      i = index(line, ':')
+      if (i > 0) then
+        key = trim(adjustl(line(1:i-1)))
+        value = trim(adjustl(line(i+1:)))
+
+        ! Remove comments from value if any
+        i = index(value, '#')
+        if (i > 0) value = trim(value(1:i-1))
+
+        if (trim(key) == 'START') then
+          call parse_date(value, T_YY(1), T_MM(1), T_DD(1), T_H(1), T_M(1), T_S(1))
+        else if (trim(key) == 'END') then
+          call parse_date(value, T_YY(2), T_MM(2), T_DD(2), T_H(2), T_M(2), T_S(2))
+        end if
+      end if
+    end do
+20  continue
+    close(unit)
+
+  end subroutine nxs_read_time_config
+
+  !> @brief Parses a date string "YYYY-MM-DD HH:MM:SS".
+  subroutine parse_date(str, yy, mm, dd, h, m, s)
+    character(len=*), intent(in)  :: str
+    integer,          intent(out) :: yy, mm, dd, h, m, s
+
+    integer :: i
+    character(len=255) :: temp
+
+    ! Expected format: YYYY-MM-DD HH:MM:SS
+    !                  1234567890123456789
+    read(str(1:4), *) yy
+    read(str(6:7), *) mm
+    read(str(9:10), *) dd
+    read(str(12:13), *) h
+    read(str(15:16), *) m
+    read(str(18:19), *) s
+
+  end subroutine parse_date
 
 end module nexus_cap

@@ -1,0 +1,21 @@
+#
+# NEXUS Control File
+#
+
+# HEMCO configuration file
+CONFIG_FILE: NEXUS_Config.rc
+
+# Regridding file (optional)
+REGRID_FILE:
+
+# Output file name (optional)
+OUTPUT_FILE: nexus_output.nc
+
+# Debug level (0 for none, 1 for debug)
+DEBUG_LEVEL: 1
+
+# Write restart file (true or false)
+WRITE_RESTART: false
+
+# Timestep in seconds
+TIMESTEP: 3600

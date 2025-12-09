@@ -196,7 +196,7 @@ program app
   call MPI_Finalize(mpi_ierr)
 #endif
 
-  print "('NEXUS: ', a)", "Done"
+  if (localPet == rootPet) print "('NEXUS: ', a)", "Done"
 
 contains
 
@@ -212,6 +212,8 @@ contains
     integer :: n_
     character(len=:), allocatable :: sep
     integer i
+    type(ESMF_VM) :: vm
+    integer :: localPet, localrc
 
     if (.not. present(char)) then
       char_ = "-"
@@ -229,7 +231,9 @@ contains
       sep(i:i) = char_
     end do
 
-    print "(a)", sep
+    call ESMF_VMGetCurrent(vm, rc=localrc)
+    call ESMF_VMGet(vm, localPet=localPet, rc=localrc)
+    if (localPet == 0) print "(a)", sep
   end subroutine print_sep
 
   !> @brief Parses the control file.
@@ -254,11 +258,18 @@ contains
     integer :: unit, stat
     character(len=255) :: line, key, value
 
+    type(ESMF_VM) :: vm
+    integer :: localPet
+    integer :: localrc
+
     rc = ESMF_SUCCESS
+
+    call ESMF_VMGetCurrent(vm, rc=localrc)
+    call ESMF_VMGet(vm, localPet=localPet, rc=localrc)
 
     open(newunit=unit, file=trim(file), status='old', iostat=stat)
     if (stat /= 0) then
-      print *, "Error opening control file: ", trim(file)
+      if (localPet == 0) print *, "Error opening control file: ", trim(file)
       rc = ESMF_FAILURE
       return
     end if
