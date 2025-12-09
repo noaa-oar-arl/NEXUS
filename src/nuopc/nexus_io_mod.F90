@@ -418,6 +418,11 @@ contains
              ! Check rank of lon variable
              var = get_var(dset, lon_var)
              if (localPet == 0) print *, "DEBUG: Variable ", trim(lon_var), " has rank ", var%ndims
+
+             ! Deallocate buffers if they are already allocated to prevent shape mismatch
+             if (allocated(coord_vals_1d)) deallocate(coord_vals_1d)
+             if (allocated(coord_vals)) deallocate(coord_vals)
+
              if (var%ndims == 1) then
                  call read_vardata(dset, lon_var, coord_vals_1d)
              else
@@ -430,6 +435,12 @@ contains
       call ESMF_GridGetCoord(extDataStreams(i)%srcGrid, 1, staggerloc=ESMF_STAGGERLOC_CENTER, farrayPtr=fp, rc=rc)
       if (rc /= ESMF_SUCCESS) then
          print *, "Error getting lon coord pointer"
+         call ESMF_Finalize(rc=rc)
+         stop
+      endif
+
+      if (.not. associated(fp)) then
+         print *, "Error: lon coord pointer not associated"
          call ESMF_Finalize(rc=rc)
          stop
       endif
@@ -465,6 +476,11 @@ contains
              ! Check rank of lat variable
              var = get_var(dset, lat_var)
              if (localPet == 0) print *, "DEBUG: Variable ", trim(lat_var), " has rank ", var%ndims
+
+             ! Deallocate buffers if they are already allocated to prevent shape mismatch
+             if (allocated(coord_vals_1d)) deallocate(coord_vals_1d)
+             if (allocated(coord_vals)) deallocate(coord_vals)
+
              if (var%ndims == 1) then
                  call read_vardata(dset, lat_var, coord_vals_1d)
              else
@@ -476,6 +492,12 @@ contains
       call ESMF_GridGetCoord(extDataStreams(i)%srcGrid, 2, staggerloc=ESMF_STAGGERLOC_CENTER, farrayPtr=fp, rc=rc)
       if (rc /= ESMF_SUCCESS) then
          print *, "Error getting lat coord pointer"
+         call ESMF_Finalize(rc=rc)
+         stop
+      endif
+
+      if (.not. associated(fp)) then
+         print *, "Error: lat coord pointer not associated"
          call ESMF_Finalize(rc=rc)
          stop
       endif
