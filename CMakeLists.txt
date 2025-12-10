@@ -55,5 +55,6 @@ if(CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
 endif()
 
 # Add project's subdirectories
+add_subdirectory(src/external/CDEPS)
 add_subdirectory(HEMCO)
 add_subdirectory(src)

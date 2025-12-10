@@ -1,31 +1,37 @@
-!
 !==============================================================================
 !
 ! !MODULE: nexus_io_mod
 !
-! !DESCRIPTION: Handles I/O operations for the NEXUS component, inspired by
-!  MAPL ExtData and History components.
+! !DESCRIPTION: Handles I/O operations for the NEXUS component.
+!  - Input:  Handled via CDEPS (Community Data Models for Earth Predictive Systems)
+!  - Output: Handled via ESMF History (managed via xml file)
 !
 !==============================================================================
 
-!> @brief Handles I/O operations for the NEXUS component.
-!>
-!> Inspired by MAPL ExtData and History components.
 module nexus_io_mod
 
-#if defined(USE_MPI) || defined(USE_PNETCDF)
+#if defined(USE_MPI)
   use mpi
 #endif
   use ESMF
-  use module_ncio
+
+  ! --- CDEPS Imports ---
+  use cdeps_stream_mod, only: cdeps_stream_type,      &
+                              cdeps_stream_init,      &
+                              cdeps_stream_run,       &
+                              cdeps_stream_final,     &
+                              cdeps_stream_get_field, &
+                              cdeps_stream_get_field_names
+  use FoX_DOM, only: extractDataContent, destroy, Node, NodeList, parseFile, getElementsByTagName, getLength, item, getAttribute
+
   implicit none
 
   private
 
-  public :: IO_Init, IO_Read, IO_Write, ResolveFileName, ResolveDateTokens
+  public :: IO_Init, IO_Read, IO_Write, IO_Final
 
   !----------------------------------------------------------------------------
-  ! Derived types for managing I/O streams
+  ! Derived types
   !----------------------------------------------------------------------------
 
   !> @brief Type for managing history streams (output).
@@ -39,1058 +45,326 @@ module nexus_io_mod
     logical :: initialized = .false.
   end type HistoryStream
 
-  !> @brief Type for managing external data streams (input).
-  type :: ExtDataStream
-    character(len=255) :: name
-    character(len=255) :: fileName
-    integer :: filestream  ! For parallel I/O
-    character(len=255), allocatable :: variables(:)
-    character(len=20) :: timeInterpMethod
-    type(ESMF_Grid) :: srcGrid
-    type(ESMF_Field) :: srcField, srcField2
-    type(ESMF_Field) :: dstField, dstField2
-    type(ESMF_RouteHandle) :: routeHandle ! for regridding
-    integer :: validRange(2) = (/-1, -1/) ! Start and End year
-  end type ExtDataStream
-
-  ! Array to hold all streams
+  ! Array to hold history streams (Output only)
   type(HistoryStream), allocatable :: historyStreams(:)
-  type(ExtDataStream), allocatable :: extDataStreams(:)
+
+  ! CDEPS Stream Object (Input only)
+  type(cdeps_stream_type), save :: MainCDEPS
+  logical, save :: CDEPS_Initialized = .false.
 
 contains
 
-  !> @brief Initializes the I/O layer by reading the io.rc file.
-  !>
-  !> @param dstGrid The destination grid to regrid to.
-  !> @param clock   The ESMF Clock (for resolving initial file names).
-  !> @param rc      Return code.
-  subroutine IO_Init(dstGrid, clock, rc)
-#ifdef USE_MPI
-    use mpi
-#endif
-    integer, intent(out) :: rc
-    type(ESMF_Grid), intent(in) :: dstGrid
-    type(ESMF_Clock), intent(in) :: clock
-
-    integer :: unit, stat, num_hist_streams, num_ext_streams, i, j, k
-    character(len=255) :: line, key, value
-    character(len=255), allocatable :: hist_vars(:), ext_vars(:)
-    logical :: in_history_block, in_extdata_block
-    type(ESMF_VM) :: vm
-    integer :: localPet
-    integer :: localrc
-
-    ! Broadcast buffers
-    integer :: ibuf(1)
-    real(ESMF_KIND_R8) :: rbuf(1)
-    real(ESMF_KIND_R8), allocatable :: darray(:)
-
-    ! For resizing arrays
-    integer :: n
-    character(len=255), allocatable :: temp_vars(:)
-
-    ! For regridding setup
-    integer :: ncerr
-    integer :: dimLengths(2)
-    character(len=255) :: lon_var, lat_var
-    real(ESMF_KIND_R8), pointer :: fp(:,:)
-    integer :: root_rc
-
-    ! NCIO variables
-    type(Dataset) :: dset
-    type(Dimension) :: dim
-    type(Variable) :: var
-    real(8), allocatable :: coord_vals(:,:)
-    real(8), allocatable :: coord_vals_1d(:)
-    logical :: par_open
-    character(len=255) :: resolvedFileName
-
-    rc = ESMF_SUCCESS
-    in_history_block = .false.
-    in_extdata_block = .false.
-    num_hist_streams = 0
-    num_ext_streams = 0
-
-    call ESMF_VMGetCurrent(vm, rc=rc)
-    call ESMF_VMGet(vm, localPet=localPet, rc=rc)
-
-    if (localPet == 0) then
-      open(newunit=unit, file="io.rc", status='old', iostat=stat)
-      if (stat /= 0) then
-        rc = ESMF_FAILURE
-      else
-        ! First pass: count the number of streams
-        do
-          read(unit, '(a)', end=10) line
-          if (trim(line) == ':: HISTORY ::') then
-            num_hist_streams = num_hist_streams + 1
-          else if (trim(line) == ':: EXTDATA ::') then
-            num_ext_streams = num_ext_streams + 1
-          end if
-        end do
-10      continue
-        rewind(unit)
-      endif
-    endif
-
-#ifdef USE_MPI
-    ibuf(1) = num_hist_streams
-    call ESMF_VMBroadcast(vm, ibuf, 1, 0, rc=rc)
-    num_hist_streams = ibuf(1)
-
-    ibuf(1) = num_ext_streams
-    call ESMF_VMBroadcast(vm, ibuf, 1, 0, rc=rc)
-    num_ext_streams = ibuf(1)
-
-    ibuf(1) = rc
-    call ESMF_VMBroadcast(vm, ibuf, 1, 0, rc=rc)
-    rc = ibuf(1)
-#endif
-    if (rc == ESMF_FAILURE) return
-
-    if (num_hist_streams > 0) allocate(historyStreams(num_hist_streams))
-    if (num_ext_streams > 0) allocate(extDataStreams(num_ext_streams))
-
-    ! Second pass: parse the streams
-    if (localPet == 0) then
+    !> @brief Initializes IO: Sets up History and Input from nexus_streams.xml
+    subroutine IO_Init(dstGrid, clock, rc)
+      integer, intent(out) :: rc
+      type(ESMF_Grid), intent(in) :: dstGrid
+      type(ESMF_Clock), intent(in) :: clock
+  
+      ! XML Parsing
+      type(Node), pointer :: doc, stream_node, p
+      type(NodeList), pointer :: stream_list, var_list
+      character(len=255) :: stream_name
+      integer :: i, n, num_hist_streams
+      character(len=255), allocatable :: temp_vars(:)
+  
+      ! CDEPS/ESMF
+      type(ESMF_VM) :: vm
+      integer :: localPet
+      logical :: check_input_streams, check_output_streams
+      character(len=*), parameter :: CDEPS_CONFIG = "nexus_input_streams.xml"
+      character(len=*), parameter :: HISTORY_CONFIG = "nexus_output_streams.xml"
+  
+      rc = ESMF_SUCCESS
       num_hist_streams = 0
-      num_ext_streams = 0
-      do
-        read(unit, '(a)', end=20) line
-        if (len_trim(line) == 0 .or. line(1:1) == '#') cycle
-
-        if (in_history_block) then
-          if (trim(line) == '::') then
-            in_history_block = .false.
-            if (allocated(hist_vars)) then
-              historyStreams(num_hist_streams)%variables = hist_vars
-              deallocate(hist_vars)
-            end if
-            cycle
-          end if
-
-          key = trim(adjustl(line(1:index(line,':')-1)))
-          value = trim(adjustl(line(index(line,':')+1:)))
-
-          select case (trim(key))
-            case ('NAME')
-              historyStreams(num_hist_streams)%name = value
-            case ('FREQUENCY')
-              read(value, *) stat
-              call ESMF_TimeIntervalSet(historyStreams(num_hist_streams)%frequency, s=stat, rc=rc)
-            case ('FILE')
-              historyStreams(num_hist_streams)%fileName = value
-            case ('MODE')
-              historyStreams(num_hist_streams)%mode = value
-            case ('VARIABLES')
-              ! This is a label for the variable list, do nothing
-            case default
-              if (line(1:1) == '-') then
-                if (allocated(hist_vars)) then
-                  n = size(hist_vars)
-                  call move_alloc(hist_vars, temp_vars)
-                  allocate(hist_vars(n + 1))
-                  hist_vars(1:n) = temp_vars
-                  hist_vars(n + 1) = trim(adjustl(line(2:)))
-                else
-                  allocate(hist_vars(1))
-                  hist_vars(1) = trim(adjustl(line(2:)))
-                end if
-              end if
-          end select
-        else if (in_extdata_block) then
-          if (trim(line) == '::') then
-            in_extdata_block = .false.
-            if (allocated(ext_vars)) then
-              extDataStreams(num_ext_streams)%variables = ext_vars
-              deallocate(ext_vars)
-            end if
-            cycle
-          end if
-
-          key = trim(adjustl(line(1:index(line,':')-1)))
-          value = trim(adjustl(line(index(line,':')+1:)))
-
-          select case (trim(key))
-            case ('NAME')
-              extDataStreams(num_ext_streams)%name = value
-            case ('FILE')
-              extDataStreams(num_ext_streams)%fileName = value
-            case ('TIME_INTERPOLATION')
-              extDataStreams(num_ext_streams)%timeInterpMethod = value
-            case ('VALID_RANGE')
-              read(value, *) extDataStreams(num_ext_streams)%validRange
-            case ('VARIABLES')
-              ! This is a label for the variable list, do nothing
-            case default
-              if (line(1:1) == '-') then
-                if (allocated(ext_vars)) then
-                  n = size(ext_vars)
-                  call move_alloc(ext_vars, temp_vars)
-                  allocate(ext_vars(n + 1))
-                  ext_vars(1:n) = temp_vars
-                  ext_vars(n + 1) = trim(adjustl(line(2:)))
-                else
-                  allocate(ext_vars(1))
-                  ext_vars(1) = trim(adjustl(line(2:)))
-                end if
-              end if
-          end select
-        else
-          if (trim(line) == ':: HISTORY ::') then
-            in_history_block = .true.
-            num_hist_streams = num_hist_streams + 1
-          else if (trim(line) == ':: EXTDATA ::') then
-            in_extdata_block = .true.
-            num_ext_streams = num_ext_streams + 1
-          end if
-        end if
-      end do
-20    continue
-      close(unit)
-    endif
-
-#ifdef USE_MPI
-    ! Broadcast the stream definitions
-    do i = 1, size(historyStreams)
-        call ESMF_VMBroadcast(vm, historyStreams(i)%name, len(historyStreams(i)%name), 0, rc=rc)
-        call ESMF_VMBroadcast(vm, historyStreams(i)%fileName, len(historyStreams(i)%fileName), 0, rc=rc)
-        call ESMF_VMBroadcast(vm, historyStreams(i)%mode, len(historyStreams(i)%mode), 0, rc=rc)
-
-        if (localPet == 0) then
-           call ESMF_TimeIntervalGet(historyStreams(i)%frequency, s_r8=rbuf(1), rc=localrc)
-        endif
-        call ESMF_VMBroadcast(vm, rbuf, 1, 0, rc=rc)
-        call ESMF_TimeIntervalSet(historyStreams(i)%frequency, s_r8=rbuf(1), rc=localrc)
-
-        if (localPet /= 0) then
-            if (allocated(historyStreams(i)%variables)) deallocate(historyStreams(i)%variables)
-            allocate(historyStreams(i)%variables(1))
-        endif
-        ibuf(1) = size(historyStreams(i)%variables)
-        call ESMF_VMBroadcast(vm, ibuf, 1, 0, rc=rc)
-        n = ibuf(1)
-        if (localPet /= 0) then
-            deallocate(historyStreams(i)%variables)
-            allocate(historyStreams(i)%variables(n))
-        endif
-        call ESMF_VMBroadcast(vm, historyStreams(i)%variables, n*len(historyStreams(i)%variables(1)), 0, rc=rc)
-    enddo
-    do i = 1, size(extDataStreams)
-        call ESMF_VMBroadcast(vm, extDataStreams(i)%name, len(extDataStreams(i)%name), 0, rc=rc)
-        call ESMF_VMBroadcast(vm, extDataStreams(i)%fileName, len(extDataStreams(i)%fileName), 0, rc=rc)
-        call ESMF_VMBroadcast(vm, extDataStreams(i)%timeInterpMethod, len(extDataStreams(i)%timeInterpMethod), 0, rc=rc)
-        call ESMF_VMBroadcast(vm, extDataStreams(i)%validRange, 2, 0, rc=rc)
-        if (localPet /= 0) then
-            if (allocated(extDataStreams(i)%variables)) deallocate(extDataStreams(i)%variables)
-            allocate(extDataStreams(i)%variables(1))
-        endif
-        ibuf(1) = size(extDataStreams(i)%variables)
-        call ESMF_VMBroadcast(vm, ibuf, 1, 0, rc=rc)
-        n = ibuf(1)
-        if (localPet /= 0) then
-            deallocate(extDataStreams(i)%variables)
-            allocate(extDataStreams(i)%variables(n))
-        endif
-        call ESMF_VMBroadcast(vm, extDataStreams(i)%variables, n*len(extDataStreams(i)%variables(1)), 0, rc=rc)
-    enddo
-#endif
-
-    ! Initialize initialized flag for each history stream
-    do i = 1, size(historyStreams)
-       historyStreams(i)%initialized = .false.
-    end do
-
-    ! Pre-compute regridding weights for ExtData streams
-    do i = 1, size(extDataStreams)
-      root_rc = ESMF_SUCCESS
-      ncerr = 0
+  
+      call ESMF_VMGetCurrent(vm, rc=rc)
+      call ESMF_VMGet(vm, localPet=localPet, rc=rc)
+  
+      !--------------------------------------------------------------------------
+      ! 1. Parse nexus_output_streams.xml for History streams
+      !--------------------------------------------------------------------------
       if (localPet == 0) then
-          call ESMF_LogWrite("NEXUS_IO DEBUG: IO_Init processing stream: "//trim(extDataStreams(i)%name), ESMF_LOGMSG_INFO)
-          call ESMF_LogFlush(rc=localrc)
+        inquire(file=HISTORY_CONFIG, exist=check_output_streams)
       endif
-      ! Resolve file name for initialization (to read grid)
-      call ResolveFileName(extDataStreams(i)%fileName, clock, resolvedFileName, rc, &
-                           valid_range=extDataStreams(i)%validRange)
-      if (localPet == 0) then
-          call ESMF_LogWrite("NEXUS_IO DEBUG: IO_Init Resolved file: "//trim(resolvedFileName), ESMF_LOGMSG_INFO)
-          call ESMF_LogFlush(rc=localrc)
-      endif
-
-      ! Sync return code from ResolveFileName
-      if (localPet == 0) root_rc = rc
-#ifdef USE_MPI
-      ibuf(1) = root_rc
-      call ESMF_VMBroadcast(vm, ibuf, 1, 0, rc=rc)
-      root_rc = ibuf(1)
-#endif
-      if (root_rc /= ESMF_SUCCESS) cycle
-
-#ifdef USE_MPI
-      ! Broadcast the resolved filename to ensure all PETs open the same file
-      call ESMF_VMBroadcast(vm, resolvedFileName, len(resolvedFileName), 0, rc=rc)
-#endif
-
-      ! Create source grid from file in parallel
-      lon_var = "lon"
-      lat_var = "lat"
-
-#ifdef USE_MPI
-      call ESMF_VMBroadcast(vm, dimLengths, 2, 0, rc=rc)
-#endif
-
-      ! Use NCEPLIBS-ncio for metadata reading
-#ifdef USE_PNETCDF
-      par_open = .true.
-      dset = open_dataset(trim(resolvedFileName), errcode=ncerr, &
-                          paropen=par_open, mpicomm=MPI_COMM_WORLD)
-#else
-      par_open = .false.
-      if (localPet == 0) then
-         dset = open_dataset(trim(resolvedFileName), errcode=ncerr, &
-                             paropen=par_open)
-      endif
-#endif
-
-      if (localPet == 0) then
-          write(line, *) "NEXUS_IO DEBUG: IO_Init Dataset opened. ncerr=", ncerr
-          call ESMF_LogWrite(trim(line), ESMF_LOGMSG_INFO)
-          call ESMF_LogFlush(rc=localrc)
-      endif
-
-      if (ncerr /= 0) then
-         if (localPet == 0) print *, "Error opening ", trim(resolvedFileName)
-         rc = ESMF_FAILURE
-      else
-        if (par_open .or. (localPet == 0)) then
-           dim = get_dim(dset, lon_var)
-           dimLengths(1) = dim%len
-           dim = get_dim(dset, lat_var)
-           dimLengths(2) = dim%len
-           call close_dataset(dset)
-        endif
-      endif
-
-      ! Sync return code
-      if (par_open) then
-        root_rc = rc ! All PETs have correct rc
-      else
-        if (localPet == 0) root_rc = rc
-#ifdef USE_MPI
-        ibuf(1) = root_rc
-        call ESMF_VMBroadcast(vm, ibuf, 1, 0, rc=rc)
-        root_rc = ibuf(1)
-#endif
-      endif
-
-      if (root_rc /= ESMF_SUCCESS) cycle
-
-      ! Sync dimLengths
-      if (.not. par_open) then
-#ifdef USE_MPI
-         call ESMF_VMBroadcast(vm, dimLengths, 2, 0, rc=rc)
-#endif
-      endif
-
-      extDataStreams(i)%srcGrid = ESMF_GridCreateNoPeriDim(maxIndex=dimLengths, &
-                                                           coordSys=ESMF_COORDSYS_SPH_DEG, rc=rc)
-
-      ! Add coordinates to srcGrid
-      call ESMF_GridAddCoord(extDataStreams(i)%srcGrid, staggerloc=ESMF_STAGGERLOC_CENTER, rc=rc)
-
-      ! Read coordinates
-#ifdef USE_PNETCDF
-      dset = open_dataset(trim(resolvedFileName), errcode=ncerr, &
-                          paropen=.true., mpicomm=MPI_COMM_WORLD)
-#else
-      if (localPet == 0) then
-        dset = open_dataset(trim(resolvedFileName), errcode=ncerr, &
-                            paropen=.false.)
-      endif
-#endif
-
-      if (ncerr /= 0) then
-         if (localPet == 0) print *, "Error opening for coords ", trim(resolvedFileName)
-         rc = ESMF_FAILURE
-      else
-        if (par_open .or. (localPet == 0)) then
-             if (localPet == 0) print *, "DEBUG: Processing file: ", trim(resolvedFileName)
-             ! Check rank of lon variable
-             var = get_var(dset, lon_var)
-             if (localPet == 0) print *, "DEBUG: Variable ", trim(lon_var), " has rank ", var%ndims
-
-             ! Deallocate buffers if they are already allocated to prevent shape mismatch
-             if (allocated(coord_vals_1d)) deallocate(coord_vals_1d)
-             if (allocated(coord_vals)) deallocate(coord_vals)
-
-             if (var%ndims == 1) then
-                 call read_vardata(dset, lon_var, coord_vals_1d)
-             else
-                 call read_vardata(dset, lon_var, coord_vals)
-             endif
-        endif
-      endif
-
-      ! Get pointer to lon coord
-      call ESMF_GridGetCoord(extDataStreams(i)%srcGrid, 1, staggerloc=ESMF_STAGGERLOC_CENTER, farrayPtr=fp, rc=rc)
-      if (rc /= ESMF_SUCCESS) then
-         print *, "Error getting lon coord pointer"
-         call ESMF_Finalize(rc=rc)
-         stop
-      endif
-
-      if (.not. associated(fp)) then
-         print *, "Error: lon coord pointer not associated"
-         call ESMF_Finalize(rc=rc)
-         stop
-      endif
-
-      if (par_open .or. (localPet == 0)) then
-          if (var%ndims == 1) then
-             do j = 1, dimLengths(2)
-                fp(:,j) = coord_vals_1d(:)
-             end do
-          else
-             fp(:,:) = coord_vals(:,:)
-          endif
-      endif
-
-      ! Broadcast lon coords if not parallel read
-      if (.not. par_open) then
-#ifdef USE_MPI
+      call ESMF_VMBroadcast(vm, check_output_streams, 1, 0, rc=rc)
+  
+      if (check_output_streams) then
           if (localPet == 0) then
-              allocate(darray(size(fp)))
-              darray = reshape(fp, (/size(fp)/))
-          else
-              allocate(darray(size(fp)))
+              doc => parseFile(HISTORY_CONFIG)
+              stream_list => getElementsByTagName(doc, "stream_info")
+              num_hist_streams = getLength(stream_list)
+  
+              if (num_hist_streams > 0) allocate(historyStreams(num_hist_streams))
+  
+              do i = 1, num_hist_streams
+                  stream_node => item(stream_list, i-1)
+                  call getAttribute(stream_node, 'name', stream_name)
+                  historyStreams(i)%name = stream_name
+  
+                  p => item(getElementsByTagName(stream_node, "frequency"), 0)
+                  call extractDataContent(p, historyStreams(i)%frequency)
+  
+                  p => item(getElementsByTagName(stream_node, "file"), 0)
+                  call extractDataContent(p, historyStreams(i)%fileName)
+  
+                  p => item(getElementsByTagName(stream_node, "mode"), 0)
+                  call extractDataContent(p, historyStreams(i)%mode)
+  
+                  p => item(getElementsByTagName(stream_node, "variables"), 0)
+                  var_list => getElementsByTagName(p, "var")
+                  allocate(historyStreams(i)%variables(getLength(var_list)))
+                  do n = 1, getLength(var_list)
+                      p => item(var_list, n - 1)
+                      call extractDataContent(p, historyStreams(i)%variables(n))
+                  end do
+              end do
+              call destroy(doc)
           endif
-          call ESMF_VMBroadcast(vm, darray, size(darray), 0, rc=rc)
-          if (localPet /= 0) then
-              fp = reshape(darray, shape(fp))
+  
+          ! Broadcast History Config
+  #ifdef USE_MPI
+          call ESMF_VMBroadcast(vm, num_hist_streams, 1, 0, rc=rc)
+          if (localPet /= 0 .and. num_hist_streams > 0) allocate(historyStreams(num_hist_streams))
+  
+          if (num_hist_streams > 0) then
+              do i = 1, size(historyStreams)
+                  call ESMF_VMBroadcast(vm, historyStreams(i)%name, len(historyStreams(i)%name), 0, rc=rc)
+                  call ESMF_VMBroadcast(vm, historyStreams(i)%fileName, len(historyStreams(i)%fileName), 0, rc=rc)
+                  call ESMF_VMBroadcast(vm, historyStreams(i)%mode, len(historyStreams(i)%mode), 0, rc=rc)
+                  call ESMF_VMBroadcast(vm, historyStreams(i)%frequency, 1, 0, rc=rc)
+  
+                  if (localPet == 0) then
+                      n = size(historyStreams(i)%variables)
+                  else
+                      n = 0
+                  endif
+                  call ESMF_VMBroadcast(vm, n, 1, 0, rc=rc)
+                  if (localPet /= 0) allocate(historyStreams(i)%variables(n))
+  
+                  call ESMF_VMBroadcast(vm, historyStreams(i)%variables, n*len(historyStreams(i)%variables(1)), 0, rc=rc)
+  
+                  historyStreams(i)%initialized = .false.
+              enddo
           endif
-          deallocate(darray)
-#endif
+  #endif
       endif
-
-      if (par_open .or. (localPet == 0)) then
-             ! Check rank of lat variable
-             var = get_var(dset, lat_var)
-             if (localPet == 0) print *, "DEBUG: Variable ", trim(lat_var), " has rank ", var%ndims
-
-             ! Deallocate buffers if they are already allocated to prevent shape mismatch
-             if (allocated(coord_vals_1d)) deallocate(coord_vals_1d)
-             if (allocated(coord_vals)) deallocate(coord_vals)
-
-             if (var%ndims == 1) then
-                 call read_vardata(dset, lat_var, coord_vals_1d)
-             else
-                 call read_vardata(dset, lat_var, coord_vals)
-             endif
+  
+      !--------------------------------------------------------------------------
+      ! 2. Initialize CDEPS for INPUT
+      !--------------------------------------------------------------------------
+      if (localPet == 0) then
+         inquire(file=CDEPS_CONFIG, exist=check_input_streams)
       endif
-
-      ! Get pointer to lat coord
-      call ESMF_GridGetCoord(extDataStreams(i)%srcGrid, 2, staggerloc=ESMF_STAGGERLOC_CENTER, farrayPtr=fp, rc=rc)
-      if (rc /= ESMF_SUCCESS) then
-         print *, "Error getting lat coord pointer"
-         call ESMF_Finalize(rc=rc)
-         stop
+      call ESMF_VMBroadcast(vm, check_input_streams, 1, 0, rc=rc)
+  
+      if (check_input_streams) then
+         if (localPet == 0) call ESMF_LogWrite("NEXUS_IO: Initializing CDEPS Inline...", ESMF_LOGMSG_INFO)
+  
+         call cdeps_stream_init(stream      = MainCDEPS,    &
+                                grid        = dstGrid,      &
+                                config_file = CDEPS_CONFIG, &
+                                rc          = rc)
+  
+         if (rc /= ESMF_SUCCESS) then
+             call ESMF_LogWrite("NEXUS_IO: CDEPS Init Failed", ESMF_LOGMSG_ERROR)
+             return
+         endif
+  
+         CDEPS_Initialized = .true.
+      else
+         if (localPet == 0) call ESMF_LogWrite("NEXUS_IO: No input streams found in nexus_input_streams.xml. CDEPS not initialized.", ESMF_LOGMSG_WARNING)
+         CDEPS_Initialized = .false.
       endif
+  
+      if (localPet == 0) print *, "NEXUS_IO: Initialized ", num_hist_streams, " history streams."
+  
+    end subroutine IO_Init
 
-      if (.not. associated(fp)) then
-         print *, "Error: lat coord pointer not associated"
-         call ESMF_Finalize(rc=rc)
-         stop
-      endif
-
-      if (par_open .or. (localPet == 0)) then
-          if (var%ndims == 1) then
-             do k = 1, dimLengths(1)
-                fp(k,:) = coord_vals_1d(:)
-             end do
-          else
-             fp(:,:) = coord_vals(:,:)
-          endif
-      endif
-
-      ! Broadcast lat coords if not parallel read
-      if (.not. par_open) then
-#ifdef USE_MPI
-          if (localPet == 0) then
-              allocate(darray(size(fp)))
-              darray = reshape(fp, (/size(fp)/))
-          else
-              allocate(darray(size(fp)))
-          endif
-          call ESMF_VMBroadcast(vm, darray, size(darray), 0, rc=rc)
-          if (localPet /= 0) then
-              fp = reshape(darray, shape(fp))
-          endif
-          deallocate(darray)
-#endif
-      endif
-
-      if (par_open .or. (localPet == 0)) then
-         call close_dataset(dset)
-      endif
-
-      ! Create source and destination fields
-      extDataStreams(i)%srcField = ESMF_FieldCreate(extDataStreams(i)%srcGrid, typekind=ESMF_TYPEKIND_R8, &
-        staggerloc=ESMF_STAGGERLOC_CENTER, name="srcField", rc=rc)
-      extDataStreams(i)%dstField = ESMF_FieldCreate(dstGrid, typekind=ESMF_TYPEKIND_R8, &
-        staggerloc=ESMF_STAGGERLOC_CENTER, name="dstField", rc=rc)
-      extDataStreams(i)%srcField2 = ESMF_FieldCreate(extDataStreams(i)%srcGrid, typekind=ESMF_TYPEKIND_R8, &
-        staggerloc=ESMF_STAGGERLOC_CENTER, name="srcField2", rc=rc)
-      extDataStreams(i)%dstField2 = ESMF_FieldCreate(dstGrid, typekind=ESMF_TYPEKIND_R8, &
-        staggerloc=ESMF_STAGGERLOC_CENTER, name="dstField2", rc=rc)
-
-      ! Pre-compute regridding weights
-      call ESMF_FieldRegridStore(extDataStreams(i)%srcField, extDataStreams(i)%dstField, &
-                                 regridmethod=ESMF_REGRIDMETHOD_BILINEAR, &
-                                 unmappedaction=ESMF_UNMAPPEDACTION_ERROR, &
-                                 routehandle=extDataStreams(i)%routeHandle, rc=rc)
-    end do
-
-    if (localPet == 0) print *, "NEXUS_IO: Initialized ", num_hist_streams, " history streams and ", &
-             num_ext_streams, " extdata streams."
-
-  end subroutine IO_Init
-
-  !> @brief Reads data from external files into the importState.
-  !>
-  !> @param state The ESMF state to read data into (importState).
-  !> @param clock The current ESMF clock.
-  !> @param rc    Return code.
+  !> @brief Reads Input Data (Via CDEPS)
   subroutine IO_Read(state, clock, rc)
-#ifdef USE_MPI
-    use mpi
-#endif
     type(ESMF_State), intent(inout) :: state
     type(ESMF_Clock), intent(in)    :: clock
-    integer, intent(out)           :: rc
+    integer, intent(out)            :: rc
 
-    integer :: i, j, k, localrc
     type(ESMF_Time) :: currTime
-    type(ESMF_VM) :: vm
-    integer :: localPet
-
-    ! Broadcast buffers
-    integer :: ibuf(1)
-    real(ESMF_KIND_R8) :: rbuf(1)
-
-    ! For reading and interpolation
-    real(ESMF_KIND_R8), allocatable :: time_vals(:)
-    integer :: t1_idx, t2_idx
-    real(ESMF_KIND_R8) :: w1, w2
-    type(ESMF_Field) :: final_field
-    real, pointer :: final_ptr(:,:)
-    real, pointer :: src_ptr_t1(:,:), src_ptr_t2(:,:)
-    real, pointer :: dst_ptr_t1(:,:), dst_ptr_t2(:,:)
-    type(ESMF_Time) :: base_time, t1, t2
-    type(ESMF_TimeInterval) :: ti
-    real(ESMF_KIND_R8) :: time_diff, total_diff
-    integer :: root_rc
-    integer :: idate(6)
-
-    ! NCIO variables
-    type(Dataset) :: dset
-    logical :: par_open
-    integer :: ncerr
-    character(len=255) :: resolvedFileName
-    character(len=255) :: line
+    integer :: localrc
 
     rc = ESMF_SUCCESS
     call ESMF_ClockGet(clock, currTime=currTime, rc=rc)
-    call ESMF_VMGetCurrent(vm, rc=rc)
-    call ESMF_VMGet(vm, localPet=localPet, rc=rc)
 
-    do i = 1, size(extDataStreams)
-      t1_idx = -1
-      t2_idx = -1
-      w1 = 0.0_ESMF_KIND_R8
-      w2 = 0.0_ESMF_KIND_R8
-      if (localPet == 0) then
-          call ESMF_LogWrite("NEXUS_IO DEBUG: IO_Read processing stream: "//trim(extDataStreams(i)%name), ESMF_LOGMSG_INFO)
-          call ESMF_LogFlush(rc=localrc)
-      endif
-      root_rc = ESMF_SUCCESS
+    if (CDEPS_Initialized) then
+        ! 1. Advance Stream
+        call cdeps_stream_run(stream = MainCDEPS, &
+                              time   = currTime,  &
+                              rc     = localrc)
 
-      call ResolveFileName(extDataStreams(i)%fileName, clock, resolvedFileName, rc, &
-                           valid_range=extDataStreams(i)%validRange)
-      if (localPet == 0) then
-          call ESMF_LogWrite("NEXUS_IO DEBUG: Resolved file: "//trim(resolvedFileName), ESMF_LOGMSG_INFO)
-          call ESMF_LogFlush(rc=localrc)
-      endif
-
-#ifdef USE_MPI
-      if (localPet == 0) then
-          call ESMF_LogWrite("NEXUS_IO DEBUG: Broadcasting filename", ESMF_LOGMSG_INFO)
-          call ESMF_LogFlush(rc=localrc)
-      endif
-      ! Broadcast the resolved filename to ensure all PETs open the same file
-      call ESMF_VMBroadcast(vm, resolvedFileName, len(resolvedFileName), 0, rc=rc)
-      if (localPet == 0) then
-          call ESMF_LogWrite("NEXUS_IO DEBUG: Broadcast done", ESMF_LOGMSG_INFO)
-          call ESMF_LogFlush(rc=localrc)
-      endif
-#endif
-
-      if (localPet == 0) then
-          call ESMF_LogWrite("NEXUS_IO DEBUG: Opening dataset", ESMF_LOGMSG_INFO)
-          call ESMF_LogFlush(rc=localrc)
-      endif
-
-      ncerr = 0
-#ifdef USE_PNETCDF
-      par_open = .true.
-      dset = open_dataset(trim(resolvedFileName), errcode=ncerr, &
-                          paropen=par_open, mpicomm=MPI_COMM_WORLD)
-#else
-      par_open = .false.
-      if (localPet == 0) then
-         dset = open_dataset(trim(resolvedFileName), errcode=ncerr, &
-                             paropen=par_open)
-      endif
-#endif
-
-      if (localPet == 0) then
-          write(line, *) "NEXUS_IO DEBUG: Dataset opened. ncerr=", ncerr
-          call ESMF_LogWrite(trim(line), ESMF_LOGMSG_INFO)
-          call ESMF_LogFlush(rc=localrc)
-      endif
-
-      if (ncerr /= 0) then
-        root_rc = ESMF_FAILURE
-      else
-        if (par_open .or. (localPet == 0)) then
-          if (localPet == 0) then
-              call ESMF_LogWrite("NEXUS_IO DEBUG: Reading time coordinate", ESMF_LOGMSG_INFO)
-              call ESMF_LogFlush(rc=localrc)
-          endif
-          ! Read time coordinate and units
-          ! ncio's read_vardata handles allocation of time_vals
-          call read_vardata(dset, "time", time_vals)
-
-          ! Use ncio helper to get date from units
-          idate = get_idate_from_time_units(dset)
-          call ESMF_TimeSet(base_time, yy=idate(1), mm=idate(2), dd=idate(3), &
-                            h=idate(4), m=idate(5), s=idate(6), rc=localrc)
-
-          ! Find bracketing indices and weights
-          t1_idx = -1
-          t2_idx = -1
-          do k = 1, size(time_vals) - 1
-            call ESMF_TimeIntervalSet(ti, s_r8=time_vals(k), rc=localrc)
-            t1 = base_time + ti
-            call ESMF_TimeIntervalSet(ti, s_r8=time_vals(k+1), rc=localrc)
-            t2 = base_time + ti
-            if (t1 <= currTime .and. currTime <= t2) then
-              t1_idx = k
-              t2_idx = k + 1
-              exit
-            end if
-          end do
-
-          if (t1_idx < 0) then
-            if (currTime < t1) then
-              t1_idx = 1; t2_idx = 1; w1 = 1.0_ESMF_KIND_R8; w2 = 0.0_ESMF_KIND_R8
-            else
-              t1_idx = size(time_vals); t2_idx = size(time_vals); w1 = 1.0_ESMF_KIND_R8; w2 = 0.0_ESMF_KIND_R8
-            end if
-          else if (t1_idx == t2_idx) then
-            w1 = 1.0_ESMF_KIND_R8; w2 = 0.0_ESMF_KIND_R8
-          else
-            call ESMF_TimeGet(t1, s_r8=time_diff, rc=localrc)
-            call ESMF_TimeGet(t2, s_r8=total_diff, rc=localrc)
-            total_diff = total_diff - time_diff
-            call ESMF_TimeGet(currTime, s_r8=time_diff, rc=localrc)
-            call ESMF_TimeGet(t1, s_r8=w1, rc=localrc)
-            time_diff = time_diff - w1
-            if (total_diff > 0) then
-              w2 = time_diff / total_diff
-              w1 = 1.0_ESMF_KIND_R8 - w2
-            else
-              w1 = 1.0_ESMF_KIND_R8; w2 = 0.0_ESMF_KIND_R8
-            endif
-          endif
-
-          call close_dataset(dset)
-          if (localPet == 0) then
-              write(line, *) "NEXUS_IO DEBUG: Time interpolation calculated. t1_idx=", t1_idx, " t2_idx=", t2_idx
-              call ESMF_LogWrite(trim(line), ESMF_LOGMSG_INFO)
-              call ESMF_LogFlush(rc=localrc)
-          endif
-        endif
-      endif
-
-#ifdef USE_MPI
-      ! Broadcast time interpolation data
-      if (.not. par_open) then
-         ibuf(1) = root_rc
-         call ESMF_VMBroadcast(vm, ibuf, 1, 0, rc=rc)
-         root_rc = ibuf(1)
-      endif
-#endif
-
-      ! We need to make sure root_rc is correct for all.
-      ! In parallel open, if open fails, we should handle it.
-      ! But for now assuming success if open passed.
-
-#ifdef USE_MPI
-      ! If serial open, broadcast results
-      if (.not. par_open) then
-          ibuf(1) = t1_idx
-          call ESMF_VMBroadcast(vm, ibuf, 1, 0, rc=rc)
-          t1_idx = ibuf(1)
-
-          ibuf(1) = t2_idx
-          call ESMF_VMBroadcast(vm, ibuf, 1, 0, rc=rc)
-          t2_idx = ibuf(1)
-
-          rbuf(1) = w1
-          call ESMF_VMBroadcast(vm, rbuf, 1, 0, rc=rc)
-          w1 = rbuf(1)
-
-          rbuf(1) = w2
-          call ESMF_VMBroadcast(vm, rbuf, 1, 0, rc=rc)
-          w2 = rbuf(1)
-      endif
-#endif
-
-      do j = 1, size(extDataStreams(i)%variables)
-        if (localPet == 0) then
-            call ESMF_LogWrite("NEXUS_IO DEBUG: Reading variable: "//trim(extDataStreams(i)%variables(j))//" from file: "//trim(resolvedFileName), ESMF_LOGMSG_INFO)
-            call ESMF_LogFlush(rc=localrc)
-        endif
-        ! Read data for t1_idx
-        if (localPet == 0) then
-            write(line, *) "NEXUS_IO DEBUG: Reading t1_idx=", t1_idx
-            call ESMF_LogWrite(trim(line), ESMF_LOGMSG_INFO)
-            call ESMF_LogFlush(rc=localrc)
-        endif
-        call ESMF_FieldRead(extDataStreams(i)%srcField, trim(resolvedFileName), &
-                             iofmt=ESMF_IOFMT_NETCDF, variableName=trim(extDataStreams(i)%variables(j)), &
-                             timeslice=t1_idx, rc=localrc)
-        if (localPet == 0) then
-            call ESMF_LogWrite("NEXUS_IO DEBUG: Regridding t1", ESMF_LOGMSG_INFO)
-            call ESMF_LogFlush(rc=localrc)
-        endif
-        call ESMF_FieldRegrid(extDataStreams(i)%srcField, extDataStreams(i)%dstField, &
-                              routehandle=extDataStreams(i)%routeHandle, rc=localrc)
-
-        if (t1_idx /= t2_idx) then
-          ! Read data for t2_idx
-          if (localPet == 0) then
-              write(line, *) "NEXUS_IO DEBUG: Reading t2_idx=", t2_idx
-              call ESMF_LogWrite(trim(line), ESMF_LOGMSG_INFO)
-              call ESMF_LogFlush(rc=localrc)
-          endif
-          call ESMF_FieldRead(extDataStreams(i)%srcField2, trim(resolvedFileName), &
-                               iofmt=ESMF_IOFMT_NETCDF, variableName=trim(extDataStreams(i)%variables(j)), &
-                               timeslice=t2_idx, rc=localrc)
-          if (localPet == 0) then
-              call ESMF_LogWrite("NEXUS_IO DEBUG: Regridding t2", ESMF_LOGMSG_INFO)
-              call ESMF_LogFlush(rc=localrc)
-          endif
-          call ESMF_FieldRegrid(extDataStreams(i)%srcField2, extDataStreams(i)%dstField2, &
-                                routehandle=extDataStreams(i)%routeHandle, rc=localrc)
-        endif
-        if (localPet == 0) then
-            call ESMF_LogWrite("NEXUS_IO DEBUG: Finished variable: "//trim(extDataStreams(i)%variables(j)), ESMF_LOGMSG_INFO)
-            call ESMF_LogFlush(rc=localrc)
+        if (localrc /= ESMF_SUCCESS) then
+             rc = localrc
+             return
         endif
 
-        ! Get pointers to destination fields
-        call ESMF_FieldGet(extDataStreams(i)%dstField, farrayPtr=dst_ptr_t1, rc=localrc)
-        if (t1_idx /= t2_idx) then
-          call ESMF_FieldGet(extDataStreams(i)%dstField2, farrayPtr=dst_ptr_t2, rc=localrc)
-        endif
-
-        ! Get pointer to final field in import state
-        call ESMF_StateGet(state, trim(extDataStreams(i)%variables(j)), final_field, rc=localrc)
-        if (localrc /= ESMF_SUCCESS) cycle
-        call ESMF_FieldGet(final_field, farrayPtr=final_ptr, rc=localrc)
-
-        ! Time interpolate
-        if (t1_idx == t2_idx) then
-          final_ptr(:,:) = dst_ptr_t1
-        else
-          final_ptr(:,:) = w1 * dst_ptr_t1 + w2 * dst_ptr_t2
-        endif
-
-      enddo
-    enddo
+        ! 2. Transfer Data to ImportState
+        call Transfer_CDEPS_Fields(MainCDEPS, state, clock, localrc)
+        rc = localrc
+    endif
 
   end subroutine IO_Read
 
-    !> @brief Writes data from the exportState to history files.
-    !>
-    !> @param state The ESMF state containing data to write (exportState).
-    !> @param clock The current ESMF clock.
-    !> @param rc    Return code.
-    subroutine IO_Write(state, clock, rc)
 
+  !> @brief Writes History Data (Legacy Logic kept for output)
+  subroutine IO_Write(state, clock, rc)
       type(ESMF_State), intent(in) :: state
-
       type(ESMF_Clock), intent(in) :: clock
-
       integer, intent(out)        :: rc
 
-
-
-      integer :: i, j, localrc
-      integer :: localPet
+      integer :: i, j, localrc, localPet
       type(ESMF_VM) :: vm
-      type(ESMF_Time) :: currTime
-
+      type(ESMF_Time) :: currTime, streamTime
       type(ESMF_Field) :: field
-
-      logical :: isTime, isInit
-
       type(ESMF_FieldBundle) :: bundle
-
       type(ESMF_Field), allocatable :: fieldList(:)
-      type(ESMF_Time) :: streamTime
       character(len=255) :: resolvedFileName
 
-
       rc = ESMF_SUCCESS
-
       call ESMF_VMGetCurrent(vm, rc=rc)
       call ESMF_VMGet(vm, localPet=localPet, rc=rc)
 
+      if (.not. allocated(historyStreams)) return
+
       do i = 1, size(historyStreams)
 
-        ! Check if it is time to write to this stream
-
         if (.not. historyStreams(i)%initialized) then
-
           call ESMF_ClockGet(clock, currTime=currTime, rc=localrc)
-
           historyStreams(i)%clock = ESMF_ClockCreate(name=trim(historyStreams(i)%name)//"_clock", &
                                                      timeStep=historyStreams(i)%frequency, &
                                                      startTime=currTime, rc=localrc)
           historyStreams(i)%initialized = .true.
-
         end if
 
         call ESMF_ClockGet(clock, currTime=currTime, rc=localrc)
         call ESMF_ClockGet(historyStreams(i)%clock, currTime=streamTime, rc=localrc)
 
         if (currTime == streamTime) then
-
           if (localPet == 0) print *, "NEXUS_IO: Writing to stream '", trim(historyStreams(i)%name), "'"
 
-
-
-          ! Create a field bundle to write all variables at once
-
           allocate(fieldList(size(historyStreams(i)%variables)))
-
           do j = 1, size(historyStreams(i)%variables)
-
             call ESMF_StateGet(state, trim(historyStreams(i)%variables(j)), field, rc=localrc)
-
             if (localrc == ESMF_SUCCESS) then
-
               fieldList(j) = field
-
-            else
-
-              if (localPet == 0) print *, "NEXUS_IO: Variable not found in export state: ", trim(historyStreams(i)%variables(j))
-
-              ! Skip this variable
-
-            end if
-
+            endif
           end do
-
-
 
           bundle = ESMF_FieldBundleCreate(name="history_bundle", fieldList=fieldList, rc=localrc)
 
-          ! Resolve output filename (date tokens only, no existence check)
+          ! Resolve output filename (using Date Tokens only)
           call ResolveDateTokens(historyStreams(i)%fileName, clock, resolvedFileName, localrc)
 
           call ESMF_FieldBundleWrite(bundle, trim(resolvedFileName), &
-
                                      overwrite=(historyStreams(i)%mode == "overwrite"), &
-
                                      iofmt=ESMF_IOFMT_NETCDF, rc=localrc)
 
           call ESMF_FieldBundleDestroy(bundle, rc=localrc)
-
           deallocate(fieldList)
 
-
-
-          if (localrc /= ESMF_SUCCESS) then
-
-            rc = localrc
-
-            return
-
-          end if
-
-
-
-          ! Advance the stream's clock
-
           call ESMF_ClockAdvance(historyStreams(i)%clock, rc=localrc)
-
         end if
-
       end do
+  end subroutine IO_Write
 
 
+  !> @brief Transfers fields from CDEPS stream to ImportState
+  subroutine Transfer_CDEPS_Fields(stream, state, clock, rc)
+    type(cdeps_stream_type), intent(inout) :: stream
+    type(ESMF_State),        intent(inout) :: state
+    type(ESMF_Clock),        intent(in)    :: clock
+    integer,                 intent(out)   :: rc
 
-    end subroutine IO_Write
+    type(ESMF_Field) :: f_src, f_dst
+    character(len=256), allocatable :: fieldNames(:)
+    integer :: i, count
 
-    !> @brief Resolves file name by replacing date tokens.
-    !> If the file does not exist, it tries to find the closest available year.
-    subroutine ResolveFileName(template, clock, resolved, rc, valid_range)
+    rc = ESMF_SUCCESS
+
+    call cdeps_stream_get_field_names(stream, fieldNames, rc)
+    if (rc /= ESMF_SUCCESS .or. .not. allocated(fieldNames)) return
+
+    count = size(fieldNames)
+
+    do i = 1, count
+        ! Check if ImportState needs this field
+        call ESMF_StateGet(state, trim(fieldNames(i)), itemType=ESMF_STATEITEM_FIELD, &
+                           field=f_dst, rc=rc)
+
+        if (rc == ESMF_SUCCESS) then
+            call cdeps_stream_get_field(stream, trim(fieldNames(i)), f_src, rc)
+            if (rc == ESMF_SUCCESS) then
+                 call ESMF_FieldCopy(f_src, f_dst, rc=rc)
+            endif
+        else
+            rc = ESMF_SUCCESS ! Reset rc if field not found in State (safe to ignore)
+        endif
+    end do
+
+    if (allocated(fieldNames)) deallocate(fieldNames)
+  end subroutine Transfer_CDEPS_Fields
+
+
+  !> @brief Clean up CDEPS resources
+  subroutine IO_Final(rc)
+    integer, intent(out) :: rc
+    rc = ESMF_SUCCESS
+    if (CDEPS_Initialized) then
+        call cdeps_stream_final(MainCDEPS, rc=rc)
+    endif
+  end subroutine IO_Final
+
+
+  !----------------------------------------------------------------------------
+  ! Utility: Date Token Parsing (Used only for History Filenames)
+  !----------------------------------------------------------------------------
+  subroutine ResolveDateTokens(template, clock, resolved, rc)
       character(len=*), intent(in) :: template
       type(ESMF_Clock), intent(in) :: clock
       character(len=*), intent(out) :: resolved
       integer, intent(out) :: rc
-      integer, optional, intent(in) :: valid_range(2)
-
       type(ESMF_Time) :: currTime
-      integer :: yy, mm, dd, h, m, s
-      logical :: exist
-      integer :: y, best_year, min_diff, diff
-      character(len=255) :: candidate
-      integer :: start_year, end_year
-
-      ! Added for logging control
-      type(ESMF_VM) :: vm
-      integer :: localPet, localrc
-
-      rc = ESMF_SUCCESS
-
-      call ESMF_VMGetCurrent(vm, rc=localrc)
-      call ESMF_VMGet(vm, localPet=localPet, rc=localrc)
-
-      if (localPet == 0) then
-          call ESMF_LogWrite("NEXUS_IO DEBUG: Entering ResolveFileName for template: "//trim(template), ESMF_LOGMSG_INFO)
-          call ESMF_LogFlush(rc=localrc)
-      endif
-
-      call ESMF_ClockGet(clock, currTime=currTime, rc=rc)
-      if (rc /= ESMF_SUCCESS) return
-      call ESMF_TimeGet(currTime, yy=yy, mm=mm, dd=dd, h=h, m=m, s=s, rc=rc)
-      if (rc /= ESMF_SUCCESS) return
-
-      ! First try with current date
-      call ResolveDateTokens(template, clock, resolved, rc)
-
-      inquire(file=trim(resolved), exist=exist)
-      if (exist) return
-
-      ! If not found, and template contains year token, search for closest year
-      if (index(template, '$YYYY') > 0 .or. index(template, '%y4') > 0) then
-         min_diff = 10000
-         best_year = -1
-
-         start_year = 1950
-         end_year = 2050
-         if (present(valid_range)) then
-            if (valid_range(1) > 0) start_year = valid_range(1)
-            if (valid_range(2) > 0) end_year = valid_range(2)
-         endif
-
-         ! Search range
-         do y = start_year, end_year
-            if (y == yy) cycle
-            call ExpandDateTokens(template, y, mm, dd, candidate)
-            inquire(file=trim(candidate), exist=exist)
-            if (exist) then
-               diff = abs(y - yy)
-               if (diff < min_diff) then
-                  min_diff = diff
-                  best_year = y
-               endif
-            endif
-         end do
-
-         if (best_year /= -1) then
-            call ExpandDateTokens(template, best_year, mm, dd, resolved)
-            if (localPet == 0) then
-                call ESMF_LogWrite("NEXUS_IO: File not found for current year. Using closest year: "//trim(resolved), ESMF_LOGMSG_WARNING)
-            endif
-         endif
-      endif
-
-      if (localPet == 0) then
-          call ESMF_LogWrite("NEXUS_IO DEBUG: Exiting ResolveFileName", ESMF_LOGMSG_INFO)
-          call ESMF_LogFlush(rc=localrc)
-      endif
-
-    end subroutine ResolveFileName
-
-    !> @brief Resolves file name by replacing date tokens only.
-    subroutine ResolveDateTokens(template, clock, resolved, rc)
-      character(len=*), intent(in) :: template
-      type(ESMF_Clock), intent(in) :: clock
-      character(len=*), intent(out) :: resolved
-      integer, intent(out) :: rc
-
-      type(ESMF_Time) :: currTime
-      integer :: yy, mm, dd, h, m, s
-
+      integer :: yy, mm, dd
       rc = ESMF_SUCCESS
       call ESMF_ClockGet(clock, currTime=currTime, rc=rc)
-      call ESMF_TimeGet(currTime, yy=yy, mm=mm, dd=dd, h=h, m=m, s=s, rc=rc)
-
+      call ESMF_TimeGet(currTime, yy=yy, mm=mm, dd=dd, rc=rc)
       call ExpandDateTokens(template, yy, mm, dd, resolved)
+  end subroutine ResolveDateTokens
 
-    end subroutine ResolveDateTokens
-
-    subroutine ExpandDateTokens(template, yy, mm, dd, result)
+  subroutine ExpandDateTokens(template, yy, mm, dd, result)
       character(len=*), intent(in) :: template
       integer, intent(in) :: yy, mm, dd
       character(len=*), intent(out) :: result
-
       character(len=10) :: syyyy, smm, sdd
-
       write(syyyy, '(I4.4)') yy
       write(smm, '(I2.2)') mm
       write(sdd, '(I2.2)') dd
-
       result = template
-
-      ! Replace $YYYY or %y4
       call ReplaceToken(result, '$YYYY', trim(syyyy))
       call ReplaceToken(result, '%y4', trim(syyyy))
-
-      ! Replace $MM or %m2
       call ReplaceToken(result, '$MM', trim(smm))
       call ReplaceToken(result, '%m2', trim(smm))
-
-      ! Replace $DD or %d2
       call ReplaceToken(result, '$DD', trim(sdd))
       call ReplaceToken(result, '%d2', trim(sdd))
+  end subroutine ExpandDateTokens
 
-    end subroutine ExpandDateTokens
-
-    subroutine ReplaceToken(str, token, replacement)
+  subroutine ReplaceToken(str, token, replacement)
        character(len=*), intent(inout) :: str
        character(len=*), intent(in) :: token
        character(len=*), intent(in) :: replacement
-
        character(len=255) :: tmp
-       integer :: idx, len_tok, len_rep, len_str
-
-       len_tok = len_trim(token)
-       len_rep = len_trim(replacement)
-
+       integer :: idx
        do
-          idx = index(str, token(:len_tok))
+          idx = index(str, token(:len_trim(token)))
           if (idx == 0) exit
-          len_str = len_trim(str)
-          ! Handle potential overflow or string bounds if needed, but assuming 255 is enough
-          tmp = str(1:idx-1) // replacement(:len_rep) // str(idx+len_tok:len_str)
+          tmp = str(1:idx-1) // replacement(:len_trim(replacement)) // str(idx+len_trim(token):)
           str = tmp
        end do
-    end subroutine ReplaceToken
+  end subroutine ReplaceToken
 
 end module nexus_io_mod

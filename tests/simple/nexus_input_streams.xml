@@ -1,0 +1,176 @@
+<?xml version="1.0"?>
+<file id="stream" version="1.0">
+
+  <!-- ================================================================== -->
+  <!-- CDEPS STREAMS (Input)                                              -->
+  <!-- ================================================================== -->
+
+  <stream_info name="CEDS_BC">
+    <taxmode>cycle</taxmode>
+    <tintalgo>linear</tintalgo>
+    <mapalgo>nn</mapalgo>
+    <readmode>single</readmode>
+    <year_first>2000</year_first>
+    <year_last>2022</year_last>
+    <year_align>2000</year_align>
+    <meshfile>none</meshfile>
+    <lev_dimname>none</lev_dimname>
+    <datafiles>/scratch4/NCEPDEV/global/Barry.Baker/Emissions/GCAFS/nexus/CEDS/v2025-01/BC/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc</datafiles>
+    <datavars>
+      <var>BC_agr</var>
+      <var>BC_ene</var>
+      <var>BC_ind</var>
+      <var>BC_rco</var>
+      <var>BC_tra</var>
+      <var>BC_shp</var>
+      <var>BC_sol</var>
+      <var>BC_was</var>
+    </datavars>
+  </stream_info>
+
+  <stream_info name="CEDS_OC">
+    <taxmode>cycle</taxmode>
+    <tintalgo>linear</tintalgo>
+    <mapalgo>nn</mapalgo>
+    <readmode>single</readmode>
+    <year_first>2000</year_first>
+    <year_last>2022</year_last>
+    <year_align>2000</year_align>
+    <meshfile>none</meshfile>
+    <lev_dimname>none</lev_dimname>
+    <datafiles>/scratch4/NCEPDEV/global/Barry.Baker/Emissions/GCAFS/nexus/CEDS/v2025-01/OC/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc</datafiles>
+    <datavars>
+      <var>OC_agr</var>
+      <var>OC_ene</var>
+      <var>OC_ind</var>
+      <var>OC_rco</var>
+      <var>OC_tra</var>
+      <var>OC_shp</var>
+      <var>OC_sol</var>
+      <var>OC_was</var>
+    </datavars>
+  </stream_info>
+
+  <stream_info name="CEDS_SO2">
+    <taxmode>cycle</taxmode>
+    <tintalgo>linear</tintalgo>
+    <mapalgo>nn</mapalgo>
+    <readmode>single</readmode>
+    <year_first>2000</year_first>
+    <year_last>2022</year_last>
+    <year_align>2000</year_align>
+    <meshfile>none</meshfile>
+    <lev_dimname>none</lev_dimname>
+    <datafiles>/scratch4/NCEPDEV/global/Barry.Baker/Emissions/GCAFS/nexus/CEDS/v2025-01/SO2/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc</datafiles>
+    <datavars>
+      <var>SO2_agr</var>
+      <var>SO2_ene</var>
+      <var>SO2_ind</var>
+      <var>SO2_rco</var>
+      <var>SO2_tra</var>
+      <var>SO2_shp</var>
+      <var>SO2_sol</var>
+      <var>SO2_was</var>
+    </datavars>
+  </stream_info>
+
+  <stream_info name="TIMEZONES">
+    <taxmode>extend</taxmode>
+    <tintalgo>nearest</tintalgo>
+    <mapalgo>nn</mapalgo>
+    <readmode>single</readmode>
+    <year_first>2000</year_first>
+    <year_last>2000</year_last>
+    <year_align>2000</year_align>
+    <meshfile>none</meshfile>
+    <lev_dimname>none</lev_dimname>
+    <datafiles>/scratch4/NCEPDEV/global/Barry.Baker/Emissions/GCAFS/nexus/TIMEZONES/v2015-02/timezones_voronoi_1x1.nc</datafiles>
+    <datavars>
+      <var>UTC_OFFSET</var>
+    </datavars>
+  </stream_info>
+
+  <stream_info name="AnnualScalar">
+    <taxmode>extend</taxmode>
+    <tintalgo>nearest</tintalgo>
+    <mapalgo>nn</mapalgo>
+    <readmode>single</readmode>
+    <year_first>1985</year_first>
+    <year_last>2010</year_last>
+    <year_align>1985</year_align>
+    <meshfile>none</meshfile>
+    <lev_dimname>none</lev_dimname>
+    <datafiles>/scratch4/NCEPDEV/global/Barry.Baker/Emissions/GCAFS/nexus/AnnualScalar/v2014-07/AnnualScalar.geos.1x1.nc</datafiles>
+    <datavars>
+      <var>NOxscalar</var>
+    </datavars>
+  </stream_info>
+
+  <stream_info name="EDGAR_TODNOX">
+    <taxmode>cycle</taxmode>
+    <tintalgo>d</tintalgo>
+    <mapalgo>nn</mapalgo>
+    <readmode>single</readmode>
+    <year_first>2000</year_first>
+    <year_last>2000</year_last>
+    <year_align>2000</year_align>
+    <meshfile>none</meshfile>
+    <lev_dimname>none</lev_dimname>
+    <datafiles>/scratch4/NCEPDEV/global/Barry.Baker/Emissions/GCAFS/nexus/EDGARv42/v2015-02/NO/EDGAR_hourly_NOxScal.nc</datafiles>
+    <datavars>
+      <var>NOXscale</var>
+    </datavars>
+  </stream_info>
+
+  <stream_info name="CAMS_DAILY">
+    <taxmode>cycle</taxmode>
+    <tintalgo>nearest</tintalgo>
+    <mapalgo>nn</mapalgo>
+    <readmode>single</readmode>
+    <year_first>2011</year_first>
+    <year_last>2021</year_last>
+    <year_align>2011</year_align>
+    <meshfile>none</meshfile>
+    <lev_dimname>none</lev_dimname>
+    <datafiles>/scratch4/NCEPDEV/global/Barry.Baker/Emissions/GCAFS/nexus/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_daily.nc</datafiles>
+    <datavars>
+      <var>FD_res</var>
+    </datavars>
+  </stream_info>
+
+  <stream_info name="CAMS_WEEKLY">
+    <taxmode>cycle</taxmode>
+    <tintalgo>nearest</tintalgo>
+    <mapalgo>nn</mapalgo>
+    <readmode>single</readmode>
+    <year_first>2017</year_first>
+    <year_last>2017</year_last>
+    <year_align>2017</year_align>
+    <meshfile>none</meshfile>
+    <lev_dimname>none</lev_dimname>
+    <datafiles>/scratch4/NCEPDEV/global/Barry.Baker/Emissions/GCAFS/nexus/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc</datafiles>
+    <datavars>
+      <var>FW_ene_pm25</var>
+      <var>FW_tro</var>
+    </datavars>
+  </stream_info>
+
+  <stream_info name="CAMS_HOURLY">
+    <taxmode>cycle</taxmode>
+    <tintalgo>nearest</tintalgo>
+    <mapalgo>nn</mapalgo>
+    <readmode>single</readmode>
+    <year_first>2017</year_first>
+    <year_last>2017</year_last>
+    <year_align>2017</year_align>
+    <meshfile>none</meshfile>
+    <lev_dimname>none</lev_dimname>
+    <datafiles>/scratch4/NCEPDEV/global/Barry.Baker/Emissions/GCAFS/nexus/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc</datafiles>
+    <datavars>
+      <var>FH_ene_pm25</var>
+      <var>FH_res_pm10_pm25</var>
+      <var>FH_dow_tro</var>
+    </datavars>
+  </stream_info>
+
+</file>

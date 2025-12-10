@@ -23,7 +23,6 @@ target_include_directories(NEXUS_Shared
 
 find_package(ESMF REQUIRED)
 find_package(NetCDF REQUIRED COMPONENTS Fortran)
-find_package(ncio REQUIRED)
 
 if(NetCDF_PARALLEL)
   target_compile_definitions(NEXUS_Shared PRIVATE USE_PNETCDF)
@@ -39,7 +38,14 @@ target_link_libraries(NEXUS_Shared
   PUBLIC HCOI_Shared
   PUBLIC HCOI_NUOPC
   PUBLIC esmf
-  PUBLIC ncio
+  PUBLIC streams
+  PUBLIC dshr
+  PUBLIC FoX_dom
+  PUBLIC FoX_wxml
+  PUBLIC FoX_sax
+  PUBLIC FoX_common
+  PUBLIC FoX_utils
+  PUBLIC FoX_fsys
 )
 
 target_link_libraries(nexus
