@@ -8,10 +8,13 @@ add_library(NEXUS_Shared STATIC EXCLUDE_FROM_ALL
   nexus_io_mod.F90
 )
 
-if(USE_MPI)
+# MPI is required if explicitly requested OR if parallel NetCDF is used
+if(USE_MPI OR NetCDF_PARALLEL)
   find_package(MPI REQUIRED)
-  target_compile_definitions(NEXUS_Shared PRIVATE USE_MPI)
-  target_compile_definitions(nexus PRIVATE USE_MPI)
+  if(USE_MPI)
+    target_compile_definitions(NEXUS_Shared PRIVATE USE_MPI)
+    target_compile_definitions(nexus PRIVATE USE_MPI)
+  endif()
 endif()
 
 target_include_directories(NEXUS_Shared
@@ -45,7 +48,8 @@ target_link_libraries(nexus
   PUBLIC NetCDF::NetCDF_Fortran
 )
 
-if(USE_MPI)
+if(USE_MPI OR NetCDF_PARALLEL)
+  target_link_libraries(NEXUS_Shared PUBLIC MPI::MPI_Fortran)
   target_link_libraries(nexus PUBLIC MPI::MPI_Fortran)
 endif()
 
