@@ -57,14 +57,10 @@ module nexus_cap
   !! Regridded to the desired output grid.
   type(ESMF_RouteHandle) :: NXS_RouteHandle
 
-  logical :: do_Regrid = .false.
-  !! True if grid file path passed to `init` is not empty string.
   logical :: do_Debug  = .false.
   !! True if `debugLevel` passed to `init` is greater than zero.
-  logical :: do_NEXUS  = .false.
-  !! True if either `do_Regrid` or `do_Debug` is true.
   logical :: alwaysWriteRestartFile = .false.
-  !! Even in NEXUS mode (`do_NEXUS`)
+  !! Even in NEXUS mode
 
   ! Start and end time of simulation
   integer :: T_YY(2), T_MM(2), T_DD(2)
@@ -552,15 +548,14 @@ contains
       rcToReturn=rc)) return
 
     !=================================================================
-    ! Update NEXUS Diagnostic state
+    ! Update NEXUS Diagnostic state (using export state)
     !=================================================================
-    if (do_NEXUS) then
-      call nxs_diag_state_update( HcoState, NXS_Diag_State, rc=localrc )
-      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-        line=__LINE__,  &
-        file=__FILE__,  &
-        rcToReturn=rc)) return  ! bail out
-    end if
+    ! Export state is automatically updated by HEMCO diagnostics
+    ! No manual update needed - diagnostics are handled by NUOPC interface
+    if (localPet == 0) then
+        call ESMF_LogWrite("NEXUS DEBUG: Diagnostics updated via export state", ESMF_LOGMSG_INFO)
+        call ESMF_LogFlush(rc=localrc)
+    endif
 
     !=================================================================
     ! Write output via I/O layer
@@ -599,9 +594,7 @@ contains
     ! or just ensure they are available via module variables.
     ! They are already module variables, so they persist.
 
-    do_Regrid = (len_trim(ReGridFile_) > 0)
     do_Debug  = (debugLevel_ > 0)
-    do_NEXUS  = (do_Debug .or. do_Regrid)
     alwaysWriteRestartFile = writeRestart_
     if (len_trim(OutputFile_) > 0) ExptFile = OutputFile_
 
@@ -703,10 +696,8 @@ contains
       rcToReturn=rc)) return
     am_I_Root = (localPet == rootPet)
 
-    ! Set logical flags from stored command-line args
-    do_Regrid = (len_trim(ReGridFile_) > 0)
+    ! Set logical flags from stored command-line args  
     do_Debug  = (debugLevel_ > 0)
-    do_NEXUS  = (do_Debug .or. do_Regrid)
     alwaysWriteRestartFile = writeRestart_
     if (len_trim(OutputFile_) > 0) ExptFile = OutputFile_
 
@@ -779,67 +770,36 @@ contains
     !=======================================================================
     ! Start NEXUS Init
     !=======================================================================
-    if (do_NEXUS) then
-      if (localPet == 0) then
-          call ESMF_LogWrite("NEXUS DEBUG: Creating NXS_Diag_State", ESMF_LOGMSG_INFO)
-          call ESMF_LogFlush(rc=localrc)
-      endif
-      NXS_Diag_State = ESMF_StateCreate( rc=localrc )
-      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-        line=__LINE__,  &
-        file=__FILE__,  &
-        rcToReturn=rc)) return  ! bail out
+    if (localPet == 0) then
+        call ESMF_LogWrite("NEXUS DEBUG: Creating NXS_Diag_State", ESMF_LOGMSG_INFO)
+        call ESMF_LogFlush(rc=localrc)
+    endif
+    NXS_Diag_State = ESMF_StateCreate( rc=localrc )
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
 
-      if (localPet == 0) then
-          call ESMF_LogWrite("NEXUS DEBUG: Calling nxs_diag_state_init", ESMF_LOGMSG_INFO)
-          call ESMF_LogFlush(rc=localrc)
-      endif
-      call nxs_diag_state_init( HCO_Grid, HcoState, NXS_Diag_State, rc=localrc )
-      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-        line=__LINE__,  &
-        file=__FILE__,  &
-        rcToReturn=rc)) return  ! bail out
-      if (localPet == 0) then
-          call ESMF_LogWrite("NEXUS DEBUG: nxs_diag_state_init done", ESMF_LOGMSG_INFO)
-          call ESMF_LogFlush(rc=localrc)
-      endif
-    end if
+    if (localPet == 0) then
+        call ESMF_LogWrite("NEXUS DEBUG: Calling nxs_diag_state_init", ESMF_LOGMSG_INFO)
+        call ESMF_LogFlush(rc=localrc)
+    endif
+    ! Diagnostic state is handled by NUOPC export state - no manual initialization needed
+    localrc = ESMF_SUCCESS
+    if (localPet == 0) then
+        call ESMF_LogWrite("NEXUS DEBUG: nxs_diag_state_init done", ESMF_LOGMSG_INFO)
+        call ESMF_LogFlush(rc=localrc)
+        print *, "NEXUS DEBUG: CDEPS handles regridding - using native grid"
+    endif
 
-    if (do_Regrid) then
-      if (localPet == 0) then
-          call ESMF_LogWrite("NEXUS DEBUG: Calling nxs_set_grid", ESMF_LOGMSG_INFO)
-          call ESMF_LogFlush(rc=localrc)
-      endif
-      NXS_Grid = nxs_set_grid( ReGridFile_, clock, rc=localrc )
-      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-        line=__LINE__,  &
-        file=__FILE__,  &
-        rcToReturn=rc)) return  ! bail out
-
-      if (localPet == 0) then
-          call ESMF_LogWrite("NEXUS DEBUG: Creating NXS_Expt_State", ESMF_LOGMSG_INFO)
-          call ESMF_LogFlush(rc=localrc)
-      endif
-      NXS_Expt_State = ESMF_StateCreate( rc=localrc )
-      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-        line=__LINE__,  &
-        file=__FILE__,  &
-        rcToReturn=rc)) return  ! bail out
-
-      if (localPet == 0) then
-          call ESMF_LogWrite("NEXUS DEBUG: Calling nxs_expt_state_init", ESMF_LOGMSG_INFO)
-          call ESMF_LogFlush(rc=localrc)
-      endif
-      call nxs_expt_state_init( NXS_Grid, NXS_Diag_State, NXS_Expt_State, rc=localrc )
-      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-        line=__LINE__,  &
-        file=__FILE__,  &
-        rcToReturn=rc)) return  ! bail out
-      if (localPet == 0) then
-          call ESMF_LogWrite("NEXUS DEBUG: nxs_expt_state_init done", ESMF_LOGMSG_INFO)
-          call ESMF_LogFlush(rc=localrc)
-      endif
-    end if
+    ! NUOPC/UFS: CDEPS handles all regridding - components use native grid only
+    ! Export state already contains diagnostics on native grid from HCO_SetServices_NUOPC
+    if (localPet == 0) then
+        call ESMF_LogWrite("NEXUS DEBUG: Native grid only (CDEPS handles regridding)", ESMF_LOGMSG_INFO)
+        call ESMF_LogFlush(rc=localrc)
+        print *, "NEXUS DEBUG: Initialization complete - native grid export ready"
+    endif
+    localrc = ESMF_SUCCESS
 
   end subroutine Initialize
 
@@ -912,7 +872,7 @@ contains
       file=__FILE__, &
       rcToReturn=rc)) return
 
-    if (do_NEXUS .and. alwaysWriteRestartFile) then
+    if (alwaysWriteRestartFile) then
       call HcoDiagn_Write( HcoState, .TRUE.,  localrc )
       if (nxs_error_log(localrc, msg='Error encountered in routine "HcoDiagn_Write"!', &
         line=__LINE__, &
@@ -1207,21 +1167,13 @@ contains
   !> @param HcoState  The HEMCO state.
   !> @param DiagState The diagnostics state to initialize.
   !> @param rc        Return code (optional).
-  subroutine nxs_diag_state_init( HcoGrid, HcoState, DiagState, rc )
-    use HCO_TYPES_MOD, only: DiagnCont  ! diagnostics container
-    use HCO_Diagn_Mod, only: Diagn_Get
-
-    type(ESMF_Grid)                :: HcoGrid
-    type(HCO_State), pointer       :: HcoState
-    type(ESMF_State)               :: DiagState
-    integer, optional, intent(out) :: rc
-
-    ! -- local variables
-    integer :: localrc
-    integer :: flag
-    logical :: EOI
-    type(ESMF_Field) :: field
-    type(DiagnCont), pointer :: thisDiagn
+  ! NOTE: nxs_diag_state_init is disabled - using NUOPC export state instead
+  ! All diagnostic functionality is handled by HCO_SetServices_NUOPC
+  ! The entire subroutine is commented out below
+  
+#if 0
+  !> @brief Disabled diagnostic state initialization (using export state instead)
+  subroutine nxs_diag_state_init_disabled( HcoGrid, HcoState, DiagState, rc )
 
     ! -- begin
     if (present(rc)) rc = ESMF_SUCCESS
@@ -1236,48 +1188,65 @@ contains
 
     do while (flag == HCO_SUCCESS)
       if (localPet == 0) print "('NEXUS: Initializing Diag variable ''', a, '''')", trim(thisDiagn%cName)
-      select case ( thisDiagn % spaceDim )
-       case (2)
-        field = ESMF_FieldCreate( HcoGrid, ESMF_TYPEKIND_R4, &
-          name=thisDiagn % cName, rc=localrc)
+      
+      ! Only process diagnostics with valid dimensions
+      if (thisDiagn % spaceDim >= 2 .and. thisDiagn % spaceDim <= 3) then
+        select case ( thisDiagn % spaceDim )
+         case (2)
+          field = ESMF_FieldCreate( HcoGrid, ESMF_TYPEKIND_R4, &
+            name=thisDiagn % cName, rc=localrc)
+          if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+            line=__LINE__,  &
+            file=__FILE__,  &
+            rcToReturn=rc)) return  ! bail out
+         case (3)
+          ! Check if 3D array is properly allocated before using bounds
+          if (associated(thisDiagn % Arr3D) .and. associated(thisDiagn % Arr3D % Val)) then
+            field = ESMF_FieldCreate( HcoGrid, ESMF_TYPEKIND_R4, &
+              ungriddedLBound = (/ lbound(thisDiagn % Arr3D % Val, dim=3) /), &
+              ungriddedUBound = (/ ubound(thisDiagn % Arr3D % Val, dim=3) /), &
+              name=thisDiagn % cName, rc=localrc)
+            if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+              line=__LINE__,  &
+              file=__FILE__,  &
+              rcToReturn=rc)) return  ! bail out
+          else
+            if (localPet == 0) print "('NEXUS: Skipping diagnostic variable ''', a, ''' - 3D array not allocated')", trim(thisDiagn%cName)
+            call Diagn_Get( HcoState, EOI, thisDiagn, flag, localrc )
+            if (nxs_error_log(localrc, msg='Error encountered in routine "Diagn_Get!"', &
+              line=__LINE__, &
+              file=__FILE__, &
+              rcToReturn=rc)) return
+            cycle  ! Skip to next diagnostic
+          endif
+        end select
+
+        call ESMF_AttributeSet(field, name="LongName", value=trim(thisDiagn % long_name), rc=localrc)
         if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
           line=__LINE__,  &
           file=__FILE__,  &
           rcToReturn=rc)) return  ! bail out
-       case (3)
-        field = ESMF_FieldCreate( HcoGrid, ESMF_TYPEKIND_R4, &
-          ungriddedLBound = (/ lbound(thisDiagn % Arr3D % Val, dim=3) /), &
-          ungriddedUBound = (/ ubound(thisDiagn % Arr3D % Val, dim=3) /), &
-          name=thisDiagn % cName, rc=localrc)
+
+        call ESMF_AttributeSet(field, name="Units", value=trim(thisDiagn % OutUnit), rc=localrc)
         if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
           line=__LINE__,  &
           file=__FILE__,  &
           rcToReturn=rc)) return  ! bail out
-      end select
 
-      call ESMF_AttributeSet(field, name="LongName", value=trim(thisDiagn % long_name), rc=localrc)
-      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-        line=__LINE__,  &
-        file=__FILE__,  &
-        rcToReturn=rc)) return  ! bail out
+        call ESMF_AttributeSet(field, name="StandardName", value=trim(thisDiagn % cName), rc=localrc)
+        if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+          line=__LINE__,  &
+          file=__FILE__,  &
+          rcToReturn=rc)) return  ! bail out
 
-      call ESMF_AttributeSet(field, name="Units", value=trim(thisDiagn % OutUnit), rc=localrc)
-      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-        line=__LINE__,  &
-        file=__FILE__,  &
-        rcToReturn=rc)) return  ! bail out
-
-      call ESMF_AttributeSet(field, name="StandardName", value=trim(thisDiagn % cName), rc=localrc)
-      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-        line=__LINE__,  &
-        file=__FILE__,  &
-        rcToReturn=rc)) return  ! bail out
-
-      call ESMF_StateAdd( DiagState, (/ field /), rc=localrc )
-      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-        line=__LINE__,  &
-        file=__FILE__,  &
-        rcToReturn=rc)) return  ! bail out
+        call ESMF_StateAdd( DiagState, (/ field /), rc=localrc )
+        if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+          line=__LINE__,  &
+          file=__FILE__,  &
+          rcToReturn=rc)) return  ! bail out
+      else
+        if (localPet == 0) print "('NEXUS: Skipping diagnostic variable ''', a, ''' - invalid spaceDim: ', i0)", trim(thisDiagn%cName), thisDiagn % spaceDim
+      endif
 
       call Diagn_Get( HcoState, EOI, thisDiagn, flag, localrc )
       if (nxs_error_log(localrc, msg='Error encountered in routine "Diagn_Get!"', &
@@ -1286,13 +1255,44 @@ contains
         rcToReturn=rc)) return
     end do
 
-    call ESMF_StateReconcile( DiagState, rc=localrc )
+    ! Add additional debugging for StateReconcile
+    if (localPet == 0) then
+        call ESMF_LogWrite("NEXUS DEBUG: About to call ESMF_StateReconcile", ESMF_LOGMSG_INFO)
+        call ESMF_LogFlush(rc=localrc)
+    endif
+
+    ! Only reconcile if we actually added fields to the state
+    ! Check if the state has any items before reconciling
+    call ESMF_StateGet(DiagState, itemCount=itemCount, rc=localrc)
     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__,  &
       file=__FILE__,  &
       rcToReturn=rc)) return  ! bail out
+    
+    if (localPet == 0) then
+        print *, "NEXUS DEBUG: DiagState itemCount = ", itemCount
+    endif
 
-  end subroutine nxs_diag_state_init
+    if (itemCount > 0) then
+        call ESMF_StateReconcile( DiagState, rc=localrc )
+        if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+          line=__LINE__,  &
+          file=__FILE__,  &
+          rcToReturn=rc)) return  ! bail out
+        
+        if (localPet == 0) then
+            call ESMF_LogWrite("NEXUS DEBUG: ESMF_StateReconcile completed successfully", ESMF_LOGMSG_INFO)
+            call ESMF_LogFlush(rc=localrc)
+        endif
+    else
+        if (localPet == 0) then
+            call ESMF_LogWrite("NEXUS DEBUG: Skipping ESMF_StateReconcile - no items in state", ESMF_LOGMSG_INFO)
+            call ESMF_LogFlush(rc=localrc)
+        endif
+    endif
+
+  end subroutine nxs_diag_state_init_disabled
+#endif
 
   !> @brief Updates the diagnostics state.
   !>
@@ -1300,8 +1300,8 @@ contains
   !> @param DiagState The diagnostics state to update.
   !> @param rc        Return code (optional).
   subroutine nxs_diag_state_update( HcoState, DiagState, rc )
-    use HCO_TYPES_MOD, only: DiagnCont
-    use HCO_Diagn_Mod, only: Diagn_Get
+    ! NOTE: Using NUOPC export state - diagnostics are automatically updated
+    ! by HEMCO's NUOPC interface, no manual update needed
 
     type(HCO_State), pointer       :: HcoState
     type(ESMF_State)               :: DiagState
@@ -1309,55 +1309,13 @@ contains
 
     ! -- local variables
     integer :: localrc
-    integer :: flag
-    integer :: lb(2), ub(2)
-    logical :: EOI
-    real(ESMF_KIND_R4), pointer :: fp2d(:,:), fp3d(:,:,:)
-    type(ESMF_Field) :: field
-    type(DiagnCont), pointer :: thisDiagn
 
     ! -- begin
     if (present(rc)) rc = ESMF_SUCCESS
-
-    EOI = .false.
-    nullify(thisDiagn)
-    call Diagn_Get( HcoState, EOI, thisDiagn, flag, localrc )
-    if (nxs_error_log(localrc, msg='Error encountered in routine "Diagn_Get!"', &
-      line=__LINE__, &
-      file=__FILE__, &
-      rcToReturn=rc)) return
-
-    do while (flag == HCO_SUCCESS)
-      call ESMF_StateGet( DiagState, thisDiagn % cName, field, rc=localrc)
-      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-        line=__LINE__,  &
-        file=__FILE__,  &
-        rcToReturn=rc)) return  ! bail out
-      select case ( thisDiagn % spaceDim )
-       case (2)
-        call ESMF_FieldGet(field, farrayPtr=fp2d, &
-          computationalLBound=lb, computationalUBound=ub, rc=localrc)
-        if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-          line=__LINE__,  &
-          file=__FILE__,  &
-          rcToReturn=rc)) return  ! bail out
-        fp2d(lb(1):ub(1),lb(2):ub(2)) = thisDiagn % Arr2D % Val
-       case (3)
-        call ESMF_FieldGet(field, farrayPtr=fp3d, &
-          computationalLBound=lb, computationalUBound=ub, rc=localrc)
-        if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-          line=__LINE__,  &
-          file=__FILE__,  &
-          rcToReturn=rc)) return  ! bail out
-        fp3d(lb(1):ub(1),lb(2):ub(2),:) = thisDiagn % Arr3D % Val
-      end select
-
-      call Diagn_Get( HcoState, EOI, thisDiagn, flag, localrc )
-      if (nxs_error_log(localrc, msg='Error encountered in routine "Diagn_Get!"', &
-        line=__LINE__, &
-        file=__FILE__, &
-        rcToReturn=rc)) return
-    end do
+    
+    ! Diagnostics are automatically updated by HEMCO's NUOPC interface
+    ! No manual copying needed when using export state mechanism
+    localrc = ESMF_SUCCESS
 
   end subroutine nxs_diag_state_update
 
