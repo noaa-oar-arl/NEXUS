@@ -66,5 +66,4 @@ else()
   message(FATAL_ERROR "Could not find external CDEPS targets at ${CDEPS_DIR}")
 endif()
 
-add_subdirectory(HEMCO)
 add_subdirectory(src)

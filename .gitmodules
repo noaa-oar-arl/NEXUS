@@ -1,6 +1,6 @@
-[submodule "HEMCO"]
-	path = HEMCO
-	url = https://github.com/bbakernoaa/HEMCO.git
+[submodule "src/external/HEMCO"]
+	path = src/external/HEMCO
+	url = https://github.com/bbakernoaa/HEMCO
 [submodule "src/external/CDEPS"]
 	path = src/external/CDEPS
 	url = https://github.com/ESCOMP/CDEPS
