@@ -91,6 +91,7 @@ set -x
 cmake \
   -DHEMCO_EXTERNAL_CONFIG=ON \
   -DNUOPC_ESMF=ON \
+  -DDISABLE_FoX=ON \
   ${CMAKE_OPTS:-} \
   $dir_root
 set +x

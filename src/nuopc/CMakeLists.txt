@@ -19,10 +19,23 @@ endif()
 
 target_include_directories(NEXUS_Shared
   INTERFACE ${HEMCO_BINARY_DIR}/mod
+  INTERFACE /scratch4/NCEPDEV/naqfc/Barry.Baker/models/ufs-weather-model/build/CDEPS-interface/mod
 )
 
 find_package(ESMF REQUIRED)
 find_package(NetCDF REQUIRED COMPONENTS Fortran)
+
+# Add PIO support required by CDEPS - using CDEPS FindPIO module
+if (DEFINED ENV{PIO_ROOT})
+  message("PIO_ROOT is $ENV{PIO_ROOT}")
+else()
+  if (DEFINED PIO)
+    set(PIO_PATH ${PIO})
+  else()
+    set(PIO_PATH $ENV{parallelio_ROOT})
+  endif()
+  find_package(PIO REQUIRED COMPONENT C Fortran PATH ${PIO_PATH})
+endif()
 
 if(NetCDF_PARALLEL)
   target_compile_definitions(NEXUS_Shared PRIVATE USE_PNETCDF)
@@ -32,27 +45,30 @@ endif()
 target_compile_options(NEXUS_Shared PRIVATE
   "-I${ESMF_INCLUDE_DIRS}"
   "-I${NetCDF_Fortran_INCLUDE_DIRS}"
+  "-I/scratch4/NCEPDEV/naqfc/Barry.Baker/models/ufs-weather-model/build/CDEPS-interface/mod"
+  "-I${PIO_Fortran_INCLUDE_DIR}"
 )
 
+# Link to CDEPS directly by library file to avoid problematic target dependencies
+# Add PIO libraries that CDEPS requires
 target_link_libraries(NEXUS_Shared
   PUBLIC HCOI_Shared
   PUBLIC HCOI_NUOPC
   PUBLIC esmf
-  PUBLIC streams
-  PUBLIC dshr
-  PUBLIC FoX_dom
-  PUBLIC FoX_wxml
-  PUBLIC FoX_sax
-  PUBLIC FoX_common
-  PUBLIC FoX_utils
-  PUBLIC FoX_fsys
+  PUBLIC /scratch4/NCEPDEV/naqfc/Barry.Baker/models/ufs-weather-model/build/CDEPS-interface/libcdeps.a
+  PUBLIC ${PIO_C_LIBRARIES}
+  PUBLIC ${PIO_Fortran_LIBRARIES}
 )
 
 target_link_libraries(nexus
   PUBLIC NEXUS_Shared
   PUBLIC esmf
   PUBLIC NetCDF::NetCDF_Fortran
+  PUBLIC ${PIO_C_LIBRARIES}
+  PUBLIC ${PIO_Fortran_LIBRARIES}
 )
+
+
 
 if(USE_MPI OR NetCDF_PARALLEL)
   target_link_libraries(NEXUS_Shared PUBLIC MPI::MPI_Fortran)

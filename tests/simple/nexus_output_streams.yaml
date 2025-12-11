@@ -1,0 +1,25 @@
+output_streams:
+  - name: nexus_hist
+    frequency: "010000"
+    file: nexus_output.nc
+    mode: overwrite
+    variables:
+      - SO2
+      - SO2_elev
+      - SO2_ship
+      - SO4_ship
+      - OC
+      - OC_elev
+      - BC
+      - BC_elev
+      - BC_ship
+      - OC_ship
+      - BC_lto
+      - BC_cds
+      - BC_crs
+      - SO2_lto
+      - SO2_cds
+      - SO2_crs
+      - OC_lto
+      - OC_cds
+      - OC_crs

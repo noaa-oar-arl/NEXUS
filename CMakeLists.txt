@@ -55,6 +55,16 @@ if(CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
 endif()
 
 # Add project's subdirectories
-add_subdirectory(src/external/CDEPS)
+# add_subdirectory(src/external/CDEPS)
+
+# Import external CDEPS
+set(CDEPS_DIR "/scratch4/NCEPDEV/naqfc/Barry.Baker/models/ufs-weather-model/build/CDEPS-interface")
+if(EXISTS "${CDEPS_DIR}/cdeps-targets.cmake")
+  include("${CDEPS_DIR}/cdeps-targets.cmake")
+  message(STATUS "Included external CDEPS targets from ${CDEPS_DIR}")
+else()
+  message(FATAL_ERROR "Could not find external CDEPS targets at ${CDEPS_DIR}")
+endif()
+
 add_subdirectory(HEMCO)
 add_subdirectory(src)
