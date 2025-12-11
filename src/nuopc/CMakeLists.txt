@@ -51,18 +51,18 @@ target_compile_options(NEXUS_Shared PRIVATE
 
 # Link to CDEPS directly by library file to avoid problematic target dependencies
 # Add PIO libraries that CDEPS requires
+# IMPORTANT: CDEPS depends on ESMF, so ESMF must come AFTER CDEPS in link order
 target_link_libraries(NEXUS_Shared
   PUBLIC HCOI_Shared
   PUBLIC HCOI_NUOPC
-  PUBLIC esmf
   PUBLIC /scratch4/NCEPDEV/naqfc/Barry.Baker/models/ufs-weather-model/build/CDEPS-interface/libcdeps.a
+  PUBLIC esmf
   PUBLIC ${PIO_C_LIBRARIES}
   PUBLIC ${PIO_Fortran_LIBRARIES}
 )
 
 target_link_libraries(nexus
   PUBLIC NEXUS_Shared
-  PUBLIC esmf
   PUBLIC NetCDF::NetCDF_Fortran
   PUBLIC ${PIO_C_LIBRARIES}
   PUBLIC ${PIO_Fortran_LIBRARIES}

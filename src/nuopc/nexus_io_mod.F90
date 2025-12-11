@@ -77,7 +77,7 @@ contains
       type(ESMF_VM) :: vm
       integer :: localPet, petCount, rootPet
       logical :: check_input_streams, check_output_streams
-      integer :: pio_comm
+      integer :: pio_comm, ibuf
 
       ! CDEPS Init vars
       type(ESMF_Mesh) :: model_mesh
@@ -91,6 +91,9 @@ contains
 
       rc = ESMF_SUCCESS
       num_hist_streams = 0
+      num_input_streams = 0
+      check_input_streams = .false.
+      check_output_streams = .false.
 
       call ESMF_VMGetCurrent(vm, rc=rc)
       call ESMF_VMGet(vm, localPet=localPet, petCount=petCount, mpiCommunicator=pio_comm, rc=rc)
@@ -110,18 +113,15 @@ contains
       !--------------------------------------------------------------------------
       ! 1. Parse nexus_output_streams.yaml for History streams
       !--------------------------------------------------------------------------
-      if (localPet == 0) then
-         hconfig = ESMF_HConfigCreate(filename=HISTORY_CONFIG, rc=rc)
-         if (rc == ESMF_SUCCESS) then
-             check_output_streams = .true.
-         else
-             check_output_streams = .false.
-             call ESMF_LogWrite("NEXUS_IO: Output config not found or invalid", ESMF_LOGMSG_WARNING)
-             rc = ESMF_SUCCESS ! Reset rc
-         endif
+      ! Check for output config on all processes to avoid uninitialized variable
+      hconfig = ESMF_HConfigCreate(filename=HISTORY_CONFIG, rc=rc)
+      if (rc == ESMF_SUCCESS) then
+          check_output_streams = .true.
+      else
+          check_output_streams = .false.
+          call ESMF_LogWrite("NEXUS_IO: Output config not found or invalid", ESMF_LOGMSG_WARNING)
+          rc = ESMF_SUCCESS ! Reset rc
       endif
-      ! TODO: Fix VMBroadcast type issues
-      ! call ESMF_VMBroadcast(vm, check_output_streams, 1, rootPet, rc=rc)
 
       if (check_output_streams) then
           if (localPet == 0) then
@@ -182,17 +182,14 @@ contains
       !--------------------------------------------------------------------------
       ! 2. Initialize CDEPS for INPUT
       !--------------------------------------------------------------------------
-      if (localPet == 0) then
-         hconfig = ESMF_HConfigCreate(filename=CDEPS_CONFIG, rc=rc)
-         if (rc == ESMF_SUCCESS) then
-             check_input_streams = .true.
-         else
-             check_input_streams = .false.
-             rc = ESMF_SUCCESS
-         endif
+      ! Check for input config on all processes to avoid uninitialized variable
+      hconfig = ESMF_HConfigCreate(filename=CDEPS_CONFIG, rc=rc)
+      if (rc == ESMF_SUCCESS) then
+          check_input_streams = .true.
+      else
+          check_input_streams = .false.
+          rc = ESMF_SUCCESS
       endif
-      ! TODO: Fix VMBroadcast type issues
-      ! call ESMF_VMBroadcast(vm, check_input_streams, 1, rootPet, rc=rc)
 
       if (check_input_streams) then
          if (localPet == 0) call ESMF_LogWrite("NEXUS_IO: Initializing CDEPS Inline...", ESMF_LOGMSG_INFO)
@@ -206,14 +203,12 @@ contains
          ! endif
 
          ! Parse and Broadcast Input Streams
-         if (localPet == 0) then
-             num_input_streams = ESMF_HConfigGetSize(hconfig, keyString="input_streams", rc=rc)
-         endif
+         ! Get number of input streams on all processes to avoid uninitialized variable
+         num_input_streams = ESMF_HConfigGetSize(hconfig, keyString="input_streams", rc=rc)
+         if (rc /= ESMF_SUCCESS) num_input_streams = 0
 
-         ! TODO: Fix VMBroadcast type issues
-         ! call ESMF_VMBroadcast(vm, num_input_streams, 1, rootPet, rc=rc)
-
-         allocate(CDEPS_Streams(num_input_streams))
+         if (num_input_streams > 0) then
+             allocate(CDEPS_Streams(num_input_streams))
 
          do i = 1, num_input_streams
              ! Root extracts data
@@ -309,11 +304,15 @@ contains
 
          end do
 
-         if (localPet == 0) call ESMF_HConfigDestroy(hconfig, rc=rc)
+             if (localPet == 0) call ESMF_HConfigDestroy(hconfig, rc=rc)
 
-         CDEPS_Initialized = .true.
+             CDEPS_Initialized = .true.
+         else
+             if (localPet == 0) call ESMF_LogWrite("NEXUS_IO: No input streams found. CDEPS not initialized.", ESMF_LOGMSG_WARNING)
+             CDEPS_Initialized = .false.
+         endif
       else
-         if (localPet == 0) call ESMF_LogWrite("NEXUS_IO: No input streams found. CDEPS not initialized.", ESMF_LOGMSG_WARNING)
+         if (localPet == 0) call ESMF_LogWrite("NEXUS_IO: No input streams configuration. CDEPS not initialized.", ESMF_LOGMSG_WARNING)
          CDEPS_Initialized = .false.
       endif
 
