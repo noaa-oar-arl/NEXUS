@@ -1365,29 +1365,75 @@ contains
       file=__FILE__,  &
       rcToReturn=rc)) return  ! bail out
 
-    do item = 1, itemCount
-      if (localPet == 0) print "('NEXUS: Initializing Expt variable ''', a, '''')", trim(itemNameList(item))
-      if (itemTypeList(item) == ESMF_STATEITEM_FIELD) then
-        call ESMF_StateGet( importState, itemNameList(item), srcfield, rc=localrc )
-        if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-          line=__LINE__,  &
-          file=__FILE__,  &
-          rcToReturn=rc)) return  ! bail out
+    ! If a regridding routehandle is needed but not yet created, create it now.
+    ! Use the first available field as a template for the source and destination
+    ! fields required by the regrid store function. This avoids a messy check
+    ! inside the main field creation loop.
+    if (.not. ESMF_RouteHandleIsCreated(NXS_RouteHandle)) then
+      do item = 1, itemCount
+        if (itemTypeList(item) == ESMF_STATEITEM_FIELD) then
+          ! Found a field, use it to create the regrid route handle
+          call ESMF_StateGet(importState, itemNameList(item), srcfield, rc=localrc)
+          if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+            line=__LINE__, file=__FILE__, rcToReturn=rc)) return
 
-        call ESMF_FieldGet( srcfield, rank=rank, typekind=typekind, rc=localrc )
+          call ESMF_FieldGet(srcfield, rank=rank, typekind=typekind, rc=localrc)
+          if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+            line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+
+          ! Create a temporary destination field just for the regrid store call
+          select case (rank)
+          case (2)
+            dstfield = ESMF_FieldCreate(grid, typekind, name=itemNameList(item)//'_temp_regrid', rc=localrc)
+          case (3)
+            call ESMF_FieldGet(srcfield, ungriddedLBound=lb, ungriddedUBound=ub, rc=localrc)
+            dstfield = ESMF_FieldCreate(grid, typekind, name=itemNameList(item)//'_temp_regrid', &
+                                        ungriddedLBound=lb, ungriddedUBound=ub, rc=localrc)
+          end select
+          if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+            line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+
+          ! Precompute the regridding operation (i.e., weights)
+          write(6,'(1x,"Precomputing regridding operation ...")')
+          srcTermProcessing = 0
+          call ESMF_FieldRegridStore(srcfield, dstfield, &
+            regridmethod=ESMF_REGRIDMETHOD_CONSERVE, &
+            unmappedaction=ESMF_UNMAPPEDACTION_IGNORE, &
+            srcTermProcessing=srcTermProcessing, &
+            routehandle=NXS_RouteHandle, rc=localrc)
+          if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+            line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+
+          ! Destroy the temporary field
+          call ESMF_FieldDestroy(dstfield, rc=localrc)
+          if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+            line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+
+          ! Route handle is created, exit the search loop
+          exit
+        end if
+      end do
+    end if
+
+    ! Create all destination fields and add them to the export state.
+    do item = 1, itemCount
+      if (itemTypeList(item) == ESMF_STATEITEM_FIELD) then
+        if (localPet == 0) print "('NEXUS: Initializing Expt variable ''', a, '''')", trim(itemNameList(item))
+        call ESMF_StateGet(importState, itemNameList(item), srcfield, rc=localrc)
         if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-          line=__LINE__,  &
-          file=__FILE__,  &
-          rcToReturn=rc)) return  ! bail out
+          line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+
+        call ESMF_FieldGet(srcfield, rank=rank, typekind=typekind, rc=localrc)
+        if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+          line=__LINE__, file=__FILE__, rcToReturn=rc)) return
 
         select case (rank)
-         case (2)
-          dstfield = ESMF_FieldCreate( grid, typekind, name=itemNameList(item), rc=localrc )
-         case (3)
-          call ESMF_FieldGet( srcfield, ungriddedLBound=lb, ungriddedUBound=ub, &
-            rc=localrc )
-          dstfield = ESMF_FieldCreate( grid, typekind, name=itemNameList(item), &
-            ungriddedLBound=lb, ungriddedUBound=ub, rc=localrc )
+        case (2)
+          dstfield = ESMF_FieldCreate(grid, typekind, name=itemNameList(item), rc=localrc)
+        case (3)
+          call ESMF_FieldGet(srcfield, ungriddedLBound=lb, ungriddedUBound=ub, rc=localrc)
+          dstfield = ESMF_FieldCreate(grid, typekind, name=itemNameList(item), &
+                                      ungriddedLBound=lb, ungriddedUBound=ub, rc=localrc)
         end select
 
         ! Copy attributes from source field to destination field
@@ -1406,31 +1452,13 @@ contains
             call ESMF_AttributeSet(dstfield, "StandardName", standardName, rc=localrc)
           end if
         end block
-
         if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-          line=__LINE__,  &
-          file=__FILE__,  &
-          rcToReturn=rc)) return  ! bail out
+          line=__LINE__, file=__FILE__, rcToReturn=rc)) return
 
-        call ESMF_StateAdd( exportState, (/ dstfield /), rc=localrc )
+        call ESMF_StateAdd(exportState, (/ dstfield /), rc=localrc)
         if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-          line=__LINE__,  &
-          file=__FILE__,  &
-          rcToReturn=rc)) return  ! bail out
+          line=__LINE__, file=__FILE__, rcToReturn=rc)) return
 
-        if (.not.ESMF_RouteHandleIsCreated(NXS_RouteHandle)) then
-          write(6,'(1x,"Precomputing regridding operation ...")')
-          srcTermProcessing = 0
-          call ESMF_FieldRegridStore(srcfield, dstfield, &
-            regridmethod      = ESMF_REGRIDMETHOD_CONSERVE, &
-            unmappedaction    = ESMF_UNMAPPEDACTION_IGNORE, &
-            srcTermProcessing = srcTermProcessing,       &
-            routehandle       = NXS_RouteHandle, rc=localrc)
-          if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-            line=__LINE__,  &
-            file=__FILE__,  &
-            rcToReturn=rc)) return  ! bail out
-        end if
       end if
     end do
 
