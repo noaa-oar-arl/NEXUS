@@ -58,9 +58,9 @@ if __name__ == "__main__":
         for index, line in enumerate(lines):
             if not line.startswith("#"):
                 if "$ROOT/" in line:
-                    if "NEI2019" in line:
-                        if "2019$MM$DD" in line:
-                            line = line.replace("2019$MM$DD", d.strftime("%Y$MM$DD"))
+                    if "NEI2022" in line:
+                        if "2022$MM$DD" in line:
+                            line = line.replace("2022$MM$DD", d.strftime("%Y$MM$DD"))
                             lines[index] = line
         f.close()
 

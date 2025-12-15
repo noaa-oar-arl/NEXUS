@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Simple utility to link the appropriate NEI2019 date for the workflow.
+Simple utility to link the appropriate NEI2022 date for the workflow.
 """
 
 import logging
@@ -25,7 +25,7 @@ def setup_logger(log_level=logging.INFO):
     logging.Logger
         Configured logger instance
     """
-    logger = logging.getLogger("nexus_nei2019_linker")
+    logger = logging.getLogger("nexus_nei2022_linker")
     logger.setLevel(log_level)
 
     # Create console handler with formatting
@@ -106,17 +106,17 @@ def get_hemco_simulation_time(file_path):
 
 
 def get_file_map(src_dir, version):
-    """Create a mapping of month and day-of-week to NEI2019 file paths.
+    """Create a mapping of month and day-of-week to NEI2022 file paths.
 
-    Maps each month and day-of-week to the appropriate NEI2019 data file.
+    Maps each month and day-of-week to the appropriate NEI2022 data file.
     For days without data, fills in using a prioritized approach.
 
     Parameters
     ----------
     src_dir : str
-        Source directory containing NEI2019 data files
+        Source directory containing NEI2022 data files
     version : str
-        Version of NEI2019 data (e.g., "v2023-03")
+        Version of NEI2022 data (e.g., "v2023-03")
 
     Returns
     -------
@@ -126,21 +126,21 @@ def get_file_map(src_dir, version):
     Raises
     ------
     FileNotFoundError
-        If no NEI2019 files are found
+        If no NEI2022 files are found
     Exception
         For any other errors during processing
     """
     try:
-        search_pattern = f"{src_dir}/NEMO/NEI2019/{version}/??/NEI2019*_all.nc"
+        search_pattern = f"{src_dir}/NEMO/NEI2022/{version}/??/NEI2022*_all.nc"
         logger.info(f"Searching for files with pattern: {search_pattern}")
 
         files = [fp for fp in glob(search_pattern) if not os.path.islink(fp)]
 
         if not files:
             logger.error(f"No files found matching pattern: {search_pattern}")
-            raise FileNotFoundError(f"No NEI2019 files found in {src_dir} for version {version}")
+            raise FileNotFoundError(f"No NEI2022 files found in {src_dir} for version {version}")
 
-        logger.info(f"Found {len(files)} NEI2019 files")
+        logger.info(f"Found {len(files)} NEI2022 files")
 
         file_map = {}
         for fp in files:
@@ -283,7 +283,7 @@ if __name__ == "__main__":
     from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 
     parser = ArgumentParser(
-        description="Link NEI2019 files to the work directory",
+        description="Link NEI2022 files to the work directory",
         formatter_class=ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
@@ -360,7 +360,7 @@ if __name__ == "__main__":
         version = args.nei_version
 
         logger.info(
-            f"Starting NEI2019 linker with src_dir={src_dir}, work_dir={work_dir}, version={version}"
+            f"Starting NEI2022 linker with src_dir={src_dir}, work_dir={work_dir}, version={version}"
         )
 
         if not os.path.isdir(src_dir):
@@ -434,7 +434,7 @@ if __name__ == "__main__":
                 logger.error(f"Failed to create link for date {d.strftime('%Y-%m-%d')}: {e}")
                 sys.exit(1)
 
-        logger.info("NEI2019 linking completed successfully")
+        logger.info("NEI2022 linking completed successfully")
 
     except Exception as e:
         logger.error(f"An error occurred during execution: {e}")
