@@ -920,7 +920,6 @@ Cap time shift              : true
 0 NEI2022_ALL_PMC            $ROOT/NEMO/NEI2022/v2025-10/$MM/NEI2022v1_0.1_degree_2022$MM$DD_all.nc          PMC           2022/1-12/1-31/$HH C xy  kg/m2/s PMC          1007     1 50
 0 NEI2022_ALL_PSO4           $ROOT/NEMO/NEI2022/v2025-10/$MM/NEI2022v1_0.1_degree_2022$MM$DD_all.nc          PSO4          2022/1-12/1-31/$HH C xy  kg/m2/s PSO4         1007     1 50
 0 NEI2022_ALL_UNR            $ROOT/NEMO/NEI2022/v2025-10/$MM/NEI2022v1_0.1_degree_2022$MM$DD_all.nc          UNR           2022/1-12/1-31/$HH C xy  kg/m2/s UNR          1007     1 50
-0 NEI2022_ALL_UNK            $ROOT/NEMO/NEI2022/v2025-10/$MM/NEI2022v1_0.1_degree_2022$MM$DD_all.nc          UNK           2022/1-12/1-31/$HH C xy  kg/m2/s UNK          1007     1 50
 )))GMU-NEI_AR
 
 #### MEGAN EMISSION
