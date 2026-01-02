@@ -1,9 +1,7 @@
 !> @brief Command-line interface for the NEXUS NUOPC Single-Model Driver.
 program app
 
-#ifdef USE_MPI
   use mpi
-#endif
 
   use ESMF
 
@@ -24,9 +22,7 @@ program app
   integer :: debugLevel
   logical :: writeRestart
   integer :: ibuf(2)
-#ifdef USE_MPI
   integer :: mpi_ierr
-#endif
   character(ESMF_MAXSTR) :: ConfigFile
   character(ESMF_MAXSTR) :: ReGridFile
   character(ESMF_MAXSTR) :: OutputFile
@@ -34,9 +30,7 @@ program app
   type(ESMF_VM) :: vm
   type(ESMF_GridComp) :: drvComp
 
-#ifdef USE_MPI
   call MPI_Init(mpi_ierr)
-#endif
 
   ! Initialize ESMF
   call ESMF_Initialize(defaultCalkind=ESMF_CALKIND_GREGORIAN, rc=rc)
@@ -145,6 +139,7 @@ program app
     call ESMF_Finalize(endflag=ESMF_END_ABORT)
 
   ! INITIALIZE THE DRIVER
+  if (localPet == rootPet) print *, "NEXUS_APP: Starting driver initialization"
   call ESMF_GridCompInitialize(drvComp, userRc=userRc, rc=rc)
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
     line=__LINE__, &
@@ -154,9 +149,12 @@ program app
     line=__LINE__, &
     file=__FILE__)) &
     call ESMF_Finalize(endflag=ESMF_END_ABORT)
+  if (localPet == rootPet) print *, "NEXUS_APP: Driver initialization complete"
 
   ! RUN THE DRIVER
+  if (localPet == rootPet) print *, "NEXUS_APP: Starting driver run phase"
   call ESMF_GridCompRun(drvComp, userRc=userRc, rc=rc)
+  if (localPet == rootPet) print *, "NEXUS_APP: Driver run completed, rc=", rc, "userRc=", userRc
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
     line=__LINE__, &
     file=__FILE__)) &
@@ -192,9 +190,7 @@ program app
   ! Finalize ESMF
   call ESMF_Finalize()
 
-#ifdef USE_MPI
   call MPI_Finalize(mpi_ierr)
-#endif
 
   if (localPet == rootPet) print "('NEXUS: ', a)", "Done"
 
@@ -274,6 +270,15 @@ contains
       return
     end if
 
+    if (localPet == 0) print *, "Successfully opened control file: ", trim(file)
+
+    ! Initialize default values
+    ConfigFile = "HEMCO_Config.rc"
+    ReGridFile = ""
+    OutputFile = "nexus_output.nc"
+    debugLevel = 0
+    writeRestart = .false.
+
     do
       read(unit, '(a)', end=10) line
       ! Skip comments and empty lines
@@ -286,14 +291,19 @@ contains
       select case (key)
         case ('CONFIG_FILE')
           ConfigFile = value
+          if (localPet == 0) print *, "DEBUG: Read CONFIG_FILE = ", trim(value)
         case ('REGRID_FILE')
           ReGridFile = value
+          if (localPet == 0) print *, "DEBUG: Read REGRID_FILE = ", trim(value)
         case ('OUTPUT_FILE')
           OutputFile = value
+          if (localPet == 0) print *, "DEBUG: Read OUTPUT_FILE = ", trim(value)
         case ('DEBUG_LEVEL')
           read(value, *) debugLevel
+          if (localPet == 0) print *, "DEBUG: Read DEBUG_LEVEL = ", debugLevel
         case ('WRITE_RESTART')
           read(value, *) writeRestart
+          if (localPet == 0) print *, "DEBUG: Read WRITE_RESTART = ", writeRestart
       end select
     end do
 10  continue

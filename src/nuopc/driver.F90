@@ -74,6 +74,8 @@ contains
 
     rc = ESMF_SUCCESS
 
+    call ESMF_LogWrite("NEXUS_DRIVER: Starting SetModelServices", ESMF_LOGMSG_INFO)
+
     ! SetServices for model component
     call NUOPC_DriverAddComp(driver, "NEXUS", modelSS, comp=child, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
@@ -89,6 +91,8 @@ contains
     !
     ! Set the driver clock
     !
+
+    call ESMF_LogWrite("NEXUS_DRIVER: Setting start/stop times", ESMF_LOGMSG_INFO)
 
     call ESMF_TimeSet(startTime, &
       yy=T_YY(1), mm=T_MM(1), dd=T_DD(1), &

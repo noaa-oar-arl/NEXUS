@@ -148,3 +148,17 @@ input_streams:
       - FH_ene_pm25
       - FH_res_pm10_pm25
       - FH_dow_tro
+
+  - name: CEDS_SCALING
+    taxmode: cycle
+    tintalgo: nearest
+    mapalgo: nn
+    readmode: single
+    year_first: 2000
+    year_last: 2000
+    year_align: 2000
+    meshfile: none
+    lev_dimname: none
+    datafiles: "/scratch4/NCEPDEV/global/Barry.Baker/Emissions/GCAFS/nexus/EDGARv42/v2015-02/NO/EDGAR_hourly_NOxScal.nc"
+    datavars:
+      - NOXscale

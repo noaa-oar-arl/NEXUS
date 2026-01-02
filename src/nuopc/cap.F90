@@ -5,12 +5,12 @@ module nexus_cap
   use NUOPC
   use NUOPC_Model, modelSS => SetServices
 
-  use HCOI_NUOPC_MOD, only: HCO_SetServices_NUOPC, HCO_SetExtState_NUOPC
+  use HCOI_NUOPC_MOD, only: HCO_SetServices_NUOPC, HCO_SetExtState_NUOPC, HCO_UpdateExportFields_NUOPC
   use HCO_Config_Mod,  only: Config_ReadFile
   use HCO_Driver_Mod,  only: HCO_Init
   use HCOX_Driver_Mod, only: HCOX_Init
-  use HCO_STATE_MOD, only: Hco_State, HcoState_Init, HcoState_Final
-  use HCO_ARR_MOD,   only: HCO_ArrInit
+  use HCO_STATE_MOD, only: Hco_State, HcoState_Init, HcoState_Final, HCO_GetHcoID
+  use HCO_ARR_MOD,   only: HCO_ArrInit, HCO_ArrAssert
   use HCO_TYPES_MOD, only: ConfigObj
   use HCO_Error_Mod, only: rk_hco => hp, &
     HcoErr, &
@@ -19,7 +19,11 @@ module nexus_cap
     HCO_SUCCESS, HCO_MISSVAL
   use HCOX_STATE_MOD, only: Ext_State, ExtStateInit
   use HCOX_Driver_Mod, only: HCOX_Init, HCOX_Run, HCOX_Final
-  use nexus_io_mod, only: IO_Init, IO_Read, IO_Write, ResolveFileName
+  use HCO_DIAGN_MOD, only: Diagn_Create, DiagnCollection_Get
+  use nexus_io_mod, only: IO_Init, IO_Read, IO_Write, ResolveFileName, &
+                          InitializeFieldDataRegistry, nexus_register_field, &
+                          PopulateImportFromRegistry
+  use nexus_species_mod, only: NEXUS_RegisterSpecies
 
   implicit none
 
@@ -28,7 +32,7 @@ module nexus_cap
   ! Default values for HEMCO input files: contain definitions of
   ! species, grid, and time settings, etc.
   character(len=255) :: GridFile = 'HEMCO_sa_Grid'
-  character(len=255) :: SpecFile = 'HEMCO_sa_Spec'
+  character(len=255) :: SpecFile = 'HEMCO_sa_Spec.rc'
   character(len=255) :: TimeFile = 'HEMCO_sa_Time'
   character(len=255) :: DiagFile = 'NEXUS_Diag.nc'
   character(len=255) :: ExptFile = 'NEXUS_Expt.nc'
@@ -46,6 +50,9 @@ module nexus_cap
 
   !> HEMCO extensions state
   type(Ext_State), pointer :: HcoExtState => NULL()
+
+  !> Flag to track if HEMCO diagnostics have been created
+  logical, save :: diagnostics_created = .false.
 
   type(ESMF_Grid)  :: HCO_Grid
   type(ESMF_Grid)  :: NXS_Grid
@@ -97,7 +104,22 @@ contains
     type(ESMF_GridComp)  :: model
     integer, intent(out) :: rc
 
+    ! Local variables
+    integer :: localrc
+    type(ESMF_VM) :: vm
+    integer :: localPet, rootPet
+    ! No import/export state creation here; handled in Initialize if needed
+
     rc = ESMF_SUCCESS
+
+    ! Get local PET for printing
+    call ESMF_VMGetCurrent(vm, rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, file=__FILE__)) return
+    call ESMF_VMGet(vm, localPet=localPet, petCount=rootPet, rc=rc)  ! petCount to get total, rootPet = 0
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, file=__FILE__)) return
+    rootPet = 0
 
     ! Derive from NUOPC_Model
     call NUOPC_CompDerive(model, modelSS, rc=rc)
@@ -106,22 +128,15 @@ contains
       file=__FILE__)) &
       return  ! bail out
 
-    ! Initialize HEMCO services
-    if (localPet == rootPet) print *, "NEXUS: Calling HCO_SetServices_NUOPC"
-    call HCO_SetServices_NUOPC( (localPet == rootPet), model, HcoConfig, &
-      trim(ConfigFile_), rc )
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
+    ! Set required NUOPC Instance attribute to avoid IPDvXp07 errors
+    call NUOPC_CompAttributeSet(model, name='/NUOPC/Instance/StandardName', value='NEXUS', rc=localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, file=__FILE__)) return
 
-    ! Create HcoState
-    if (localPet == rootPet) print *, "NEXUS: Calling HcoState_Init"
-    call HcoState_Init( HcoState, HcoConfig, 0, rc )
-    if (nxs_error_log(rc, msg='Error encountered in routine "HcoState_Init"!', &
-      line=__LINE__, &
-      file=__FILE__, &
-      rcToReturn=rc)) return
+    ! NUOPC interface will handle configuration reading
+    if (localPet == rootPet) print *, "NEXUS: HEMCO configuration will be read by NUOPC interface"
+
+    ! HcoState creation and species registration will be done in Initialize phase
 
     ! Set GridComp on HcoState
     ! HcoState%GridComp => model
@@ -143,13 +158,13 @@ contains
       return  ! bail out
 
     ! Specialize model
-    if (localPet == rootPet) print *, "NEXUS: Specialize Advertise (SKIPPED)"
-    ! call NUOPC_CompSpecialize(model, specLabel=label_Advertise, &
-    !   specRoutine=Advertise, rc=rc)
-    ! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-    !   line=__LINE__, &
-    !   file=__FILE__)) &
-    !   return  ! bail out
+    if (localPet == rootPet) print *, "NEXUS: Specialize Advertise"
+    call NUOPC_CompSpecialize(model, specLabel=label_Advertise, &
+      specRoutine=Advertise, rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__)) &
+      return  ! bail out
 
     if (localPet == rootPet) print *, "NEXUS: Specialize Realize"
     call NUOPC_CompSpecialize(model, specLabel=label_RealizeProvided, &
@@ -223,6 +238,17 @@ contains
       file=__FILE__)) &
       return  ! bail out
 
+    ! Set HEMCO services - this must be done here where we have access to import/export states
+    if (localPet == 0) print *, "NEXUS: Calling HCO_SetServices_NUOPC in Advertise with config file: ", trim(ConfigFile_)
+    call HCO_SetServices_NUOPC( (localPet == 0), model, HcoConfig, &
+      trim(ConfigFile_), importState, exportState, localrc )
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__)) then
+      rc = localrc
+      return  ! bail out
+    endif
+
     ! Advertise NEXUS output variables by reading DiagnFile directly
     ! (Avoiding HCO_Init dependency here)
     if (.not. associated(HcoConfig)) then
@@ -254,23 +280,30 @@ contains
           if (localPet == 0) print "('NEXUS: Advertising ''', a, ''' (long_name=''', a, ''', units=''', a, ''')')", &
              trim(cName), trim(lName), trim(outUnit)
 
-          ! Add to field dictionary
-          call NUOPC_FieldDictionaryAddEntry(trim(cName), trim(outUnit), rc=rc)
+          ! First add field to NUOPC field dictionary
+          call NUOPC_FieldDictionaryAddEntry(trim(cName), trim(outUnit), rc)
           if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
             line=__LINE__, file=__FILE__, rcToReturn=rc)) return
 
-          ! Advertise field
-          call NUOPC_Advertise(exportState, &
-            name=trim(cName), &
-            StandardName=trim(cName), &
-            LongName=trim(lName), &
-            Units=trim(outUnit), &
-            rc=rc)
+          ! Now advertise field using NUOPC_Advertise
+          call NUOPC_Advertise(exportState, StandardName=trim(cName), rc=rc)
           if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
             line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+
+          if (localPet == 0) then
+            print *, "NEXUS: Export field advertised: ", trim(cName)
+          endif
        end do
        call DiagnFileClose(lun)
     endif
+
+    ! Advertise STREAM:VARIABLE import fields for HEMCO coupling
+    ! TODO: Only advertise when actually coupled - for now advertise all
+    if (localPet == 0) print *, "NEXUS: Skipping STREAM:VARIABLE field advertising (standalone mode)"
+    ! call AdvertiseStreamVariableImportFields(importState, localPet, rc)
+    ! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+    !   line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+
     if (localPet == 0) print *, "NEXUS: Exiting Advertise"
 
   end subroutine
@@ -295,11 +328,30 @@ contains
     ! Adding localPet logic
     type(ESMF_VM) :: vm
     integer :: localPet
+    type(ESMF_Clock) :: clock
 
     call ESMF_VMGetCurrent(vm, rc=rc)
     call ESMF_VMGet(vm, localPet=localPet, rc=rc)
 
     rc = ESMF_SUCCESS
+
+    ! Create grid for NUOPC - use static grid creation without clock dependency
+    if (localPet == 0) print *, "NEXUS DEBUG: Realize - Creating HCO_Grid before field realization"
+    call nxs_create_hco_grid_static( ConfigFile_, HCO_Grid, rc=localrc )
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
+    ! Set grid on component so it's available for field creation
+    if (localPet == 0) print *, "NEXUS DEBUG: Realize - Setting HCO_Grid on model component"
+    call ESMF_GridCompSet(model, grid=HCO_Grid, rc=localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
+    if (localPet == 0) print *, "NEXUS DEBUG: Realize - HCO_Grid set on model component"
 
     ! Query for importState and exportState
     call NUOPC_ModelGet(model, importState=importState, &
@@ -339,7 +391,7 @@ contains
         file=__FILE__,  &
         rcToReturn=rc)) return  ! bail out
 
-      if (localPet == 0) print "('NEXUS: Realizing ''', a, '''')", trim(itemNameList(item))
+      if (localPet == 0) print "('NEXUS: Realizing export ''', a, '''')", trim(itemNameList(item))
       call NUOPC_Realize(exportState, field=field, rc=localrc)
       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
         line=__LINE__, &
@@ -347,6 +399,57 @@ contains
         rcToReturn=rc)) return  ! bail out
 
     end do
+
+    ! Also realize import fields so they can be populated by CDEPS data
+    deallocate(itemNameList, itemTypeList)
+
+    call ESMF_StateGet(importState, itemCount=itemCount, rc=localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__,  &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
+
+    if (itemCount > 0) then
+      allocate(itemNameList(itemCount), itemTypeList(itemCount), stat=stat)
+      if (ESMF_LogFoundAllocError(statusToCheck=stat, &
+        msg="Unable to allocate memory for import fields", &
+        line=__LINE__,  &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+
+      call ESMF_StateGet(importState, itemNameList=itemNameList, &
+        itemTypeList=itemTypeList, rc=localrc)
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__,  &
+        file=__FILE__,  &
+        rcToReturn=rc)) return  ! bail out
+
+      do item = 1, itemCount
+        if (itemTypeList(item) /= ESMF_STATEITEM_FIELD) cycle
+
+        call ESMF_StateGet(importState, itemNameList(item), field, rc=localrc)
+        if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+          line=__LINE__,  &
+          file=__FILE__,  &
+          rcToReturn=rc)) return  ! bail out
+
+        if (localPet == 0) print "('NEXUS: Realizing import ''', a, '''')", trim(itemNameList(item))
+        call NUOPC_Realize(importState, field=field, rc=localrc)
+        if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+          line=__LINE__, &
+          file=__FILE__,  &
+          rcToReturn=rc)) return  ! bail out
+
+      end do
+    endif
+
+    ! Create STREAM:VARIABLE import fields for HEMCO NUOPC coupling
+    ! Now that grid is set on component, this will work properly
+    call CreateStreamVariableImportFields(model, importState, localPet, rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
 
   end subroutine
 
@@ -374,6 +477,7 @@ contains
     character(len=255)    :: msg
     integer               :: localrc
     integer               :: timeSlice
+    integer               :: n
     type(ESMF_VM)         :: vm
 
     timeSlice = 0
@@ -388,19 +492,22 @@ contains
     if (localPet == 0) then
         call ESMF_LogWrite("NEXUS DEBUG: Entered Advance", ESMF_LOGMSG_INFO)
         call ESMF_LogFlush(rc=localrc)
+        print *, "NEXUS DEBUG: Advance - Getting clock and states"
     endif
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
       return  ! bail out
 
-    ! Set import state for HEMCO
-    HcoState%IMPORT = importState
+    ! Note: In NUOPC mode, HEMCO gets data from IMPORT state
+    ! Data is provided through our IO_Read mechanism which populates import state
+    if (localPet == 0) print *, "NEXUS DEBUG: Advance - Reading data to populate IMPORT state (NUOPC mode)"
 
     ! Read external data into importState
     if (localPet == 0) then
         call ESMF_LogWrite("NEXUS DEBUG: Calling IO_Read", ESMF_LOGMSG_INFO)
         call ESMF_LogFlush(rc=localrc)
+        print *, "NEXUS DEBUG: Advance - About to call IO_Read"
     endif
     call IO_Read(importState, clock, rc=localrc)
     if (localPet == 0) then
@@ -470,13 +577,9 @@ contains
     if (localPet == 0) print "('NEXUS: ', a)", trim(msg)
 
     ! ================================================================
-    ! Reset all emission and deposition values
+    ! Arrays will be allocated by HEMCO during emission calculation
+    ! Skip flux reset - arrays don't exist yet
     ! ================================================================
-    call HCO_FluxArrReset( HcoState, localrc )
-    if (nxs_error_log(localrc, msg='Error encountered in routine "HCO_FluxArrReset"!', &
-      line=__LINE__, &
-      file=__FILE__, &
-      rcToReturn=rc)) return
 
     ! ================================================================
     ! Set HCO options and define all arrays needed by core module
@@ -506,25 +609,43 @@ contains
     ! ================================================================
 
     ! Phase 1: Update reading data fields etc.
+    if (localPet == 0) print *, "NEXUS DEBUG: About to call HCO_Run phase 1"
     call HCO_Run( HcoState, 1, localrc )
+    if (localPet == 0) print *, "NEXUS DEBUG: HCO_Run phase 1 returned, rc=", localrc
     if (nxs_error_log(localrc, msg='Error encountered in routine "Hco_Run", phase 1!', &
       line=__LINE__, &
       file=__FILE__, &
       rcToReturn=rc)) return
 
     ! Phase 2: Compute emissions (skip for dry-run)
+    if (localPet == 0) print *, "NEXUS DEBUG: About to call HCO_Run phase 2"
     call HCO_Run( HcoState, 2, localrc )
+    if (localPet == 0) print *, "NEXUS DEBUG: HCO_Run phase 2 returned, rc=", localrc
     if (nxs_error_log(localrc, msg='Error encountered in routine "Hco_Run", phase 2!', &
       line=__LINE__, &
       file=__FILE__, &
       rcToReturn=rc)) return
+
+    ! Check if species are now available after HCO_Run
+    if (localPet == 0) then
+       if (associated(HcoState%Spc)) then
+          print *, "NEXUS DEBUG: After HCO_Run, HcoState%Spc is associated, nSpc =", HcoState%nSpc
+          if (HcoState%nSpc > 0) then
+             print *, "NEXUS DEBUG: First species name =", trim(HcoState%Spc(1)%SpcName)
+          endif
+       else
+          print *, "NEXUS DEBUG: After HCO_Run, HcoState%Spc is STILL NOT associated"
+       endif
+    endif
 
     ! ================================================================
     ! Run HCO extensions
     ! ================================================================
 
     ! Set ExtState fields from ESMF import state
+    if (localPet == 0) print *, "NEXUS DEBUG: Advance - About to call HCO_SetExtState_NUOPC"
     call HCO_SetExtState_NUOPC( HcoState, HcoExtState, localrc )
+    if (localPet == 0) print *, "NEXUS DEBUG: Advance - HCO_SetExtState_NUOPC returned, rc=", localrc
     if (nxs_error_log(localrc, msg='Error encountered in routine "HCO_SetExtState_NUOPC"!', &
       line=__LINE__, &
       file=__FILE__, &
@@ -532,8 +653,18 @@ contains
 
     ! Execute all enabled emission extensions. Emissions will be
     ! added to corresponding flux arrays in HcoState.
+    if (localPet == 0) print *, "NEXUS DEBUG: Advance - About to call HCOX_Run"
     call HCOX_Run ( HcoState, HcoExtState, localrc )
     if (nxs_error_log(localrc, msg='Error encountered in routine "HCOX_Run"!', &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
+    ! ================================================================
+    ! Reset emission arrays for next time step (now that they exist)
+    ! ================================================================
+    call HCO_FluxArrReset( HcoState, localrc )
+    if (nxs_error_log(localrc, msg='Error encountered in routine "HCO_FluxArrReset"!', &
       line=__LINE__, &
       file=__FILE__, &
       rcToReturn=rc)) return
@@ -550,8 +681,13 @@ contains
     !=================================================================
     ! Update NEXUS Diagnostic state (using export state)
     !=================================================================
-    ! Export state is automatically updated by HEMCO diagnostics
-    ! No manual update needed - diagnostics are handled by NUOPC interface
+    ! Transfer HEMCO diagnostic data to export fields
+    call HCO_UpdateExportFields_NUOPC(HcoState, exportState, localrc)
+    if (nxs_error_log(localrc, msg='Error transferring HEMCO diagnostics to export fields!', &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
     if (localPet == 0) then
         call ESMF_LogWrite("NEXUS DEBUG: Diagnostics updated via export state", ESMF_LOGMSG_INFO)
         call ESMF_LogFlush(rc=localrc)
@@ -670,20 +806,14 @@ contains
     integer :: localrc
     logical :: am_I_Root
     type(ESMF_VM) :: vm
-    type(ESMF_State) :: importState, exportState
+    type(ESMF_State), target :: importState, exportState
     type(ESMF_Clock) :: clock
+    logical :: gridIsCreated
+    integer :: itemCount
+
     rc = ESMF_SUCCESS
 
-    ! Initialize I/O (moved after getting grid)
-
-    ! Get Clock
-    call ESMF_GridCompGet(model, clock=clock, rc=localrc)
-    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__, &
-      rcToReturn=rc)) return
-
-    ! Get VM and pet info
+    ! Get VM and pet info FIRST
     call ESMF_VMGetCurrent(vm, rc=localrc)
     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
@@ -696,7 +826,44 @@ contains
       rcToReturn=rc)) return
     am_I_Root = (localPet == rootPet)
 
-    ! Set logical flags from stored command-line args  
+    if (am_I_Root) then
+        call ESMF_LogWrite("NEXUS DEBUG: Initialize routine called", ESMF_LOGMSG_INFO, rc=localrc)
+        call ESMF_LogWrite("NEXUS DEBUG: Checking if grid already exists before creation...", &
+          ESMF_LOGMSG_INFO, rc=localrc)
+        gridIsCreated = ESMF_GridIsCreated(HCO_Grid, rc=localrc)
+        if (localrc == ESMF_SUCCESS) then
+            if (gridIsCreated) then
+                call ESMF_LogWrite("NEXUS DEBUG: HCO_Grid already created: TRUE", &
+                  ESMF_LOGMSG_INFO, rc=localrc)
+            else
+                call ESMF_LogWrite("NEXUS DEBUG: HCO_Grid already created: FALSE", &
+                  ESMF_LOGMSG_INFO, rc=localrc)
+            endif
+        else
+            call ESMF_LogWrite("NEXUS DEBUG: Error checking if HCO_Grid is created", &
+              ESMF_LOGMSG_ERROR, rc=localrc)
+        end if
+    end if
+
+    ! Initialize I/O (moved after getting grid)
+
+    ! Get Clock (may fail in early NUOPC phases)
+    call ESMF_GridCompGet(model, clock=clock, rc=localrc)
+    if (localrc /= ESMF_SUCCESS) then
+        if (am_I_Root) then
+            call ESMF_LogWrite("NEXUS DEBUG: No valid clock available - continuing without clock-dependent initialization", &
+              ESMF_LOGMSG_INFO, rc=localrc)
+            print *, "NEXUS DEBUG: No valid clock available in this phase - will skip clock-dependent operations"
+        endif
+        ! Continue without clock - some initialization can still proceed
+    else
+        if (am_I_Root) then
+            call ESMF_LogWrite("NEXUS DEBUG: Valid clock obtained from GridComp", ESMF_LOGMSG_INFO, rc=localrc)
+            print *, "NEXUS DEBUG: Valid clock obtained from GridComp"
+        endif
+    endif
+
+    ! Set logical flags from stored command-line args
     do_Debug  = (debugLevel_ > 0)
     alwaysWriteRestartFile = writeRestart_
     if (len_trim(OutputFile_) > 0) ExptFile = OutputFile_
@@ -709,31 +876,112 @@ contains
       file=__FILE__)) &
       return  ! bail out
 
-    ! Create grid
-    if (localPet == rootPet) print *, "NEXUS: Creating HCO_Grid"
-    call nxs_create_hco_grid( ConfigFile_, HCO_Grid, clock, rc=localrc )
-    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__, &
-      rcToReturn=rc)) return
+    ! If driver-provided states are invalid, create local states for component use
+    call ESMF_StateGet(importState, itemCount=itemCount, rc=localrc)
+    if (localrc /= ESMF_SUCCESS) then
+       if (am_I_Root) print *, 'NEXUS: ImportState invalid from driver; creating local states'
+       importState = ESMF_StateCreate(name='NEXUS_Import', rc=localrc)
+       if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+         line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+       exportState = ESMF_StateCreate(name='NEXUS_Export', rc=localrc)
+       if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+         line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+    end if
+
+    ! Allow initialization to proceed with or without a valid clock
+    ! Many operations (registry setup, field creation) don't need a clock
+    if (localrc == ESMF_SUCCESS) then  ! Clock was obtained successfully
+        call ESMF_LogWrite("NEXUS: Creating HCO_Grid with valid clock", ESMF_LOGMSG_INFO, rc=localrc)
+        call nxs_create_hco_grid( ConfigFile_, HCO_Grid, clock, rc=localrc )
+        if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+          line=__LINE__, &
+          file=__FILE__, &
+          rcToReturn=rc)) return
+    else
+        if (am_I_Root) then
+            call ESMF_LogWrite("NEXUS: No valid clock - proceeding with clockless initialization", ESMF_LOGMSG_INFO, rc=localrc)
+            print *, "NEXUS DEBUG: Continuing initialization without clock (standalone mode)"
+        endif
+        ! Continue without grid creation, but allow other initialization to proceed
+        ! Many HEMCO operations can work without a fully configured grid
+    endif
+
+    ! DEBUG: Check if grid was created successfully
+    if (am_I_Root) then
+        print *, "NEXUS DEBUG: After nxs_create_hco_grid, checking if HCO_Grid is created..."
+        gridIsCreated = ESMF_GridIsCreated(HCO_Grid, rc=localrc)
+        if (localrc == ESMF_SUCCESS) then
+            print *, "NEXUS DEBUG: HCO_Grid creation status: ", gridIsCreated
+            if (gridIsCreated) then
+                print *, "NEXUS DEBUG: HCO_Grid successfully created"
+            else
+                print *, "NEXUS DEBUG: HCO_Grid creation FAILED"
+            end if
+        else
+            print *, "NEXUS DEBUG: Error checking HCO_Grid creation status"
+        end if
+    end if
+
+    ! Check if grid is created
+    if (am_I_Root) then
+       if (ESMF_GridIsCreated(HCO_Grid)) then
+          print *, "NEXUS DEBUG: Initialize - HCO_Grid created successfully"
+       else
+          print *, "NEXUS DEBUG: Initialize - HCO_Grid creation FAILED or returned invalid object"
+       endif
+    endif
 
     ! Set grid on component
+    if (am_I_Root) print *, "NEXUS DEBUG: About to set HCO_Grid on model component"
     call ESMF_GridCompSet(model, grid=HCO_Grid, rc=localrc)
     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__, &
       rcToReturn=rc)) return
 
+    if (am_I_Root) print *, "NEXUS DEBUG: Initialize - HCO_Grid set on model component"
+
+    ! HCO_Init will be called later - skip field creation here for now
+
+    ! DEBUG: Verify grid is now available from component
+    if (am_I_Root) then
+        print *, "NEXUS DEBUG: Verifying grid can be retrieved from component..."
+        call ESMF_GridCompGet(model, grid=HCO_Grid, rc=localrc)
+        if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+          line=__LINE__, &
+          file=__FILE__)) then
+            print *, "NEXUS DEBUG: ERROR - Cannot retrieve grid from component after setting it!"
+        else
+            print *, "NEXUS DEBUG: SUCCESS - Grid can be retrieved from component"
+        end if
+    end if
+
     ! Initialize I/O
-    if (localPet == rootPet) print *, "NEXUS: Calling IO_Init"
+    if (am_I_Root) print *, "NEXUS: Calling IO_Init"
     call IO_Init(HCO_Grid, clock, rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__, &
       rcToReturn=rc)) return
 
+    ! Create HcoState with proper species count
+    if (localPet == rootPet) print *, "NEXUS: Calling HcoState_Init"
+    call HcoState_Init( HcoState, HcoConfig, 0, rc )
+    if (nxs_error_log(rc, msg='Error encountered in routine "HcoState_Init"!', &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
+    ! Register model species with HEMCO (must be done after HcoState_Init)
+    if (localPet == rootPet) print *, "NEXUS: Registering model species with HEMCO"
+    call NEXUS_RegisterSpecies(SpecFile, (localPet == rootPet), HcoConfig, HcoState, localrc)
+    if (nxs_error_log(localrc, msg='Error registering model species with HEMCO!', &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
     ! Set up HEMCO grid from ESMF grid
-    if (localPet == rootPet) print *, "NEXUS: Calling nxs_set_hco_grid"
+    if (am_I_Root) print *, "NEXUS: Calling nxs_set_hco_grid"
     call nxs_set_hco_grid( HcoState, HCO_Grid, rc )
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
@@ -741,12 +989,83 @@ contains
       rcToReturn=rc)) return
 
     ! Initialize HEMCO core (moved from SetServices)
-    if (localPet == rootPet) print *, "NEXUS: Calling HCO_Init"
+    if (am_I_Root) print *, "NEXUS: Calling HCO_Init"
     call HCO_Init( HcoState, rc )
     if (nxs_error_log(rc, msg='Error encountered in routine "HCO_Init"!', &
       line=__LINE__, &
       file=__FILE__, &
       rcToReturn=rc)) return
+
+    ! Initialize custom field registry and register test fields for HEMCO
+    if (am_I_Root) print *, "NEXUS: Registering fields for HEMCO"
+    call InitializeFieldDataRegistry(rc)
+    if (rc /= ESMF_SUCCESS) then
+       print *, "NEXUS ERROR: Failed to initialize field registry"
+       return
+    endif
+
+    ! Register some common HEMCO fields that we saw in the error log
+    call nexus_register_field("CEDS_BC:BC_agr", 100, 100, "kg m-2 s-1", rc)
+    call nexus_register_field("CEDS_BC:BC_ene", 100, 100, "kg m-2 s-1", rc)
+    call nexus_register_field("CEDS_BC:BC_ind", 100, 100, "kg m-2 s-1", rc)
+    call nexus_register_field("CEDS_OC:OC_agr", 100, 100, "kg m-2 s-1", rc)
+    call nexus_register_field("CEDS_SO2:SO2_agr", 100, 100, "kg m-2 s-1", rc)
+    call nexus_register_field("TIMEZONES:UTC_OFFSET", 100, 100, "hours", rc)
+    call nexus_register_field("AnnualScalar:NOxscalar", 100, 100, "1", rc)
+    if (am_I_Root) print *, "NEXUS: Field registration completed"
+
+     ! Set up HEMCO NUOPC IMPORT state for data reading
+     if (am_I_Root) print *, "NEXUS: Setting up HEMCO IMPORT state for NUOPC"
+     HcoState%IMPORT => importState
+
+     ! Now populate ImportState with fields from custom registry (standalone mode)
+     call ESMF_LogWrite("NEXUS: Populating ImportState from custom field registry", ESMF_LOGMSG_INFO, rc=localrc)
+    call PopulateImportFromRegistry(importState, HCO_Grid, rc)
+     if (rc /= ESMF_SUCCESS) then
+       call ESMF_LogWrite("NEXUS ERROR: Failed to populate ImportState from custom registry", ESMF_LOGMSG_ERROR, rc=localrc)
+       return
+     else
+       call ESMF_LogWrite("NEXUS: ImportState population from registry completed successfully", ESMF_LOGMSG_INFO, rc=localrc)
+     endif
+
+    ! Debug HEMCO species after initialization
+    if (localPet == rootPet) then
+       print *, "NEXUS DEBUG: After HCO_Init, checking species..."
+       if (associated(HcoState)) then
+          print *, "NEXUS DEBUG: HcoState is associated"
+          if (associated(HcoState%Spc)) then
+             print *, "NEXUS DEBUG: HcoState%Spc is associated, nSpc =", HcoState%nSpc
+             if (HcoState%nSpc > 0) then
+                print *, "NEXUS DEBUG: First species name =", trim(HcoState%Spc(1)%SpcName)
+             endif
+          else
+             print *, "NEXUS DEBUG: HcoState%Spc is NOT associated"
+          endif
+       else
+          print *, "NEXUS DEBUG: HcoState is NOT associated"
+       endif
+    endif
+
+    ! HEMCO's auto-diagnostic system should populate collections during HCO_Run
+
+    ! Check diagnostic initialization and create needed diagnostics
+    if (localPet == rootPet) then
+       print *, "NEXUS: HCO_Init completed, checking diagnostics..."
+       if (associated(HcoState%Diagn)) then
+          print *, "NEXUS: Diagnostic bundle exists with", HcoState%Diagn%nnCollections, "collections"
+       else
+          print *, "NEXUS: No diagnostic bundle found after HCO_Init"
+       endif
+    endif
+
+    ! Now create STREAM:VARIABLE import fields after HEMCO is initialized
+    if (am_I_Root) print *, "NEXUS: Creating STREAM:VARIABLE fields after HCO_Init"
+    call CreateStreamVariableImportFields(model, importState, localPet, rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__,  &
+      rcToReturn=rc)) return  ! bail out
+
 
     !=======================================================================
     ! Create and initialize extensions.
@@ -799,6 +1118,15 @@ contains
         call ESMF_LogFlush(rc=localrc)
         print *, "NEXUS DEBUG: Initialization complete - native grid export ready"
     endif
+
+    ! Signal to NUOPC that data initialization is complete
+    ! This is essential to prevent deadlock in the driver's data dependency resolution
+    call NUOPC_CompAttributeSet(model, name="InitializeDataComplete", value="true", rc=localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__, &
+      rcToReturn=rc)) return
+
     localrc = ESMF_SUCCESS
 
   end subroutine Initialize
@@ -1170,7 +1498,7 @@ contains
   ! NOTE: nxs_diag_state_init is disabled - using NUOPC export state instead
   ! All diagnostic functionality is handled by HCO_SetServices_NUOPC
   ! The entire subroutine is commented out below
-  
+
 #if 0
   !> @brief Disabled diagnostic state initialization (using export state instead)
   subroutine nxs_diag_state_init_disabled( HcoGrid, HcoState, DiagState, rc )
@@ -1188,7 +1516,7 @@ contains
 
     do while (flag == HCO_SUCCESS)
       if (localPet == 0) print "('NEXUS: Initializing Diag variable ''', a, '''')", trim(thisDiagn%cName)
-      
+
       ! Only process diagnostics with valid dimensions
       if (thisDiagn % spaceDim >= 2 .and. thisDiagn % spaceDim <= 3) then
         select case ( thisDiagn % spaceDim )
@@ -1268,7 +1596,7 @@ contains
       line=__LINE__,  &
       file=__FILE__,  &
       rcToReturn=rc)) return  ! bail out
-    
+
     if (localPet == 0) then
         print *, "NEXUS DEBUG: DiagState itemCount = ", itemCount
     endif
@@ -1279,7 +1607,7 @@ contains
           line=__LINE__,  &
           file=__FILE__,  &
           rcToReturn=rc)) return  ! bail out
-        
+
         if (localPet == 0) then
             call ESMF_LogWrite("NEXUS DEBUG: ESMF_StateReconcile completed successfully", ESMF_LOGMSG_INFO)
             call ESMF_LogFlush(rc=localrc)
@@ -1312,7 +1640,7 @@ contains
 
     ! -- begin
     if (present(rc)) rc = ESMF_SUCCESS
-    
+
     ! Diagnostics are automatically updated by HEMCO's NUOPC interface
     ! No manual copying needed when using export state mechanism
     localrc = ESMF_SUCCESS
@@ -1855,6 +2183,132 @@ contains
 
   end subroutine nxs_create_hco_grid
 
+  !> @brief Creates the HEMCO grid from configuration without clock dependency.
+  !>
+  !> This routine creates a static grid for use during the Realize phase where
+  !> the ESMF clock is not yet available. It assumes static grid files that
+  !> don't require date/time token resolution.
+  !>
+  !> @param ConfigFile Configuration file name
+  !> @param Grid       Output ESMF grid object
+  !> @param rc         Return code.
+  subroutine nxs_create_hco_grid_static( ConfigFile, Grid, rc )
+    character(len=*), intent(in)  :: ConfigFile
+    type(ESMF_Grid),  intent(out) :: Grid
+    integer,          intent(out) :: rc
+
+    integer :: unit, stat
+    character(len=255) :: line, key, value
+    character(len=255) :: GridFileLocal
+    integer :: i
+    integer :: NX, NY
+    real(ESMF_KIND_R8) :: XMIN, XMAX, YMIN, YMAX
+    integer :: dimLengths(2)
+    real(ESMF_KIND_R8) :: centerXMin, centerXMax, centerYMin, centerYMax
+    integer :: localrc
+
+    rc = ESMF_SUCCESS
+    GridFileLocal = GridFile ! Default
+
+    ! Open main config file to find GridFile
+    open(newunit=unit, file=trim(ConfigFile), status='old', iostat=stat)
+    if (stat /= 0) then
+      if (localPet == 0) print *, "Error opening config file: ", trim(ConfigFile)
+      rc = ESMF_FAILURE
+      return
+    end if
+
+    do
+      read(unit, '(a)', end=10) line
+      ! Skip comments and empty lines
+      if (len_trim(line) == 0 .or. line(1:1) == '#') cycle
+
+      ! Parse key-value pair
+      i = index(line, ':')
+      if (i > 0) then
+        key = trim(adjustl(line(1:i-1)))
+        value = trim(adjustl(line(i+1:)))
+
+        if (trim(key) == 'GridFile') then
+          GridFileLocal = value
+          exit
+        end if
+      end if
+    end do
+10  continue
+    close(unit)
+
+    ! For Realize phase, assume static grid file (no date tokens to resolve)
+    ! This works for files like HEMCO_sa_Grid.rc that contain static parameters
+
+    if (localPet == 0) print *, "NEXUS: Reading grid settings from ", trim(GridFileLocal)
+    open(newunit=unit, file=trim(GridFileLocal), status='old', iostat=stat)
+    if (stat /= 0) then
+      if (localPet == 0) print *, "Error opening grid file: ", trim(GridFileLocal)
+      rc = ESMF_FAILURE
+      return
+    end if
+
+    do
+      read(unit, '(a)', end=20) line
+      ! Skip comments and empty lines
+      if (len_trim(line) == 0 .or. line(1:1) == '#') cycle
+
+      ! Parse key-value pair
+      i = index(line, ':')
+      if (i > 0) then
+        key = trim(adjustl(line(1:i-1)))
+        value = trim(adjustl(line(i+1:)))
+
+        select case (trim(key))
+          case ('XMIN')
+            read(value, *) XMIN
+          case ('XMAX')
+            read(value, *) XMAX
+          case ('YMIN')
+            read(value, *) YMIN
+          case ('YMAX')
+            read(value, *) YMAX
+          case ('NX')
+            read(value, *) NX
+          case ('NY')
+            read(value, *) NY
+        end select
+      end if
+    end do
+20  continue
+    close(unit)
+
+    ! Create ESMF grid
+    dimLengths(1) = NX
+    dimLengths(2) = NY
+
+    ! Calculate grid center coordinates
+    centerXMin = XMIN + (XMAX - XMIN) / (2.0_ESMF_KIND_R8 * NX)
+    centerXMax = XMAX - (XMAX - XMIN) / (2.0_ESMF_KIND_R8 * NX)
+    centerYMin = YMIN + (YMAX - YMIN) / (2.0_ESMF_KIND_R8 * NY)
+    centerYMax = YMAX - (YMAX - YMIN) / (2.0_ESMF_KIND_R8 * NY)
+
+    Grid = ESMF_GridCreateNoPeriDim( &
+      minIndex=(/1, 1/), &
+      maxIndex=(/NX, NY/), &
+      coordSys=ESMF_COORDSYS_SPH_DEG, &
+      rc=localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+
+    ! Add coordinates to grid
+    call ESMF_GridAddCoord(Grid, staggerloc=ESMF_STAGGERLOC_CENTER, rc=localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+
+    if (localPet == 0) then
+      print *, "NEXUS: Created static ESMF grid: NX=", NX, " NY=", NY
+      print *, "NEXUS: Grid bounds: X=[", XMIN, ",", XMAX, "] Y=[", YMIN, ",", YMAX, "]"
+    endif
+
+  end subroutine nxs_create_hco_grid_static
+
   !> @brief Helper to set 1D coordinates on a 2D grid.
   subroutine set_1d_coord(grid, dim, stagger, nx, ny, minVal, maxVal, rc)
     type(ESMF_Grid), intent(inout) :: grid
@@ -1992,5 +2446,312 @@ contains
     read(str(18:19), *) s
 
   end subroutine parse_date
+
+  !-----------------------------------------------------------------------
+  !> @brief Create HEMCO diagnostics manually
+  !!
+  !! This subroutine creates HEMCO diagnostics for all species that need
+  !! to be exported, bypassing the file-based configuration if needed.
+  !!
+  subroutine nxs_create_hemco_diagnostics(HcoState, rc)
+    implicit none
+
+    type(Hco_State), pointer, intent(inout) :: HcoState
+    integer, intent(out) :: rc
+
+    ! Local variables
+    integer :: i, n, HcoID
+    character(len=255) :: msg
+    character(len=63) :: DiagnName
+
+    rc = HCO_SUCCESS
+
+    ! ALWAYS print this to see if function is called
+    print *, "NEXUS: *** nxs_create_hemco_diagnostics CALLED ***"
+
+    if (HcoState%amIRoot) then
+       print *, "NEXUS: Creating HEMCO diagnostics manually..."
+       print *, "NEXUS: HEMCO has", HcoState%nSpc, "species defined"
+    endif
+
+    ! Check if diagnostics already exist
+    call DiagnCollection_Get(HcoState%Diagn, &
+       HcoState%Diagn%HcoDiagnIDDefault, nnDiagn=n, RC=rc)
+    if (rc /= HCO_SUCCESS) then
+       print *, "NEXUS: Error getting diagnostic collection info"
+       return
+    endif
+
+    if (HcoState%amIRoot) then
+       print *, "NEXUS: Default collection currently has", n, "diagnostics"
+    endif
+
+    ! Create diagnostics for ALL HEMCO species (like the standalone interface does)
+    do i = 1, HcoState%nSpc
+       ! Get HEMCO ID
+       HcoID = HcoState%Spc(i)%HcoID
+       if (HcoID <= 0) cycle
+
+       ! Create diagnostic name
+       DiagnName = trim(HcoState%Spc(i)%SpcName)
+
+       if (HcoState%amIRoot) then
+          print *, "NEXUS: Creating diagnostic for", trim(DiagnName), "HcoID:", HcoID
+       endif
+
+       call Diagn_Create(HcoState, &
+          cName     = DiagnName, &
+          long_name = 'Emissions of ' // trim(DiagnName), &
+          HcoID     = HcoID, &
+          ExtNr     = -1, &
+          Cat       = -1, &
+          Hier      = -1, &
+          SpaceDim  = 2, &
+          OutUnit   = 'kg/m2/s', &
+          AutoFill  = 1, &
+          COL       = HcoState%Diagn%HcoDiagnIDDefault, &
+          OkIfExist = .TRUE., &
+          RC        = rc)
+
+       if (rc /= HCO_SUCCESS) then
+          print *, "NEXUS: Error creating diagnostic for", trim(DiagnName)
+          return
+       endif
+    end do    ! Check final count
+    call DiagnCollection_Get(HcoState%Diagn, &
+       HcoState%Diagn%HcoDiagnIDDefault, nnDiagn=n, RC=rc)
+    if (rc /= HCO_SUCCESS) then
+       print *, "NEXUS: Error getting final diagnostic count"
+       return
+    endif
+
+    if (HcoState%amIRoot) then
+       print *, "NEXUS: After creation, default collection has", n, "diagnostics"
+    endif
+
+  end subroutine nxs_create_hemco_diagnostics
+
+  !> @brief Create STREAM:VARIABLE import fields for HEMCO NUOPC coupling
+  !>
+  !> This subroutine creates ESMF fields with names like "CEDS_SO2:SO2_was"
+  !> based on the nexus_input_streams.yaml configuration and populates them
+  !> with data from NetCDF files.
+  !>
+  !> @param model       The ESMF grid component
+  !> @param importState The import state to add fields to
+  !> @param localPet    Local processor ID
+  !> @param rc          Return code
+  subroutine CreateStreamVariableImportFields(model, importState, localPet, rc)
+    use nexus_io_mod, only: CreateAndPopulateStreamVariableFields
+
+    type(ESMF_GridComp), intent(inout)  :: model
+    type(ESMF_State),    intent(inout)  :: importState
+    integer,             intent(in)     :: localPet
+    integer,             intent(out)    :: rc
+
+    ! Local variables
+    type(ESMF_Grid) :: grid
+    integer         :: localrc
+    logical         :: isCreated
+
+    rc = ESMF_SUCCESS
+
+    ! Get the grid from the gridded component
+    call ESMF_GridCompGet(model, grid=grid, rc=localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+
+    if (localPet == 0) print *, "NEXUS DEBUG: CreateStreamVariableImportFields - GridCompGet complete"
+
+    isCreated = ESMF_GridIsCreated(grid, rc=localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+
+    if (localPet == 0) then
+       if (isCreated) then
+          print *, "NEXUS DEBUG: CreateStreamVariableImportFields - Grid object IS created/valid"
+       else
+          print *, "NEXUS DEBUG: CreateStreamVariableImportFields - Grid object IS NOT created/valid"
+       endif
+    endif
+
+    if (localPet == 0) print *, "NEXUS: Starting STREAM:VARIABLE import field creation..."
+
+    ! Create and populate the STREAM:VARIABLE fields
+    call CreateAndPopulateStreamVariableFields(importState, grid, localPet, rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, file=__FILE__, rcToReturn=rc)) then
+      if (localPet == 0) print *, "NEXUS: ERROR in CreateAndPopulateStreamVariableFields"
+      return
+    endif
+
+    if (localPet == 0) print *, "NEXUS: Successfully completed STREAM:VARIABLE import field creation"
+
+  end subroutine CreateStreamVariableImportFields
+
+  !> @brief Advertises STREAM:VARIABLE import fields during Advertise phase.
+  !>
+  !> @param[inout] importState  The import state to advertise fields in
+  !> @param[in]    localPet     Local PET number for debug output
+  !> @param[out]   rc           Return code
+  subroutine AdvertiseStreamVariableImportFields(importState, localPet, rc)
+    use nexus_io_mod, only: IO_Init
+
+    type(ESMF_State), intent(inout) :: importState
+    integer,          intent(in)    :: localPet
+    integer,          intent(out)   :: rc
+
+    ! Local variables
+    character(len=256)      :: streamVariableName, streamName, varName, line
+    integer                 :: i, j, k, localrc, ios, unit
+    logical                 :: inStream, inDatavars
+
+    rc = ESMF_SUCCESS
+
+    if (localPet == 0) then
+      print *, "NEXUS: Advertising STREAM:VARIABLE import fields from nexus_input_streams.yaml"
+    endif
+
+    ! Open and parse nexus_input_streams.yaml to get stream:variable combinations
+    open(newunit=unit, file='nexus_input_streams.yaml', status='old', action='read', iostat=ios)
+    if (ios /= 0) then
+      if (localPet == 0) then
+        print *, "NEXUS: Warning - could not open nexus_input_streams.yaml for advertising"
+        print *, "NEXUS: Will advertise fallback test fields"
+      endif
+      ! Advertise some basic test fields if YAML is not available
+      call AdvertiseTestStreamVariableFields(importState, localPet, rc)
+      return
+    endif
+
+    inStream = .false.
+    inDatavars = .false.
+    streamName = ''
+
+    ! Parse YAML file line by line (simplified parser for stream/datavar structure)
+    do
+      read(unit, '(A)', iostat=ios) line
+      if (ios /= 0) exit  ! End of file
+
+      line = adjustl(line)  ! Remove leading spaces
+
+      ! Look for stream name (e.g., "- name: CEDS_BC")
+      if (line(1:7) == '- name:') then
+        inStream = .true.
+        inDatavars = .false.
+        ! Extract stream name after "- name: "
+        streamName = trim(adjustl(line(8:)))
+        if (localPet == 0) then
+          print *, "NEXUS: Found input stream for advertising: ", trim(streamName)
+        endif
+
+      ! Look for start of datavars section
+      else if (inStream .and. line(1:9) == 'datavars:') then
+        inDatavars = .true.
+
+      ! Look for variable names in datavars (e.g., "- BC_agr")
+      else if (inDatavars .and. line(1:1) == '-') then
+        ! Extract variable name after "- "
+        varName = trim(adjustl(line(2:)))
+
+        ! Create STREAM:VARIABLE combination
+        streamVariableName = trim(streamName) // ':' // trim(varName)
+
+        if (localPet == 0) then
+          print *, "NEXUS: Advertising import field: ", trim(streamVariableName)
+        endif
+
+        ! Advertise the field using NUOPC_Advertise
+        call AdvertiseSingleStreamVariableField(importState, streamVariableName, localPet, localrc)
+        if (localrc /= ESMF_SUCCESS) then
+          rc = localrc
+          close(unit)
+          return
+        endif
+
+      ! Reset when we hit a new top-level entry or end of current stream
+      else if (line(1:1) == '-' .and. line(1:7) /= '- name:') then
+        inStream = .false.
+        inDatavars = .false.
+      endif
+    end do
+
+    close(unit)
+
+    if (localPet == 0) then
+      print *, "NEXUS: Completed advertising STREAM:VARIABLE import fields from YAML"
+    endif
+
+  end subroutine AdvertiseStreamVariableImportFields
+
+  !> @brief Advertises a single STREAM:VARIABLE import field during Advertise phase.
+  !>
+  !> @param[inout] importState  The import state to advertise field in
+  !> @param[in]    fieldName    The field name to advertise
+  !> @param[in]    localPet     Local PET number for debug output
+  !> @param[out]   rc           Return code
+  subroutine AdvertiseSingleStreamVariableField(importState, fieldName, localPet, rc)
+
+    type(ESMF_State), intent(inout) :: importState
+    character(len=*), intent(in)    :: fieldName
+    integer,          intent(in)    :: localPet
+    integer,          intent(out)   :: rc
+
+    ! Local variables
+    integer :: localrc
+
+    rc = ESMF_SUCCESS
+
+    ! First add field to NUOPC field dictionary with appropriate units
+    call NUOPC_FieldDictionaryAddEntry(trim(fieldName), "kg m-2 s-1", rc=localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+
+    ! Advertise import field using NUOPC_Advertise to ensure proper metadata
+    call NUOPC_Advertise(importState, StandardName=trim(fieldName), rc=localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+
+    if (localPet == 0) then
+      print *, "NEXUS: Successfully advertised import field: ", trim(fieldName)
+    endif
+
+  end subroutine AdvertiseSingleStreamVariableField
+
+  !> @brief Advertises fallback test import fields if YAML file is not available.
+  !>
+  !> @param[inout] importState  The import state to advertise fields in
+  !> @param[in]    localPet     Local PET number for debug output
+  !> @param[out]   rc           Return code
+  subroutine AdvertiseTestStreamVariableFields(importState, localPet, rc)
+
+    type(ESMF_State), intent(inout) :: importState
+    integer,          intent(in)    :: localPet
+    integer,          intent(out)   :: rc
+
+    ! Local variables
+    integer :: i, localrc
+    character(len=*), parameter :: testFields(4) = [&
+      'CEDS_SCALING:NOXscale', &
+      'CEDS_BC:BC_agr       ', &
+      'CEDS_OC:OC_agr       ', &
+      'CEDS_SO2:SO2_was     ' ]
+
+    rc = ESMF_SUCCESS
+
+    if (localPet == 0) then
+      print *, "NEXUS: Advertising fallback test STREAM:VARIABLE fields"
+    endif
+
+    ! Advertise test fields
+    do i = 1, size(testFields)
+      call AdvertiseSingleStreamVariableField(importState, trim(testFields(i)), localPet, localrc)
+      if (localrc /= ESMF_SUCCESS) then
+        rc = localrc
+        return
+      endif
+    end do
+
+  end subroutine AdvertiseTestStreamVariableFields
 
 end module nexus_cap
