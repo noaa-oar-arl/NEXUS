@@ -3,38 +3,43 @@ add_executable(nexus
 )
 
 add_library(NEXUS_Shared STATIC EXCLUDE_FROM_ALL
+  nexus_types.F90
+  nexus_species_mod.F90
+  nexus_runtime_config_mod.F90
+  nexus_grid_mod.F90
+  nexus_config_mod.F90
+  nexus_state_mod.F90
+  nexus_field_advertisement_mod.F90
+  nexus_initialize_mod.F90
   cap.F90
   driver.F90
   nexus_io_mod.F90
 )
 
-# MPI is required if explicitly requested OR if parallel NetCDF is used
-if(USE_MPI OR NetCDF_PARALLEL)
-  find_package(MPI REQUIRED)
-  if(USE_MPI)
-    target_compile_definitions(NEXUS_Shared PRIVATE USE_MPI)
-    target_compile_definitions(nexus PRIVATE USE_MPI)
-  endif()
-endif()
+# MPI is always required for this system
+find_package(MPI REQUIRED)
+target_compile_definitions(NEXUS_Shared PRIVATE USE_MPI)
+target_compile_definitions(nexus PRIVATE USE_MPI)
 
 target_include_directories(NEXUS_Shared
   INTERFACE ${HEMCO_BINARY_DIR}/mod
-  INTERFACE /scratch4/NCEPDEV/naqfc/Barry.Baker/models/ufs-weather-model/build/CDEPS-interface/mod
 )
 
 find_package(ESMF REQUIRED)
 find_package(NetCDF REQUIRED COMPONENTS Fortran)
 
-# Add PIO support required by CDEPS - using CDEPS FindPIO module
-if (DEFINED ENV{PIO_ROOT})
-  message("PIO_ROOT is $ENV{PIO_ROOT}")
-else()
-  if (DEFINED PIO)
-    set(PIO_PATH ${PIO})
+# Add PIO support required by CDEPS when inline CDEPS is enabled
+if(NEXUS_USE_INLINE_CDEPS)
+  if (DEFINED ENV{PIO_ROOT})
+    message("PIO_ROOT is $ENV{PIO_ROOT}")
   else()
-    set(PIO_PATH $ENV{parallelio_ROOT})
+    if (DEFINED PIO)
+      set(PIO_PATH ${PIO})
+    else()
+      set(PIO_PATH $ENV{parallelio_ROOT})
+    endif()
+    find_package(PIO REQUIRED COMPONENT C Fortran PATH ${PIO_PATH})
   endif()
-  find_package(PIO REQUIRED COMPONENT C Fortran PATH ${PIO_PATH})
 endif()
 
 if(NetCDF_PARALLEL)
@@ -45,27 +50,41 @@ endif()
 target_compile_options(NEXUS_Shared PRIVATE
   "-I${ESMF_INCLUDE_DIRS}"
   "-I${NetCDF_Fortran_INCLUDE_DIRS}"
-  "-I/scratch4/NCEPDEV/naqfc/Barry.Baker/models/ufs-weather-model/build/CDEPS-interface/mod"
-  "-I${PIO_Fortran_INCLUDE_DIR}"
 )
 
-# Link to CDEPS directly by library file to avoid problematic target dependencies
-# Add PIO libraries that CDEPS requires
-# IMPORTANT: CDEPS depends on ESMF, so ESMF must come AFTER CDEPS in link order
+# Optional include dirs and defs for inline CDEPS
+if(NEXUS_USE_INLINE_CDEPS)
+  target_compile_options(NEXUS_Shared PRIVATE
+    "-I${CDEPS_INTERFACE_DIR}/mod"
+    "-I${PIO_Fortran_INCLUDE_DIR}"
+  )
+  target_compile_definitions(NEXUS_Shared PRIVATE NEXUS_USE_INLINE_CDEPS)
+  target_compile_definitions(nexus PRIVATE NEXUS_USE_INLINE_CDEPS)
+endif()
+
 target_link_libraries(NEXUS_Shared
   PUBLIC HCOI_Shared
   PUBLIC HCOI_NUOPC
-  PUBLIC /scratch4/NCEPDEV/naqfc/Barry.Baker/models/ufs-weather-model/build/CDEPS-interface/libcdeps.a
-  PUBLIC esmf
-  PUBLIC ${PIO_C_LIBRARIES}
-  PUBLIC ${PIO_Fortran_LIBRARIES}
 )
+
+# Link to CDEPS and PIO only when inline CDEPS is enabled
+if(NEXUS_USE_INLINE_CDEPS)
+  # Prefer cdeps target if available, else link archive directly
+  if(TARGET cdeps)
+    target_link_libraries(NEXUS_Shared PUBLIC cdeps)
+  elseif(EXISTS "${CDEPS_INTERFACE_DIR}/libcdeps.a")
+    target_link_libraries(NEXUS_Shared PUBLIC ${CDEPS_INTERFACE_DIR}/libcdeps.a)
+  else()
+    message(FATAL_ERROR "Inline CDEPS enabled but libcdeps target or archive not found. Set CDEPS_INTERFACE_DIR correctly.")
+  endif()
+  # ESMF must come after CDEPS in link order
+  target_link_libraries(NEXUS_Shared PUBLIC esmf)
+  target_link_libraries(NEXUS_Shared PUBLIC ${PIO_C_LIBRARIES} ${PIO_Fortran_LIBRARIES})
+endif()
 
 target_link_libraries(nexus
   PUBLIC NEXUS_Shared
   PUBLIC NetCDF::NetCDF_Fortran
-  PUBLIC ${PIO_C_LIBRARIES}
-  PUBLIC ${PIO_Fortran_LIBRARIES}
 )
 
 

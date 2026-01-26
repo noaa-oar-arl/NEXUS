@@ -21,7 +21,9 @@ program app
   integer :: localPet, petCount
   integer :: debugLevel
   logical :: writeRestart
-  integer :: ibuf(2)
+  integer :: tsEmis
+  integer :: outputFrequency
+  integer :: ibuf(3)
   integer :: mpi_ierr
   character(ESMF_MAXSTR) :: ConfigFile
   character(ESMF_MAXSTR) :: ReGridFile
@@ -70,12 +72,13 @@ program app
 
   debugLevel = 0
   writeRestart = .false.
+  outputFrequency = 3600
 
   localrc = ESMF_SUCCESS
 
   if (localPet == rootPet) then
     call parse_control_file("nexus.rc", ConfigFile, ReGridFile, OutputFile, &
-      debugLevel, writeRestart, localrc)
+                            debugLevel, writeRestart, tsEmis, outputFrequency)
 
     call print_sep(char="=")
     print "(a)", description
@@ -85,6 +88,7 @@ program app
     print "('ReGridFile = ', a)", trim(ReGridFile)
     print "('debugLevel = ', i0)", debugLevel
     print "('OutputFile = ', a)", trim(OutputFile)
+    print "('outputFrequency = ', i0)", outputFrequency
     print "('petCount   = ', i0)", petCount
     call print_sep()
   end if
@@ -99,6 +103,15 @@ program app
     call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
   localrc    = ibuf(1)
   debugLevel = ibuf(2)
+  ! Broadcast TS_EMIS and writeRestart flag
+  ibuf(1) = tsEmis
+  ibuf(2) = merge(1, 0, writeRestart)
+  ibuf(3) = outputFrequency
+  call ESMF_VMBroadcast(vm, ibuf, size(ibuf), rootPet, rc=rc)
+  tsEmis = ibuf(1)
+  writeRestart = (ibuf(2) == 1)
+  outputFrequency = ibuf(3)
+
   if (ESMF_LogFoundError(localrc, msg="Failure reading control file", &
     line=__LINE__,  &
     file=__FILE__)) &
@@ -118,7 +131,7 @@ program app
 
   !-----------------------------------------------------------------------------
 
-  call init_cap(ConfigFile, ReGridFile, OutputFile, debugLevel, writeRestart, rc=rc)
+  call init_cap(ConfigFile, ReGridFile, OutputFile, debugLevel, outputFrequency, writeRestart, rc=rc)
 
   ! -> CREATE THE DRIVER
   drvComp = ESMF_GridCompCreate(name="driver", rc=rc)
@@ -187,10 +200,8 @@ program app
 
   call ESMF_LogWrite("NEXUS finalized", ESMF_LOGMSG_INFO)
 
-  ! Finalize ESMF
+  ! Finalize ESMF (this will also finalize MPI if ESMF initialized it)
   call ESMF_Finalize()
-
-  call MPI_Finalize(mpi_ierr)
 
   if (localPet == rootPet) print "('NEXUS: ', a)", "Done"
 
@@ -237,19 +248,20 @@ contains
   !> @param file         The path to the control file.
   !> @param ConfigFile   (Out) Path to the configuration file.
   !> @param ReGridFile   (Out) Path to the regridding file.
-  !> @param OutputFile   (Out) Path to the output file.
+  !> @param OutputFile   (Out) Path to the output file prefix.
   !> @param debugLevel   (Out) Debug level.
   !> @param writeRestart (Out) Flag to write restart file.
+  !> @param tsEmis       (Out) Emission timestep in seconds.
+  !> @param outputFrequency (Out) Output frequency in seconds.
   !> @param rc           (Out) Return code.
   subroutine parse_control_file(file, ConfigFile, ReGridFile, OutputFile, &
-    debugLevel, writeRestart, rc)
+    debugLevel, writeRestart, tsEmis, outputFrequency)
     character(len=*), intent(in) :: file
     character(len=*), intent(out) :: ConfigFile
     character(len=*), intent(out) :: ReGridFile
     character(len=*), intent(out) :: OutputFile
-    integer, intent(out) :: debugLevel
+    integer, intent(out) :: debugLevel, tsEmis, outputFrequency
     logical, intent(out) :: writeRestart
-    integer, intent(out) :: rc
 
     integer :: unit, stat
     character(len=255) :: line, key, value
@@ -277,7 +289,9 @@ contains
     ReGridFile = ""
     OutputFile = "nexus_output.nc"
     debugLevel = 0
+    outputFrequency = 3600
     writeRestart = .false.
+    tsEmis = 3600
 
     do
       read(unit, '(a)', end=10) line
@@ -295,15 +309,21 @@ contains
         case ('REGRID_FILE')
           ReGridFile = value
           if (localPet == 0) print *, "DEBUG: Read REGRID_FILE = ", trim(value)
-        case ('OUTPUT_FILE')
+        case ('OUTPUT_PREFIX')
           OutputFile = value
-          if (localPet == 0) print *, "DEBUG: Read OUTPUT_FILE = ", trim(value)
+          if (localPet == 0) print *, "DEBUG: Read OUTPUT_PREFIX = ", trim(value)
         case ('DEBUG_LEVEL')
           read(value, *) debugLevel
           if (localPet == 0) print *, "DEBUG: Read DEBUG_LEVEL = ", debugLevel
+        case ('OUTPUT_FREQUENCY')
+          read(value, *) outputFrequency
+          if (localPet == 0) print *, "DEBUG: Read OUTPUT_FREQUENCY = ", outputFrequency
         case ('WRITE_RESTART')
           read(value, *) writeRestart
           if (localPet == 0) print *, "DEBUG: Read WRITE_RESTART = ", writeRestart
+        case ('TS_EMIS')
+          read(value, *) tsEmis
+          if (localPet == 0) print *, "DEBUG: Read TS_EMIS = ", tsEmis
       end select
     end do
 10  continue

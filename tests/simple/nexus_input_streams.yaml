@@ -130,7 +130,14 @@ input_streams:
     lev_dimname: none
     datafiles: "/scratch4/NCEPDEV/global/Barry.Baker/Emissions/GCAFS/nexus/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_weekly_fixtime.nc"
     datavars:
+      - FW_ene_ch4
+      - FW_ene_co
+      - FW_ene_co2
+      - FW_ene_nmvoc
+      - FW_ene_nox
+      - FW_ene_pm10
       - FW_ene_pm25
+      - FW_ene_sox
       - FW_tro
 
   - name: CAMS_HOURLY
@@ -145,8 +152,16 @@ input_streams:
     lev_dimname: none
     datafiles: "/scratch4/NCEPDEV/global/Barry.Baker/Emissions/GCAFS/nexus/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime.nc"
     datavars:
+      - FH_ene_ch4
+      - FH_ene_co
+      - FH_ene_co2
+      - FH_ene_nmvoc
+      - FH_ene_nox
+      - FH_ene_pm10
       - FH_ene_pm25
+      - FH_ene_sox
       - FH_res_pm10_pm25
+      - FH_res_others
       - FH_dow_tro
 
   - name: CEDS_SCALING

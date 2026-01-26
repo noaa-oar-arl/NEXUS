@@ -1,8 +1,8 @@
 output_streams:
   - name: nexus_hist
     frequency: "010000"
-    file: nexus_output.nc
-    mode: overwrite
+    file: nexus_output_$YYYY$MM$DD$HH$MN.nc
+    mode: create
     variables:
       - SO2
       - SO2_elev

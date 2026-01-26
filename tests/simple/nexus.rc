@@ -5,11 +5,20 @@
 # HEMCO configuration file
 CONFIG_FILE: NEXUS_Config.rc
 
+# Grid file (ESMF grid file, mosaic file, or HEMCO config)
+GRID_FILE: HEMCO_sa_Grid.rc
+
+# Standalone mode (true for standalone, false for coupled)
+STANDALONE_MODE: true
+
 # Regridding file (optional)
 REGRID_FILE: nexus_input_streams.yaml
 
-# Output file name (optional)
-OUTPUT_FILE: nexus_output.nc
+# Output file prefix for timestamped files (NEXUS will append _YYYYMMDDHHMM.nc)
+OUTPUT_PREFIX: nexus_out
+
+# Output frequency in seconds (how often to write output files)
+OUTPUT_FREQUENCY: 3600
 
 # Debug level (0 for none, 1 for debug)
 DEBUG_LEVEL: 1
@@ -17,5 +26,12 @@ DEBUG_LEVEL: 1
 # Write restart file (true or false)
 WRITE_RESTART: false
 
-# Timestep in seconds
-TIMESTEP: 3600
+# Start and end time for simulation (YYYY-MM-DD HH:MM:SS)
+START_TIME: 2023-10-01 00:00:00
+END_TIME: 2023-10-01 12:00:00
+
+# NEXUS/HEMCO timestep in seconds (how often NEXUS advances and HEMCO runs)
+TS_EMIS: 3600
+
+# Output frequency in seconds (how often files are written)
+OUTPUT_FREQUENCY: 3600

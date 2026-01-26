@@ -25,14 +25,17 @@ module nexus_types
   !----------------------------------------------------------------------------
 
   !> @brief Container for individual field data entry
-  !> @details Stores field metadata and data for both NUOPC and file-based fields
+  !> @details Stores field metadata and data for both NUOPC and file-based fields, supports 2D and 3D fields
   type :: FieldDataEntry
     character(len=256) :: name          !< Field name (e.g., "STREAM:VARIABLE")
     character(len=64)  :: units         !< Units string (e.g., "kg m-2 s-1")
     character(len=256) :: standard_name !< CF standard name
     character(len=64)  :: source_type   !< "NUOPC" or "FILE"
-    integer :: nx, ny                   !< Grid dimensions
-    real(kind=ESMF_KIND_R8), allocatable :: data(:,:) !< Field data array
+    integer :: nx, ny, nz               !< Grid dimensions (nz=1 for 2D fields)
+    logical :: is_2d, is_3d             !< Field dimensionality flags
+    real(kind=4), pointer :: data(:,:) => null()   !< 2D field data pointer (single precision for HEMCO)
+    real(kind=4), pointer :: data_2d(:,:) => null() !< Explicit 2D field data pointer
+    real(kind=4), pointer :: data_3d(:,:,:) => null() !< 3D field data pointer for vertical levels
     logical :: is_valid                 !< Whether the entry contains valid data
   end type FieldDataEntry
 
