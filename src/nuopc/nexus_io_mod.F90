@@ -17,15 +17,9 @@ module nexus_io_mod
   use pio
 
   ! --- CDEPS Imports ---
-  use dshr_mod         , only: dshr_pio_init
-  use dshr_strdata_mod, only: shr_strdata_type,         &
-                              shr_strdata_init_from_inline, &
-                              shr_strdata_advance,      &
-                              shr_strdata_print,        &
-                              shr_strdata_get_stream_pointer
-  use dshr_methods_mod , only: dshr_fldbun_getfldptr, dshr_fldbun_Field_diagnose
-  use dshr_stream_mod  , only: shr_stream_init_from_esmfconfig
-  use shr_kind_mod     , only: r8 => shr_kind_r8
+  use nexus_cdeps_inline_mod, only: nexus_cdeps_init, nexus_cdeps_run, nexus_cdeps_get_data_pointer, nexus_cdeps_get_available_fields
+  use hcoi_nuopc_mod, only: HCO_SetExtDataPointer_2S_NUOPC
+  use shr_kind_mod,    only: r8 => shr_kind_r8
 
   implicit none
 
@@ -63,7 +57,7 @@ module nexus_io_mod
   integer, save :: logunit      ! the logunit on the root task
   character(len=ESMF_MAXSTR), save :: stream_name  ! generic identifier
 
-  ! Module-level mesh for CDEPS operations  
+  ! Module-level mesh for CDEPS operations
   type(ESMF_Mesh), save :: model_mesh
 
   ! PIO System
@@ -435,7 +429,7 @@ if (localPet == 0) call ESMF_HConfigDestroy(hconfig, rc=rc)
     call dshr_fldbun_getFldPtr(sdat(stream_index)%pstrm(1)%fldbun_model, 'emission', dataPtr1d, rc=localrc)
     if (localrc == ESMF_SUCCESS .and. associated(dataPtr1d)) then
         if (localPet == 0) print *, "ExtractCDEPSFieldData: Successfully got CDEPS field pointer for emission -> ", trim(fieldname)
-        
+
         ! Copy data from CDEPS 1D array to destination 2D field (MOM6 pattern)
         n = 0
         do j = lbound(dstPtr2d, 2), ubound(dstPtr2d, 2)
@@ -448,7 +442,7 @@ if (localPet == 0) call ESMF_HConfigDestroy(hconfig, rc=rc)
                 endif
             end do
         end do
-        
+
         if (localPet == 0) print *, "ExtractCDEPSFieldData: Copied ", n, " data points from CDEPS for ", trim(fieldname)
         field_found = .true.
         rc = ESMF_SUCCESS
@@ -466,7 +460,7 @@ if (localPet == 0) call ESMF_HConfigDestroy(hconfig, rc=rc)
   end subroutine ExtractCDEPSFieldData
 
   !> @brief Extract field data from CDEPS FieldBundle using direct ESMF access
-  !> @details Bypasses problematic dshr_fldbun_getFldPtr interface 
+  !> @details Bypasses problematic dshr_fldbun_getFldPtr interface
   !> @param[in] fieldbundle CDEPS field bundle
   !> @param[in] fieldname Name of field to extract
   !> @param[inout] dstPtr2d Destination 2D array pointer
@@ -942,9 +936,9 @@ if (localPet == 0) call ESMF_HConfigDestroy(hconfig, rc=rc)
   end subroutine PopulateTestFieldData
 
   !> @brief Populate HEMCO field directly from CDEPS stream data
-  !> @details Bypasses problematic dshr_fldbun_getFldPtr interface and 
+  !> @details Bypasses problematic dshr_fldbun_getFldPtr interface and
   !>          accesses CDEPS data directly to populate HEMCO import field
-  !> @param[in] stream_index CDEPS stream index 
+  !> @param[in] stream_index CDEPS stream index
   !> @param[in] fieldname Name of field to populate
   !> @param[inout] hemcoField HEMCO import field to populate
   !> @param[out] rc Return code
@@ -996,17 +990,17 @@ if (localPet == 0) call ESMF_HConfigDestroy(hconfig, rc=rc)
     if (localPet == 0) print *, "PopulateHEMCOFromCDEPS: CDEPS streams operational for ", trim(fieldname), &
                                  " - using CDEPS-informed emission data pattern"
 
-    ! If CDEPS stream access failed, populate with realistic emission data 
+    ! If CDEPS stream access failed, populate with realistic emission data
     if (.not. field_found) then
         if (localPet == 0) print *, "PopulateHEMCOFromCDEPS: Using CDEPS-informed emission data for ", trim(fieldname)
-        
+
         ! Determine emission values based on species (informed by CDEPS data)
         if (index(fieldname, 'BC') > 0) then
             emission_value = 1.5e-12_ESMF_KIND_R8  ! kg/m2/s
             species_name = 'BC'
         elseif (index(fieldname, 'OC') > 0) then
             emission_value = 2.3e-12_ESMF_KIND_R8
-            species_name = 'OC' 
+            species_name = 'OC'
         elseif (index(fieldname, 'SO2') > 0) then
             emission_value = 4.1e-11_ESMF_KIND_R8
             species_name = 'SO2'
@@ -1030,7 +1024,7 @@ if (localPet == 0) call ESMF_HConfigDestroy(hconfig, rc=rc)
                               cos(real(j,ESMF_KIND_R8) * 0.15_ESMF_KIND_R8))
             end do
         end do
-        
+
         field_found = .true.
         if (localPet == 0) then
             print *, "PopulateHEMCOFromCDEPS: Populated ", trim(fieldname), " with ", trim(species_name), " emissions"
@@ -1133,7 +1127,7 @@ if (localPet == 0) call ESMF_HConfigDestroy(hconfig, rc=rc)
     num_cdeps_streams = 0
 
     if (localPet == 0) print *, "InitializeCDEPSStreams: Starting CDEPS initialization"
-    
+
     ! Store the mesh in the module variable for use by CDEPS
     model_mesh = mesh
     if (localPet == 0) print *, "InitializeCDEPSStreams: Using ESMF_Mesh for CDEPS"
@@ -1287,7 +1281,7 @@ if (localPet == 0) call ESMF_HConfigDestroy(hconfig, rc=rc)
 
     ! Use the actual CDEPS initialization routine like MOM6 does
     write(stream_name,fmt='(a,i2.2)') 'cdeps_stream_', stream_idx
-    
+
     ! CDEPS will handle mesh creation internally if needed
     call shr_strdata_init_from_inline(sdat(stream_idx),           &
            my_task             = localPet,                        &
@@ -1734,7 +1728,9 @@ if (localPet == 0) call ESMF_HConfigDestroy(hconfig, rc=rc)
           print *, "      Target HEMCO T2M size:", size(extState%T2M%Arr%Val,1), "x", size(extState%T2M%Arr%Val,2)
           do j = 1, size(fieldPtr2D, 2)
             do i = 1, size(fieldPtr2D, 1)
-              extState%T2M%Arr%Val(i,j) = real(fieldPtr2D(i,j), kind=kind(extState%T2M%Arr%Val))
+              if (abs(fieldPtr2D(i,j)) < 1.e15) then
+                  extState%T2M%Arr%Val(i,j) = real(fieldPtr2D(i,j), kind=kind(extState%T2M%Arr%Val))
+              endif
             enddo
           enddo
           print *, "      HEMCO T2M range after transfer: min=", minval(extState%T2M%Arr%Val), "max=", maxval(extState%T2M%Arr%Val)
@@ -1748,7 +1744,9 @@ if (localPet == 0) call ESMF_HConfigDestroy(hconfig, rc=rc)
           print *, "      Target HEMCO U10M size:", size(extState%U10M%Arr%Val,1), "x", size(extState%U10M%Arr%Val,2)
           do j = 1, size(fieldPtr2D, 2)
             do i = 1, size(fieldPtr2D, 1)
-              extState%U10M%Arr%Val(i,j) = real(fieldPtr2D(i,j), kind=kind(extState%U10M%Arr%Val))
+               if (abs(fieldPtr2D(i,j)) < 1.e15) then
+                   extState%U10M%Arr%Val(i,j) = real(fieldPtr2D(i,j), kind=kind(extState%U10M%Arr%Val))
+               endif
             enddo
           enddo
           print *, "      HEMCO U10M range after transfer: min=", minval(extState%U10M%Arr%Val), "max=", maxval(extState%U10M%Arr%Val)
@@ -1761,7 +1759,9 @@ if (localPet == 0) call ESMF_HConfigDestroy(hconfig, rc=rc)
             associated(extState%V10M%Arr%Val)) then
           do j = 1, size(fieldPtr2D, 2)
             do i = 1, size(fieldPtr2D, 1)
-              extState%V10M%Arr%Val(i,j) = real(fieldPtr2D(i,j), kind=kind(extState%V10M%Arr%Val))
+               if (abs(fieldPtr2D(i,j)) < 1.e15) then
+                   extState%V10M%Arr%Val(i,j) = real(fieldPtr2D(i,j), kind=kind(extState%V10M%Arr%Val))
+               endif
             enddo
           enddo
           print *, "  Transferred", trim(sourceName), "to HEMCO V10M"
@@ -1856,154 +1856,64 @@ if (localPet == 0) call ESMF_HConfigDestroy(hconfig, rc=rc)
 
     rc = ESMF_SUCCESS
 
-    ! Check if registry has emission fields to transfer
-    if (field_data_registry%num_entries == 0) then
-      print *, "  No CDEPS emission fields found to transfer"
-      print *, "  NOTE: Emission fields should be extracted earlier in TransferFieldsToHEMCO"
-      return
+    ! Dynamic field variables
+    character(len=ESMF_MAXSTR), allocatable :: available_fields(:)
+    integer :: num_avail_fields
+    real(kind=8), pointer :: data2D_ptr(:)
+
+    rc = ESMF_SUCCESS
+
+    ! Get available fields directly from CDEPS module
+    call nexus_cdeps_get_available_fields(available_fields, num_avail_fields, rc)
+    if (rc /= ESMF_SUCCESS) then
+        print *, "  Error getting available fields from CDEPS"
+        return
     endif
 
-    print *, "  Transferring", field_data_registry%num_entries, "CDEPS fields to HEMCO"
+    print *, "  Transferring", num_avail_fields, "CDEPS fields to HEMCO"
 
-    ! Transfer each field in the registry
-    do entryIdx = 1, field_data_registry%num_entries
-      fieldName = field_data_registry%entries(entryIdx)%name
+    ! Loop through all available CDEPS fields
+    do i = 1, num_avail_fields
+      fieldName = trim(available_fields(i))
 
-      ! Check if it's a 2D field (most common case)
-      if (field_data_registry%entries(entryIdx)%is_2d .and. &
-          associated(field_data_registry%entries(entryIdx)%data_2d)) then
+      ! Get the data pointer for this field
+      call nexus_cdeps_get_data_pointer(trim(fieldName), data2D_ptr, rc)
 
-        data2D => field_data_registry%entries(entryIdx)%data_2d
+      if (rc == ESMF_SUCCESS .and. associated(data2D_ptr)) then
 
-        ! Print diagnostic information about the source data
-        print *, "    CDEPS 2D field:", trim(fieldName)
-        print *, "      Dimensions:", size(data2D,1), "x", size(data2D,2)
-        print *, "      Data range: min=", minval(data2D), "max=", maxval(data2D)
+          ! Map to known HEMCO ExtState fields
+          select case(trim(fieldName))
+            case('BC_agr')
+                 if (associated(extState%BC_emissions) .and. associated(extState%BC_emissions%Arr)) then
+                      call HCO_SetExtDataPointer_2S_NUOPC(extState%BC_emissions, data2D_ptr, &
+                                                          size(extState%BC_emissions%Arr%Val,1), &
+                                                          size(extState%BC_emissions%Arr%Val,2), rc)
+                      print *, "    ✓ Linked CDEPS BC_agr pointer to HEMCO BC_emissions"
+                 endif
+            case('OC_agr')
+                 if (associated(extState%OC_emissions) .and. associated(extState%OC_emissions%Arr)) then
+                      call HCO_SetExtDataPointer_2S_NUOPC(extState%OC_emissions, data2D_ptr, &
+                                                          size(extState%OC_emissions%Arr%Val,1), &
+                                                          size(extState%OC_emissions%Arr%Val,2), rc)
+                      print *, "    ✓ Linked CDEPS OC_agr pointer to HEMCO OC_emissions"
+                 endif
+            case('SO2_agr')
+                 print *, "    ✓ Found CDEPS SO2_agr pointer"
+            case('NOx_agr')
+                 print *, "    ✓ Found CDEPS NOx_agr pointer"
+            case('CO_agr')
+                 print *, "    ✓ Found CDEPS CO_agr pointer"
 
-        ! Map CDEPS emission fields or meteorological fields to ExtState
-        select case(trim(fieldName))
-        case('SO2_emissions')
-          ! For emission fields, we might store them for later use in emission processing
-          print *, "    Found SO2 emission field from CDEPS:", trim(fieldName)
-        case('NOX_emissions')
-          print *, "    Found NOX emission field from CDEPS:", trim(fieldName)
-        case('BC_emissions')
-          print *, "    Found BC emission field from CDEPS:", trim(fieldName)
-        case('OC_emissions')
-          print *, "    Found OC emission field from CDEPS:", trim(fieldName)
-        case('T2M', 'TEMP', 'TEMPERATURE')
-          ! Transfer meteorological fields to ExtState
-          if (associated(extState%T2M) .and. associated(extState%T2M%Arr) .and. &
-              associated(extState%T2M%Arr%Val)) then
-            print *, "      Transferring to HEMCO T2M, target size:", &
-                     size(extState%T2M%Arr%Val,1), "x", size(extState%T2M%Arr%Val,2)
-            do j = 1, min(size(data2D, 2), size(extState%T2M%Arr%Val, 2))
-              do i = 1, min(size(data2D, 1), size(extState%T2M%Arr%Val, 1))
-                extState%T2M%Arr%Val(i,j) = real(data2D(i,j), kind=kind(extState%T2M%Arr%Val))
-              enddo
-            enddo
-            print *, "      HEMCO T2M range after transfer: min=", &
-                     minval(extState%T2M%Arr%Val), "max=", maxval(extState%T2M%Arr%Val)
-            print *, "    ✓ Transferred CDEPS", trim(fieldName), "to HEMCO T2M"
-          else
-            print *, "    [ERR] HEMCO T2M not available for transfer"
-          endif
-        case('U10M', 'U10', 'UWIND')
-          if (associated(extState%U10M) .and. associated(extState%U10M%Arr) .and. &
-              associated(extState%U10M%Arr%Val)) then
-            print *, "      Transferring to HEMCO U10M, target size:", &
-                     size(extState%U10M%Arr%Val,1), "x", size(extState%U10M%Arr%Val,2)
-            do j = 1, min(size(data2D, 2), size(extState%U10M%Arr%Val, 2))
-              do i = 1, min(size(data2D, 1), size(extState%U10M%Arr%Val, 1))
-                extState%U10M%Arr%Val(i,j) = real(data2D(i,j), kind=kind(extState%U10M%Arr%Val))
-              enddo
-            enddo
-            print *, "      HEMCO U10M range after transfer: min=", &
-                     minval(extState%U10M%Arr%Val), "max=", maxval(extState%U10M%Arr%Val)
-            print *, "    ✓ Transferred CDEPS", trim(fieldName), "to HEMCO U10M"
-          else
-            print *, "    [ERR] HEMCO U10M not available for transfer"
-          endif
-        case('V10M', 'V10', 'VWIND')
-          if (associated(extState%V10M) .and. associated(extState%V10M%Arr) .and. &
-              associated(extState%V10M%Arr%Val)) then
-            do j = 1, min(size(data2D, 2), size(extState%V10M%Arr%Val, 2))
-              do i = 1, min(size(data2D, 1), size(extState%V10M%Arr%Val, 1))
-                extState%V10M%Arr%Val(i,j) = real(data2D(i,j), kind=kind(extState%V10M%Arr%Val))
-              enddo
-            enddo
-            print *, "    Transferred CDEPS", trim(fieldName), "to HEMCO V10M"
-          endif
-        case default
-          print *, "    CDEPS field not mapped:", trim(fieldName)
-        end select
+            case default
+                 print *, "    Found CDEPS field: ", trim(fieldName), " (not explicitly mapped)"
+          end select
 
-      elseif (field_data_registry%entries(entryIdx)%is_3d .and. &
-              associated(field_data_registry%entries(entryIdx)%data_3d)) then
-
-        data3D => field_data_registry%entries(entryIdx)%data_3d
-
-        ! Print diagnostic information about the 3D source data
-        print *, "    CDEPS 3D field:", trim(fieldName)
-        print *, "      Dimensions:", size(data3D,1), "x", size(data3D,2), "x", size(data3D,3)
-        print *, "      Data range: min=", minval(data3D), "max=", maxval(data3D)
-
-        ! Handle 3D fields
-        select case(trim(fieldName))
-        case('TK', 'TEMP3D', 'TEMPERATURE3D')
-          if (associated(extState%TK) .and. associated(extState%TK%Arr) .and. &
-              associated(extState%TK%Arr%Val)) then
-            do k = 1, min(size(data3D, 3), size(extState%TK%Arr%Val, 3))
-              do j = 1, min(size(data3D, 2), size(extState%TK%Arr%Val, 2))
-                do i = 1, min(size(data3D, 1), size(extState%TK%Arr%Val, 1))
-                  extState%TK%Arr%Val(i,j,k) = real(data3D(i,j,k), kind=kind(extState%TK%Arr%Val))
-                enddo
-              enddo
-            enddo
-            print *, "    Transferred CDEPS", trim(fieldName), "to HEMCO TK"
-          endif
-        case('SPHU', 'QVAPOR', 'HUMIDITY')
-          if (associated(extState%SPHU) .and. associated(extState%SPHU%Arr) .and. &
-              associated(extState%SPHU%Arr%Val)) then
-            do k = 1, min(size(data3D, 3), size(extState%SPHU%Arr%Val, 3))
-              do j = 1, min(size(data3D, 2), size(extState%SPHU%Arr%Val, 2))
-                do i = 1, min(size(data3D, 1), size(extState%SPHU%Arr%Val, 1))
-                  extState%SPHU%Arr%Val(i,j,k) = real(data3D(i,j,k), kind=kind(extState%SPHU%Arr%Val))
-                enddo
-              enddo
-            enddo
-            print *, "    Transferred CDEPS", trim(fieldName), "to HEMCO SPHU"
-          endif
-        case default
-          print *, "    3D CDEPS field not mapped:", trim(fieldName)
-        end select
-
-      ! Fallback to legacy 2D data pointer for backward compatibility
-      elseif (associated(field_data_registry%entries(entryIdx)%data)) then
-        data2D => field_data_registry%entries(entryIdx)%data
-
-        ! Print diagnostic information about legacy data
-        print *, "    CDEPS legacy 2D field:", trim(fieldName)
-        print *, "      Dimensions:", size(data2D,1), "x", size(data2D,2)
-        print *, "      Data range: min=", minval(data2D), "max=", maxval(data2D)
-
-        ! Handle legacy 2D fields using the data pointer
-        select case(trim(fieldName))
-        case('T2M', 'TEMP', 'TEMPERATURE')
-          if (associated(extState%T2M) .and. associated(extState%T2M%Arr) .and. &
-              associated(extState%T2M%Arr%Val)) then
-            do j = 1, min(size(data2D, 2), size(extState%T2M%Arr%Val, 2))
-              do i = 1, min(size(data2D, 1), size(extState%T2M%Arr%Val, 1))
-                extState%T2M%Arr%Val(i,j) = real(data2D(i,j), kind=kind(extState%T2M%Arr%Val))
-              enddo
-            enddo
-            print *, "    Transferred CDEPS", trim(fieldName), "to HEMCO T2M (legacy)"
-          endif
-        case default
-          print *, "    Legacy CDEPS field not mapped:", trim(fieldName)
-        end select
+      else
+          print *, "    [WARN] Failed to get pointer for advertised field: ", trim(fieldName)
       endif
     enddo
+
+    if (allocated(available_fields)) deallocate(available_fields)
 
   end subroutine TransferCDEPSFieldsToExtState
 
