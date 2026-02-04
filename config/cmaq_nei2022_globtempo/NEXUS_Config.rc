@@ -579,10 +579,12 @@ Cap time shift              : true
 0 HTAP_PMC_SHP_B    $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PMC   25  1 1
 0 HTAP_PMC_POW      $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PMC   34/43  1 1
 0 HTAP_PMC_IND      $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PMC   25  1 1
-0 HTAP_PMC_TRA_A    $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PMC   37/48  1 1
-0 HTAP_PMC_TRA_B    $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PMC   25  1 1
-0 HTAP_PMC_TRA_C    $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PMC   25  1 1
-0 HTAP_PMC_TRA_D    $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PMC   25  1 1
+#0 HTAP_PMC_TRA_A    $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PMC   37/48  1 1
+#0 HTAP_PMC_TRA_B    $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PMC   25  1 1
+#0 HTAP_PMC_TRA_C    $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PMC   25  1 1
+#0 HTAP_PMC_TRA_D    $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PMC   25  1 1
+#Use HTAPv2 for TRA
+0 HTAP_PMC_TRA    $ROOT/HTAP/v2015-03/PMC/EDGAR_HTAP_PMC_TRANSPORT.generic.01x01.nc    emi_pmc  2008-2010/1-12/1/0 C xy kg/m2/s PMC   1/27/25  1/2 1
 0 HTAP_PMC_RES      $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PMC   28/46  1 1
 0 HTAP_PMC_WST      $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PMC   25  1 1
 0 HTAP_PMC_SOL      $ROOT/HTAP/v3-2018/PMC/edgar_HTAPv3_2018_PMC.nc                     HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PMC   25  1 1
@@ -596,10 +598,12 @@ Cap time shift              : true
 0 HTAP_PAL_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PAL   25/898  1 1
 0 HTAP_PAL_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PAL   35/44/897  1 1
 0 HTAP_PAL_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PAL   25/896  1 1
-0 HTAP_PAL_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PAL   37/48/895  1 1
-0 HTAP_PAL_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PAL   25/895  1 1
-0 HTAP_PAL_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PAL   25/895  1 1
-0 HTAP_PAL_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PAL   25/895  1 1
+#0 HTAP_PAL_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PAL   37/48/895  1 1
+#0 HTAP_PAL_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PAL   25/895  1 1
+#0 HTAP_PAL_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PAL   25/895  1 1
+#0 HTAP_PAL_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PAL   25/895  1 1
+#Use HTAPv2 for TRA
+0 HTAP_PAL_TRA    $ROOT/HTAP/v2015-03/PM2.5/EDGAR_HTAP_PM2.5_TRANSPORT.generic.01x01.nc    emi_pm2.5  2008-2010/1-12/1/0 C xy kg/m2/s PAL   1/27/25/895  1/2 1
 0 HTAP_PAL_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PAL   28/46/894  1 1
 0 HTAP_PAL_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PAL   25/896  1 1
 0 HTAP_PAL_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PAL   25/896  1 1
@@ -607,33 +611,37 @@ Cap time shift              : true
 0 HTAP_PAL_AGR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_3_Agriculture_crops           2018/1-12/1/0 C xy kg/m2/s PAL   25/599  1 1
 0 HTAP_PAL_AGR_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_1_Agricultural_waste_burning  2018/1-12/1/0 C xy kg/m2/s PAL   25/599  1 1
 
-
 0 HTAP_PCA_AIR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_1_Domestic_Aviation           2018/1-12/1/0 C xy kg/m2/s PCA   25/893  1 1
 0 HTAP_PCA_AIR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_2_International_Aviation      2018/1-12/1/0 C xy kg/m2/s PCA   25/893  1 1
 0 HTAP_PCA_SHP_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_1_International_Shipping        2018/1-12/1/0 C xy kg/m2/s PCA   25/892  1 1
 0 HTAP_PCA_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PCA   25/892  1 1
 0 HTAP_PCA_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PCA   35/44/891  1 1
 0 HTAP_PCA_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PCA   25/890  1 1
-0 HTAP_PCA_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PCA   37/48/889  1 1
-0 HTAP_PCA_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PCA   25/889  1 1
-0 HTAP_PCA_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PCA   25/889  1 1
-0 HTAP_PCA_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PCA   25/889  1 1
+#0 HTAP_PCA_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PCA   37/48/889  1 1
+#0 HTAP_PCA_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PCA   25/889  1 1
+#0 HTAP_PCA_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PCA   25/889  1 1
+#0 HTAP_PCA_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PCA   25/889  1 1
+#Use HTAPv2 for TRA
+0 HTAP_PCA_TRA    $ROOT/HTAP/v2015-03/PM2.5/EDGAR_HTAP_PM2.5_TRANSPORT.generic.01x01.nc    emi_pm2.5  2008-2010/1-12/1/0 C xy kg/m2/s PCA   1/27/25/889  1/2 1
 0 HTAP_PCA_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PCA   28/46/888  1 1
 0 HTAP_PCA_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PCA   25/890  1 1
 0 HTAP_PCA_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PCA   25/890  1 1
 0 HTAP_PCA_AGR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_2_Agriculture_livestock       2018/1-12/1/0 C xy kg/m2/s PCA   25/598  1 1
 0 HTAP_PCA_AGR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_3_Agriculture_crops           2018/1-12/1/0 C xy kg/m2/s PCA   25/598  1 1
 0 HTAP_PCA_AGR_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_8_1_Agricultural_waste_burning  2018/1-12/1/0 C xy kg/m2/s PCA   25/598  1 1
+
 0 HTAP_PCL_AIR_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_1_Domestic_Aviation           2018/1-12/1/0 C xy kg/m2/s PCL   25/887  1 1
 0 HTAP_PCL_AIR_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_2_2_International_Aviation      2018/1-12/1/0 C xy kg/m2/s PCL   25/887  1 1
 0 HTAP_PCL_SHP_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_1_International_Shipping        2018/1-12/1/0 C xy kg/m2/s PCL   25/886  1 1
 0 HTAP_PCL_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PCL   25/886  1 1
 0 HTAP_PCL_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PCL   35/44/885  1 1
 0 HTAP_PCL_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PCL   25/884  1 1
-0 HTAP_PCL_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PCL   37/48/883  1 1
-0 HTAP_PCL_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PCL   25/883  1 1
-0 HTAP_PCL_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PCL   25/883  1 1
-0 HTAP_PCL_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PCL   25/883  1 1
+#0 HTAP_PCL_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PCL   37/48/883  1 1
+#0 HTAP_PCL_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PCL   25/883  1 1
+#0 HTAP_PCL_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PCL   25/883  1 1
+#0 HTAP_PCL_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PCL   25/883  1 1
+#Use HTAPv2 for TRA
+0 HTAP_PCL_TRA    $ROOT/HTAP/v2015-03/PM2.5/EDGAR_HTAP_PM2.5_TRANSPORT.generic.01x01.nc    emi_pm2.5  2008-2010/1-12/1/0 C xy kg/m2/s PCL   1/27/25/883  1/2 1
 0 HTAP_PCL_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PCL   28/46/882  1 1
 0 HTAP_PCL_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PCL   25/884  1 1
 0 HTAP_PCL_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PCL   25/884  1 1
@@ -647,10 +655,12 @@ Cap time shift              : true
 0 HTAP_PFE_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PFE   25/880  1 1
 0 HTAP_PFE_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PFE   35/44/879  1 1
 0 HTAP_PFE_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PFE   25/878  1 1
-0 HTAP_PFE_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PFE   37/48/877  1 1
-0 HTAP_PFE_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PFE   25/877  1 1
-0 HTAP_PFE_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PFE   25/877  1 1
-0 HTAP_PFE_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PFE   25/877  1 1
+#0 HTAP_PFE_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PFE   37/48/877  1 1
+#0 HTAP_PFE_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PFE   25/877  1 1
+#0 HTAP_PFE_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PFE   25/877  1 1
+#0 HTAP_PFE_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PFE   25/877  1 1
+#Use HTAPv2 for TRA
+0 HTAP_PFE_TRA    $ROOT/HTAP/v2015-03/PM2.5/EDGAR_HTAP_PM2.5_TRANSPORT.generic.01x01.nc    emi_pm2.5  2008-2010/1-12/1/0 C xy kg/m2/s PFE   1/27/25/877  1/2 1
 0 HTAP_PFE_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PFE   28/46/876  1 1
 0 HTAP_PFE_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PFE   25/878  1 1
 0 HTAP_PFE_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PFE   25/878  1 1
@@ -664,10 +674,12 @@ Cap time shift              : true
 0 HTAP_PH2O_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PH2O   25/874  1 1
 0 HTAP_PH2O_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PH2O   35/44/873  1 1
 0 HTAP_PH2O_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PH2O   25/872  1 1
-0 HTAP_PH2O_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PH2O   37/48/871  1 1
-0 HTAP_PH2O_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PH2O   25/871  1 1
-0 HTAP_PH2O_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PH2O   25/871  1 1
-0 HTAP_PH2O_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PH2O   25/871  1 1
+#0 HTAP_PH2O_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PH2O   37/48/871  1 1
+#0 HTAP_PH2O_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PH2O   25/871  1 1
+#0 HTAP_PH2O_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PH2O   25/871  1 1
+#0 HTAP_PH2O_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PH2O   25/871  1 1
+#Use HTAPv2 for TRA
+0 HTAP_PH2O_TRA    $ROOT/HTAP/v2015-03/PM2.5/EDGAR_HTAP_PM2.5_TRANSPORT.generic.01x01.nc    emi_pm2.5  2008-2010/1-12/1/0 C xy kg/m2/s PH2O   1/27/25/871  1/2 1
 0 HTAP_PH2O_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PH2O   28/46/870  1 1
 0 HTAP_PH2O_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PH2O   25/872  1 1
 0 HTAP_PH2O_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PH2O   25/872  1 1
@@ -681,10 +693,12 @@ Cap time shift              : true
 0 HTAP_PK_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PK   25/868  1 1
 0 HTAP_PK_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PK   35/44/867  1 1
 0 HTAP_PK_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PK   25/866  1 1
-0 HTAP_PK_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PK   37/48/865  1 1
-0 HTAP_PK_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PK   25/865  1 1
-0 HTAP_PK_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PK   25/865  1 1
-0 HTAP_PK_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PK   25/865  1 1
+#0 HTAP_PK_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PK   37/48/865  1 1
+#0 HTAP_PK_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PK   25/865  1 1
+#0 HTAP_PK_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PK   25/865  1 1
+#0 HTAP_PK_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PK   25/865  1 1
+#Use HTAPv2 for TRA
+0 HTAP_PK_TRA    $ROOT/HTAP/v2015-03/PM2.5/EDGAR_HTAP_PM2.5_TRANSPORT.generic.01x01.nc    emi_pm2.5  2008-2010/1-12/1/0 C xy kg/m2/s PK   1/27/25/865  1/2 1
 0 HTAP_PK_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PK   28/46/864  1 1
 0 HTAP_PK_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PK   25/866  1 1
 0 HTAP_PK_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PK   25/866  1 1
@@ -698,10 +712,12 @@ Cap time shift              : true
 0 HTAP_PMG_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PMG   25/862  1 1
 0 HTAP_PMG_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PMG   35/44/861  1 1
 0 HTAP_PMG_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PMG   25/860  1 1
-0 HTAP_PMG_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PMG   37/48/859  1 1
-0 HTAP_PMG_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PMG   25/859  1 1
-0 HTAP_PMG_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PMG   25/859  1 1
-0 HTAP_PMG_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PMG   25/859  1 1
+#0 HTAP_PMG_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PMG   37/48/859  1 1
+#0 HTAP_PMG_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PMG   25/859  1 1
+#0 HTAP_PMG_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PMG   25/859  1 1
+#0 HTAP_PMG_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PMG   25/859  1 1
+#Use HTAPv2 for TRA
+0 HTAP_PMG_TRA    $ROOT/HTAP/v2015-03/PM2.5/EDGAR_HTAP_PM2.5_TRANSPORT.generic.01x01.nc    emi_pm2.5  2008-2010/1-12/1/0 C xy kg/m2/s PMG   1/27/25/859  1/2 1
 0 HTAP_PMG_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PMG   28/46/858  1 1
 0 HTAP_PMG_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PMG   25/860  1 1
 0 HTAP_PMG_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PMG   25/860  1 1
@@ -715,10 +731,12 @@ Cap time shift              : true
 0 HTAP_PMN_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PMN   25/856  1 1
 0 HTAP_PMN_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PMN   35/44/855  1 1
 0 HTAP_PMN_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PMN   25/854  1 1
-0 HTAP_PMN_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PMN   37/48/853  1 1
-0 HTAP_PMN_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PMN   25/853  1 1
-0 HTAP_PMN_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PMN   25/853  1 1
-0 HTAP_PMN_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PMN   25/853  1 1
+#0 HTAP_PMN_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PMN   37/48/853  1 1
+#0 HTAP_PMN_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PMN   25/853  1 1
+#0 HTAP_PMN_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PMN   25/853  1 1
+#0 HTAP_PMN_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PMN   25/853  1 1
+#Use HTAPv2 for TRA
+0 HTAP_PMN_TRA    $ROOT/HTAP/v2015-03/PM2.5/EDGAR_HTAP_PM2.5_TRANSPORT.generic.01x01.nc    emi_pm2.5  2008-2010/1-12/1/0 C xy kg/m2/s PMN   1/27/25/853  1/2 1
 0 HTAP_PMN_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PMN   28/46/858  1 1
 0 HTAP_PMN_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PMN   25/854  1 1
 0 HTAP_PMN_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PMN   25/854  1 1
@@ -732,10 +750,12 @@ Cap time shift              : true
 0 HTAP_PMOTHR_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PMOTHR   25/850  1 1
 0 HTAP_PMOTHR_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PMOTHR   35/44/849  1 1
 0 HTAP_PMOTHR_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PMOTHR   25/848  1 1
-0 HTAP_PMOTHR_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PMOTHR   37/48/847  1 1
-0 HTAP_PMOTHR_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PMOTHR   25/847  1 1
-0 HTAP_PMOTHR_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PMOTHR   25/847  1 1
-0 HTAP_PMOTHR_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PMOTHR   25/847  1 1
+#0 HTAP_PMOTHR_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PMOTHR   37/48/847  1 1
+#0 HTAP_PMOTHR_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PMOTHR   25/847  1 1
+#0 HTAP_PMOTHR_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PMOTHR   25/847  1 1
+#0 HTAP_PMOTHR_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PMOTHR   25/847  1 1
+#Use HTAPv2 for TRA
+0 HTAP_PMOTHR_TRA    $ROOT/HTAP/v2015-03/PM2.5/EDGAR_HTAP_PM2.5_TRANSPORT.generic.01x01.nc    emi_pm2.5  2008-2010/1-12/1/0 C xy kg/m2/s PMOTHR   1/27/25/847  1/2 1
 0 HTAP_PMOTHR_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PMOTHR   28/46/846  1 1
 0 HTAP_PMOTHR_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PMOTHR   25/848  1 1
 0 HTAP_PMOTHR_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PMOTHR   25/848  1 1
@@ -749,10 +769,12 @@ Cap time shift              : true
 0 HTAP_PNA_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PNA   25/844  1 1
 0 HTAP_PNA_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PNA   35/44/843  1 1
 0 HTAP_PNA_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PNA   25/842  1 1
-0 HTAP_PNA_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PNA   37/48/841  1 1
-0 HTAP_PNA_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PNA   25/841  1 1
-0 HTAP_PNA_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PNA   25/841  1 1
-0 HTAP_PNA_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PNA   25/841  1 1
+#0 HTAP_PNA_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PNA   37/48/841  1 1
+#0 HTAP_PNA_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PNA   25/841  1 1
+#0 HTAP_PNA_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PNA   25/841  1 1
+#0 HTAP_PNA_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PNA   25/841  1 1
+#Use HTAPv2 for TRA
+0 HTAP_PNA_TRA    $ROOT/HTAP/v2015-03/PM2.5/EDGAR_HTAP_PM2.5_TRANSPORT.generic.01x01.nc    emi_pm2.5  2008-2010/1-12/1/0 C xy kg/m2/s PNA   1/27/25/841  1/2 1
 0 HTAP_PNA_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PNA   28/46/840  1 1
 0 HTAP_PNA_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PNA   25/842  1 1
 0 HTAP_PNA_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PNA   25/842  1 1
@@ -766,10 +788,12 @@ Cap time shift              : true
 0 HTAP_PNCOM_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PNCOM   25/838  1 1
 0 HTAP_PNCOM_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PNCOM   35/44/837  1 1
 0 HTAP_PNCOM_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PNCOM   25/836  1 1
-0 HTAP_PNCOM_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PNCOM   37/48/835  1 1
-0 HTAP_PNCOM_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PNCOM   25/835  1 1
-0 HTAP_PNCOM_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PNCOM   25/835  1 1
-0 HTAP_PNCOM_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PNCOM   25/835  1 1
+#0 HTAP_PNCOM_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PNCOM   37/48/835  1 1
+#0 HTAP_PNCOM_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PNCOM   25/835  1 1
+#0 HTAP_PNCOM_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PNCOM   25/835  1 1
+#0 HTAP_PNCOM_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PNCOM   25/835  1 1
+#Use HTAPv2 for TRA
+0 HTAP_PNCOM_TRA    $ROOT/HTAP/v2015-03/PM2.5/EDGAR_HTAP_PM2.5_TRANSPORT.generic.01x01.nc    emi_pm2.5  2008-2010/1-12/1/0 C xy kg/m2/s PNCOM   1/27/25/835  1/2 1
 0 HTAP_PNCOM_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PNCOM   28/46/834  1 1
 0 HTAP_PNCOM_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PNCOM   25/836  1 1
 0 HTAP_PNCOM_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PNCOM   25/836  1 1
@@ -783,10 +807,12 @@ Cap time shift              : true
 0 HTAP_PNH4_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PNH4   25/832  1 1
 0 HTAP_PNH4_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PNH4   35/44/831  1 1
 0 HTAP_PNH4_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PNH4   25/830  1 1
-0 HTAP_PNH4_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PNH4   37/48/829  1 1
-0 HTAP_PNH4_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PNH4   25/829  1 1
-0 HTAP_PNH4_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PNH4   25/829  1 1
-0 HTAP_PNH4_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PNH4   25/829  1 1
+#0 HTAP_PNH4_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PNH4   37/48/829  1 1
+#0 HTAP_PNH4_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PNH4   25/829  1 1
+#0 HTAP_PNH4_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PNH4   25/829  1 1
+#0 HTAP_PNH4_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PNH4   25/829  1 1
+#Use HTAPv2 for TRA
+0 HTAP_PNH4_TRA    $ROOT/HTAP/v2015-03/PM2.5/EDGAR_HTAP_PM2.5_TRANSPORT.generic.01x01.nc    emi_pm2.5  2008-2010/1-12/1/0 C xy kg/m2/s PNH4   1/27/25/829  1/2 1
 0 HTAP_PNH4_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PNH4   28/46/828  1 1
 0 HTAP_PNH4_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PNH4   25/830  1 1
 0 HTAP_PNH4_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PNH4   25/830  1 1
@@ -800,10 +826,12 @@ Cap time shift              : true
 0 HTAP_PNO3_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PNO3   25/826  1 1
 0 HTAP_PNO3_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PNO3   35/44/825  1 1
 0 HTAP_PNO3_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PNO3   25/824  1 1
-0 HTAP_PNO3_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PNO3   37/48/823  1 1
-0 HTAP_PNO3_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PNO3   25/823  1 1
-0 HTAP_PNO3_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PNO3   25/823  1 1
-0 HTAP_PNO3_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PNO3   25/823  1 1
+#0 HTAP_PNO3_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PNO3   37/48/823  1 1
+#0 HTAP_PNO3_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PNO3   25/823  1 1
+#0 HTAP_PNO3_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PNO3   25/823  1 1
+#0 HTAP_PNO3_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PNO3   25/823  1 1
+#Use HTAPv2 for TRA
+0 HTAP_PNO3_TRA    $ROOT/HTAP/v2015-03/PM2.5/EDGAR_HTAP_PM2.5_TRANSPORT.generic.01x01.nc    emi_pm2.5  2008-2010/1-12/1/0 C xy kg/m2/s PNO3   1/27/25/823  1/2 1
 0 HTAP_PNO3_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PNO3   28/46/822  1 1
 0 HTAP_PNO3_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PNO3   25/824  1 1
 0 HTAP_PNO3_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PNO3   25/824  1 1
@@ -817,10 +845,12 @@ Cap time shift              : true
 0 HTAP_PSI_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PSI   25/820  1 1
 0 HTAP_PSI_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PSI   35/44/819  1 1
 0 HTAP_PSI_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PSI   25/818  1 1
-0 HTAP_PSI_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PSI   37/48/817  1 1
-0 HTAP_PSI_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PSI   25/817  1 1
-0 HTAP_PSI_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PSI   25/817  1 1
-0 HTAP_PSI_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PSI   25/817  1 1
+#0 HTAP_PSI_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PSI   37/48/817  1 1
+#0 HTAP_PSI_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PSI   25/817  1 1
+#0 HTAP_PSI_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PSI   25/817  1 1
+#0 HTAP_PSI_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PSI   25/817  1 1
+#Use HTAPv2 for TRA
+0 HTAP_PSI_TRA    $ROOT/HTAP/v2015-03/PM2.5/EDGAR_HTAP_PM2.5_TRANSPORT.generic.01x01.nc    emi_pm2.5  2008-2010/1-12/1/0 C xy kg/m2/s PSI   1/27/25/817  1/2 1
 0 HTAP_PSI_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PSI   28/46/816  1 1
 0 HTAP_PSI_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PSI   25/818  1 1
 0 HTAP_PSI_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PSI   25/818  1 1
@@ -834,10 +864,12 @@ Cap time shift              : true
 0 HTAP_PSO4_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PSO4   25/814  1 1
 0 HTAP_PSO4_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PSO4   35/44/813  1 1
 0 HTAP_PSO4_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PSO4   25/812  1 1
-0 HTAP_PSO4_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PSO4   37/48/811  1 1
-0 HTAP_PSO4_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PSO4   25/811  1 1
-0 HTAP_PSO4_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PSO4   25/811  1 1
-0 HTAP_PSO4_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PSO4   25/811  1 1
+#0 HTAP_PSO4_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PSO4   37/48/811  1 1
+#0 HTAP_PSO4_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PSO4   25/811  1 1
+#0 HTAP_PSO4_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PSO4   25/811  1 1
+#0 HTAP_PSO4_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PSO4   25/811  1 1
+#Use HTAPv2 for TRA
+0 HTAP_PSO4_TRA    $ROOT/HTAP/v2015-03/PM2.5/EDGAR_HTAP_PM2.5_TRANSPORT.generic.01x01.nc    emi_pm2.5  2008-2010/1-12/1/0 C xy kg/m2/s PSO4   1/27/25/811  1/2 1
 0 HTAP_PSO4_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PSO4   28/46/810  1 1
 0 HTAP_PSO4_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PSO4   25/812  1 1
 0 HTAP_PSO4_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PSO4   25/812  1 1
@@ -851,10 +883,12 @@ Cap time shift              : true
 0 HTAP_PTI_SHP_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_3_Domestic_shipping           2018/1-12/1/0 C xy kg/m2/s PTI   25/808  1 1
 0 HTAP_PTI_POW      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_3_Energy                        2018/1-12/1/0 C xy kg/m2/s PTI   35/44/807  1 1
 0 HTAP_PTI_IND      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_1_Industry                    2018/1-12/1/0 C xy kg/m2/s PTI   25/806  1 1
-0 HTAP_PTI_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PTI   37/48/805  1 1
-0 HTAP_PTI_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PTI   25/805  1 1
-0 HTAP_PTI_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PTI   25/805  1 1
-0 HTAP_PTI_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PTI   25/805  1 1
+#0 HTAP_PTI_TRA_A    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_1_Road_Transport              2018/1-12/1/0 C xy kg/m2/s PTI   37/48/805  1 1
+#0 HTAP_PTI_TRA_B    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_2_Brake_and_Tyre_wear         2018/1-12/1/0 C xy kg/m2/s PTI   25/805  1 1
+#0 HTAP_PTI_TRA_C    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_5_4_Other_ground_transport      2018/1-12/1/0 C xy kg/m2/s PTI   25/805  1 1
+#0 HTAP_PTI_TRA_D    $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_2_Fugitive                    2018/1-12/1/0 C xy kg/m2/s PTI   25/805  1 1
+#Use HTAPv2 for TRA
+0 HTAP_PTI_TRA    $ROOT/HTAP/v2015-03/PM2.5/EDGAR_HTAP_PM2.5_TRANSPORT.generic.01x01.nc    emi_pm2.5  2008-2010/1-12/1/0 C xy kg/m2/s PTI   1/27/25/805  1/2 1
 0 HTAP_PTI_RES      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_6_Residential                   2018/1-12/1/0 C xy kg/m2/s PTI   28/46/804  1 1
 0 HTAP_PTI_WST      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_7_Waste                         2018/1-12/1/0 C xy kg/m2/s PTI   25/806  1 1
 0 HTAP_PTI_SOL      $ROOT/HTAP/v3-2018/PM2.5/edgar_HTAPv3_2018_PM2.5.nc                 HTAPv3_4_3_Solvents                    2018/1-12/1/0 C xy kg/m2/s PTI   25/806  1 1
