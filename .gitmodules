@@ -1,6 +1,7 @@
 [submodule "src/external/HEMCO"]
 	path = src/external/HEMCO
 	url = https://github.com/bbakernoaa/HEMCO
+	branch = feature/esmf
 [submodule "src/external/CDEPS"]
 	path = src/external/CDEPS
 	url = https://github.com/ESCOMP/CDEPS
