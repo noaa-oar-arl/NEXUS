@@ -87,9 +87,9 @@ def get_hemco_simulation_time(file_path):
         for L in lines:
             if L.startswith("START"):
                 start_base = datetime.strptime(L.split()[1], "%Y-%m-%d")  # noqa: F841
-                start_time = datetime.strptime(L, "START:   %Y-%m-%d %H:00:00\n")
+                start_time = datetime.strptime(L, "START:   %Y-%m-%d %H:%M:%S\n")
             if L.startswith("END"):
-                end_time = datetime.strptime(L, "END:     %Y-%m-%d %H:00:00\n")
+                end_time = datetime.strptime(L, "END:     %Y-%m-%d %H:%M:%S\n")
             if L.startswith("TS_EMIS"):
                 ts_emis = float(L.split()[1].strip("\n"))  # noqa: F841
 
@@ -100,16 +100,19 @@ def get_hemco_simulation_time(file_path):
         if not start_time < end_time:
             raise ValueError(f"START time {start_time} must be before END time {end_time}")
 
+        logger.info(f"Simulation period: {start_time} to {end_time}")
+
         dates = []
-        currtime = start_time
-        logger.info(f"Simulation period: {currtime} to {end_time}")
-
-        while currtime <= end_time:
-            logger.debug(f"Adding date: {currtime}")
-            dates.append(currtime)
-            currtime = currtime + timedelta(days=1)
-
-        if dates[-1].date() != end_time.date():
+        if start_time.date() == end_time.date():
+            logger.debug(f"Single-day simulation, adding date: {start_time}")
+            dates.append(start_time)
+        else:
+            curr_time = start_time
+            while curr_time.date() < end_time.date():
+                logger.debug(f"Adding date: {curr_time}")
+                dates.append(curr_time)
+                curr_time = curr_time + timedelta(days=1)
+            logger.debug(f"Adding date: {end_time}")
             dates.append(end_time)
 
         if not dates:
@@ -181,6 +184,15 @@ if PYTEST_AVAILABLE:
             p = hemco_file("2024-03-01 12:00:00", "2024-03-01 12:00:00")
             with pytest.raises(ValueError, match="START time .* must be before END time .*"):
                 get_hemco_simulation_time(p)
+
+        def test_not_on_hour(self, hemco_file):
+            # START and END times that are not on the hour, though unlikely, should still be processed
+            p = hemco_file("2024-02-29 12:30:00", "2024-03-01 14:45:00")
+            dates = get_hemco_simulation_time(p)
+            assert dates == [
+                datetime(2024, 2, 29, 12, 30),
+                datetime(2024, 3, 1, 14, 45),
+            ]
 
 
 def get_file_map(src_dir, version):
