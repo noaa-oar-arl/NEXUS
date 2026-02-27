@@ -64,3 +64,16 @@ jobs:
             fi
             cd ..
           done
+
+  python:
+    name: Python scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Run tests
+        run: |
+          uvx pytest -v -ra utils/python/nexus_nei2019_linker.py
