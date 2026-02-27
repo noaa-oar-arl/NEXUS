@@ -28,6 +28,9 @@ def setup_logger(log_level=logging.INFO):
     logger = logging.getLogger("nexus_nei2019_linker")
     logger.setLevel(log_level)
 
+    # Clear existing handlers to avoid duplicates
+    logger.handlers.clear()
+
     # Create console handler with formatting
     handler = logging.StreamHandler()
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
