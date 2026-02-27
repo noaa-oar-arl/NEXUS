@@ -99,6 +99,10 @@ def get_hemco_simulation_time(file_path):
             dates.append(currtime)
             currtime = currtime + timedelta(days=1)
 
+        if len(dates) == 1 and start_time.date() != end_time.date():
+            # e.g. a short period that crosses the date boundary
+            dates.append(end_time)
+
         if not dates:
             logger.warning("No dates found in the simulation period")
 
@@ -124,7 +128,10 @@ def test_get_hemco_simulation_time(tmp_path):
     with open(p, "w") as f:
         f.write(text)
     dates = get_hemco_simulation_time(p)
-    assert len(dates) == 2
+    assert dates == [
+        datetime(2024, 2, 29, 20, 0),
+        datetime(2024, 3, 1, 5, 0),
+    ]
 
 
 def get_file_map(src_dir, version):
