@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     name: Build (APT, ${{ !matrix.mpi && 'no ' || '' }}MPI, pre-built ESMF)
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         mpi: [true, false]
@@ -27,15 +27,15 @@ jobs:
 
       - name: Fetch pre-built ESMF
         run: |
-          v="8.3.1"  # ESMF
-          gcc="12"
+          v="8.8.1"  # ESMF
+          gcc="13"
           esmf_base=$HOME/esmf
           esmf=${v}-gcc-${gcc}-${{ matrix.mpi && 'mpi' || 'mpiuni' }}
 
           export ESMF_DIR=${esmf_base}/${esmf}
           mkdir -p $ESMF_DIR
           cd $ESMF_DIR
-          wget https://github.com/zmoon/gha-esmf/releases/download/v0.0.8/${esmf}.tar.gz
+          wget https://github.com/zmoon/gha-esmf/releases/download/v0.0.10/${esmf}.tar.gz
           tar xzvf ${esmf}.tar.gz
 
           echo "ESMFMKFILE=${ESMF_DIR}/lib/libO/\
@@ -43,7 +43,7 @@ jobs:
           /esmf.mk" >> "$GITHUB_ENV"
 
       - name: Configure
-        run: FC=gfortran-12 cmake -S . -B build
+        run: FC=gfortran-13 cmake -S . -B build
 
       - name: Build
         run: cmake --build build
