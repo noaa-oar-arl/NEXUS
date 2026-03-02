@@ -52,6 +52,9 @@ jobs:
         run: |
           set -x
           bin="$PWD/build/bin/nexus"
+          if [[ "${{ matrix.mpi}}" == "true" ]]; then
+            bin="mpirun -n $(nproc) $bin"
+          fi
           failed=0
           cd tests/cases
           for d in *; do
