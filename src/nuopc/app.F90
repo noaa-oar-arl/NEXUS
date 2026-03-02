@@ -1,8 +1,7 @@
+!> @brief Command-line interface for the NEXUS NUOPC Single-Model Driver.
 program app
 
-  !-----------------------------------------------------------------------------
-  ! Command-line interface for the NEXUS NUOPC Single-Model Driver
-  !-----------------------------------------------------------------------------
+  use mpi
 
   use ESMF
 
@@ -10,27 +9,6 @@ program app
   use nexus_driver, only: driverSS => SetServices
 
   implicit none
-
-  character(len=*), parameter :: NEXUS_options(12,2) = reshape( &
-    (/ &
-    "-c           ", "c:           ", &
-    "--config     ", "c:           ", &
-    "--config-file", "c:           ", &
-    "-r           ", "r:           ", &
-    "--regrid-to  ", "r:           ", &
-    "-d           ", "d            ", &
-    "--debug      ", "d            ", &
-    "--wr         ", "wr           ", &
-    "-o           ", "o:           ", &
-    "--output     ", "o:           ", &
-    "-h           ", "h            ", &
-    "--help       ", "h            " &
-    /), (/ 12, 2 /), order=(/ 2, 1 /))
-
-  character(len=*), parameter :: usage = &
-    "Usage: nexus &
-    [-c|--config-file <file>] [-r|--regrid-to <file>] [-o|--output <file>] &
-    [-d|--debug] [--wr] [-h|--help]"
 
   character(1), parameter :: newline = new_line('a')
   character(len=*), parameter :: description = &
@@ -41,18 +19,20 @@ program app
   integer :: rc, localrc, userRc
   integer, parameter :: rootPet = 0
   integer :: localPet, petCount
-  integer :: idx, ind, item
   integer :: debugLevel
   logical :: writeRestart
-  integer :: ibuf(2)
+  integer :: tsEmis
+  integer :: outputFrequency
+  integer :: ibuf(3)
+  integer :: mpi_ierr
   character(ESMF_MAXSTR) :: ConfigFile
   character(ESMF_MAXSTR) :: ReGridFile
   character(ESMF_MAXSTR) :: OutputFile
-  character(ESMF_MAXSTR) :: optarg
   character(ESMF_MAXSTR) :: sbuf(3)
   type(ESMF_VM) :: vm
   type(ESMF_GridComp) :: drvComp
 
+  call MPI_Init(mpi_ierr)
 
   ! Initialize ESMF
   call ESMF_Initialize(defaultCalkind=ESMF_CALKIND_GREGORIAN, rc=rc)
@@ -67,7 +47,7 @@ program app
     file=__FILE__)) &
     call ESMF_Finalize(endflag=ESMF_END_ABORT)
 
-  ! Parse command line arguments and share information with other PETs
+  ! Parse control file and share information with other PETs
   call ESMF_VMGetCurrent(vm, rc=rc)
   if (ESMF_LogFoundError(rc, msg=ESMF_LOGERR_PASSTHRU, &
     line=__LINE__,  &
@@ -92,43 +72,13 @@ program app
 
   debugLevel = 0
   writeRestart = .false.
+  outputFrequency = 3600
 
   localrc = ESMF_SUCCESS
 
   if (localPet == rootPet) then
-    do item = 1, size(NEXUS_options, dim=1)
-      call ESMF_UtilGetArgIndex(NEXUS_options(item,1), argindex=ind, rc=localrc)
-      if (ESMF_LogFoundError(localrc, msg=ESMF_LOGERR_PASSTHRU, &
-        line=__LINE__,  &
-        file=__FILE__)) &
-        exit
-      if (ind > -1) then
-        idx = len_trim(NEXUS_options(item,2))
-        if (NEXUS_options(item,2)(idx:idx) == ":") then
-          call ESMF_UtilGetArg(ind+1, argvalue=optarg, rc=localrc)
-          if (ESMF_LogFoundError(localrc, msg=ESMF_LOGERR_PASSTHRU, &
-            line=__LINE__,  &
-            file=__FILE__)) &
-            exit
-        end if
-        select case (trim(NEXUS_options(item,2)))
-         case ("c:")
-          ConfigFile = optarg
-         case ("r:")
-          ReGridFile = optarg
-         case ("o:")
-          OutputFile = optarg
-         case ("d")
-          debugLevel = 1
-         case ("wr")
-          writeRestart = .true.
-         case ("h")
-          print "(a)", usage
-          stop
-         case default
-        end select
-      end if
-    end do
+    call parse_control_file("nexus.rc", ConfigFile, ReGridFile, OutputFile, &
+                            debugLevel, writeRestart, tsEmis, outputFrequency)
 
     call print_sep(char="=")
     print "(a)", description
@@ -138,10 +88,12 @@ program app
     print "('ReGridFile = ', a)", trim(ReGridFile)
     print "('debugLevel = ', i0)", debugLevel
     print "('OutputFile = ', a)", trim(OutputFile)
+    print "('outputFrequency = ', i0)", outputFrequency
     print "('petCount   = ', i0)", petCount
     call print_sep()
   end if
 
+  ! Broadcast settings to other PETs
   ibuf(1) = localrc
   ibuf(2) = debugLevel
   call ESMF_VMBroadcast(vm, ibuf, size(ibuf), rootPet, rc=rc)
@@ -151,7 +103,16 @@ program app
     call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
   localrc    = ibuf(1)
   debugLevel = ibuf(2)
-  if (ESMF_LogFoundError(localrc, msg="Failure retrieving command-line arguments", &
+  ! Broadcast TS_EMIS and writeRestart flag
+  ibuf(1) = tsEmis
+  ibuf(2) = merge(1, 0, writeRestart)
+  ibuf(3) = outputFrequency
+  call ESMF_VMBroadcast(vm, ibuf, size(ibuf), rootPet, rc=rc)
+  tsEmis = ibuf(1)
+  writeRestart = (ibuf(2) == 1)
+  outputFrequency = ibuf(3)
+
+  if (ESMF_LogFoundError(localrc, msg="Failure reading control file", &
     line=__LINE__,  &
     file=__FILE__)) &
     call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
@@ -170,7 +131,7 @@ program app
 
   !-----------------------------------------------------------------------------
 
-  call init_cap(ConfigFile, ReGridFile, OutputFile, debugLevel, writeRestart, rc=rc)
+  call init_cap(ConfigFile, ReGridFile, OutputFile, debugLevel, outputFrequency, writeRestart, rc=rc)
 
   ! -> CREATE THE DRIVER
   drvComp = ESMF_GridCompCreate(name="driver", rc=rc)
@@ -191,6 +152,7 @@ program app
     call ESMF_Finalize(endflag=ESMF_END_ABORT)
 
   ! INITIALIZE THE DRIVER
+  if (localPet == rootPet) print *, "NEXUS_APP: Starting driver initialization"
   call ESMF_GridCompInitialize(drvComp, userRc=userRc, rc=rc)
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
     line=__LINE__, &
@@ -200,9 +162,12 @@ program app
     line=__LINE__, &
     file=__FILE__)) &
     call ESMF_Finalize(endflag=ESMF_END_ABORT)
+  if (localPet == rootPet) print *, "NEXUS_APP: Driver initialization complete"
 
   ! RUN THE DRIVER
+  if (localPet == rootPet) print *, "NEXUS_APP: Starting driver run phase"
   call ESMF_GridCompRun(drvComp, userRc=userRc, rc=rc)
+  if (localPet == rootPet) print *, "NEXUS_APP: Driver run completed, rc=", rc, "userRc=", userRc
   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
     line=__LINE__, &
     file=__FILE__)) &
@@ -235,14 +200,17 @@ program app
 
   call ESMF_LogWrite("NEXUS finalized", ESMF_LOGMSG_INFO)
 
-  ! Finalize ESMF
+  ! Finalize ESMF (this will also finalize MPI if ESMF initialized it)
   call ESMF_Finalize()
 
-  print "('NEXUS: ', a)", "Done"
+  if (localPet == rootPet) print "('NEXUS: ', a)", "Done"
 
 contains
 
-  !> By default, 60 hyphens.
+  !> @brief Prints a separator line.
+  !>
+  !> @param char The character to use for the separator (default: "-").
+  !> @param n    The length of the separator (default: 60).
   subroutine print_sep(char, n)
     character(len=1), intent(in), optional :: char
     integer, intent(in), optional :: n
@@ -251,6 +219,8 @@ contains
     integer :: n_
     character(len=:), allocatable :: sep
     integer i
+    type(ESMF_VM) :: vm
+    integer :: localPet, localrc
 
     if (.not. present(char)) then
       char_ = "-"
@@ -268,7 +238,97 @@ contains
       sep(i:i) = char_
     end do
 
-    print "(a)", sep
+    call ESMF_VMGetCurrent(vm, rc=localrc)
+    call ESMF_VMGet(vm, localPet=localPet, rc=localrc)
+    if (localPet == 0) print "(a)", sep
   end subroutine print_sep
+
+  !> @brief Parses the control file.
+  !>
+  !> @param file         The path to the control file.
+  !> @param ConfigFile   (Out) Path to the configuration file.
+  !> @param ReGridFile   (Out) Path to the regridding file.
+  !> @param OutputFile   (Out) Path to the output file prefix.
+  !> @param debugLevel   (Out) Debug level.
+  !> @param writeRestart (Out) Flag to write restart file.
+  !> @param tsEmis       (Out) Emission timestep in seconds.
+  !> @param outputFrequency (Out) Output frequency in seconds.
+  !> @param rc           (Out) Return code.
+  subroutine parse_control_file(file, ConfigFile, ReGridFile, OutputFile, &
+    debugLevel, writeRestart, tsEmis, outputFrequency)
+    character(len=*), intent(in) :: file
+    character(len=*), intent(out) :: ConfigFile
+    character(len=*), intent(out) :: ReGridFile
+    character(len=*), intent(out) :: OutputFile
+    integer, intent(out) :: debugLevel, tsEmis, outputFrequency
+    logical, intent(out) :: writeRestart
+
+    integer :: unit, stat
+    character(len=255) :: line, key, value
+
+    type(ESMF_VM) :: vm
+    integer :: localPet
+    integer :: localrc
+
+    rc = ESMF_SUCCESS
+
+    call ESMF_VMGetCurrent(vm, rc=localrc)
+    call ESMF_VMGet(vm, localPet=localPet, rc=localrc)
+
+    open(newunit=unit, file=trim(file), status='old', iostat=stat)
+    if (stat /= 0) then
+      if (localPet == 0) print *, "Error opening control file: ", trim(file)
+      rc = ESMF_FAILURE
+      return
+    end if
+
+    if (localPet == 0) print *, "Successfully opened control file: ", trim(file)
+
+    ! Initialize default values
+    ConfigFile = "HEMCO_Config.rc"
+    ReGridFile = ""
+    OutputFile = "nexus_output.nc"
+    debugLevel = 0
+    outputFrequency = 3600
+    writeRestart = .false.
+    tsEmis = 3600
+
+    do
+      read(unit, '(a)', end=10) line
+      ! Skip comments and empty lines
+      if (len_trim(line) == 0 .or. line(1:1) == '#') cycle
+
+      ! Parse key-value pair
+      key = trim(adjustl(line(1:index(line,':')-1)))
+      value = trim(adjustl(line(index(line,':')+1:)))
+
+      select case (key)
+        case ('CONFIG_FILE')
+          ConfigFile = value
+          if (localPet == 0) print *, "DEBUG: Read CONFIG_FILE = ", trim(value)
+        case ('REGRID_FILE')
+          ReGridFile = value
+          if (localPet == 0) print *, "DEBUG: Read REGRID_FILE = ", trim(value)
+        case ('OUTPUT_PREFIX')
+          OutputFile = value
+          if (localPet == 0) print *, "DEBUG: Read OUTPUT_PREFIX = ", trim(value)
+        case ('DEBUG_LEVEL')
+          read(value, *) debugLevel
+          if (localPet == 0) print *, "DEBUG: Read DEBUG_LEVEL = ", debugLevel
+        case ('OUTPUT_FREQUENCY')
+          read(value, *) outputFrequency
+          if (localPet == 0) print *, "DEBUG: Read OUTPUT_FREQUENCY = ", outputFrequency
+        case ('WRITE_RESTART')
+          read(value, *) writeRestart
+          if (localPet == 0) print *, "DEBUG: Read WRITE_RESTART = ", writeRestart
+        case ('TS_EMIS')
+          read(value, *) tsEmis
+          if (localPet == 0) print *, "DEBUG: Read TS_EMIS = ", tsEmis
+      end select
+    end do
+10  continue
+    close(unit)
+
+  end subroutine parse_control_file
 
 end program app

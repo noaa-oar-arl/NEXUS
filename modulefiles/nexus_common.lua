@@ -11,6 +11,7 @@ local ufs_modules = {
   {["parallelio"]      = "2.6.2"},
   {["esmf"]            = "8.8.0"},
   {["bacio"]           = "2.4.1"},
+  {["ncio"]            = "1.1.2"},
 }
 
 for i = 1, #ufs_modules do

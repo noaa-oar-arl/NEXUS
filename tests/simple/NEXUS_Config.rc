@@ -1,0 +1,323 @@
+u #------------------------------------------------------------------------------
+#                  Harvard-NASA Emissions Component (HEMCO)                   !
+#------------------------------------------------------------------------------
+#BOP
+#
+# !MODULE: HEMCO_Config.rc
+#
+# !DESCRIPTION: Contains configuration information for HEMCO. Define the
+#  emissions inventories and corresponding file paths here. Entire
+#  configuration files can be inserted into this configuration file with
+#  an '>>>include' statement, e.g. '>>>include HEMCO\_Config\_test.rc'
+#  The settings of include-files will be ignored.
+#\\
+#\\
+# !REMARKS:
+#  The following tokens will be replaced:
+#  (1) ROOT    : Filepath to HEMCO root directory
+#  (2) CFDIR   : Filepath to directory of this configuration file.
+#  (3) MET     : Met field type (from G-C compilation command)
+#  (4) GRID    : Horizontal grid type (from G-C compilation command)
+#  (5) SIM     : Simulation type (from G-C compilation command)
+#  (6) NEST    : Nested-grid type (CH, EU, NA, SE)
+#  (7) LNOX    : String for OTD/LIS lightning NOx files:
+#                (a) For GEOS-5 this is either "geos5.1.0" or "geos5.2.0".
+#                (b) For other met fields, this is the same as MET.
+#  (8) LEVRED  : String w/ the # of levels in the reduced GEOS-Chem grid
+#                as used in some filenames (e.g. "23L", "30L", "47L")
+#  (9) LEVFULL : String w/ the # of levels in the full GEOS-Chem grid
+#                as used in some filenames (e.g. "55L", "72L")
+#
+# !REVISION HISTORY:
+#  04 Oct 2022 - B. Baker    - Initial Creation
+
+#------------------------------------------------------------------------------
+#BOC
+###############################################################################
+### BEGIN SECTION SETTINGS
+###############################################################################
+
+ROOT                        : /scratch4/NCEPDEV/naqfc/Barry.Baker/models/NEXUSv2/tests/simple
+GridFile                    : ./HEMCO_sa_Grid.rc
+SpecFile                    : ./HEMCO_sa_Spec.rc
+TimeFile                    : ./HEMCO_sa_Time.rc
+DiagnFile                   : ./HEMCO_sa_Diag.rc
+DiagnPrefix                 : NEXUS_DIAG
+DiagnFreq                   : Hourly
+Logfile                     : NEXUS.log
+Unit tolerance              : 1
+Negative values             : 1
+Verbose                     : true
+Warnings                    : 1
+Mask fractions              : true
+PBL dry deposition          : False
+SINTOK                      : 0.5
+Cap time shift              : true
+#
+
+### END SECTION SETTINGS ###
+
+###############################################################################
+### BEGIN SECTION EXTENSION SWITCHES
+###############################################################################
+###
+### This section lists all emission extensions available to HEMCO and whether
+### they shall be used or not. Extension 'base' must have extension number
+### zero, all other extension numbers can be freely chosen. Data fields in
+### section 'base emissions' will only be read if the corresponding extension
+### (identified by ExtNr) is enabled. Similarly, fields grouped into data
+### collections ('(((CollectionName', ')))CollectionName') are only considered
+### if the corresponding data collection is enabled in this section. Data
+### listed within a disabled extension are always ignored, even if they are
+### grouped in an enabled collection (e.g. GFED-4 data will never be considered
+### if the GFED extension is disabled, even if the GFED4 option is set to true).
+###
+### It is possible to define collections that are only evaluated if a
+### collection name is *not* enabled. This is achieved by leading the
+### collection name with '.not.', e.g. '(((.not.FINN_daily' ...
+### '))).not.FINN_daily' for FINN monthly data (only used if daily data is
+### not being used).
+###
+### The ExtNr provided in this section must match with the ExtNr assigned to
+### the data listed in the base emissions sections. Otherwise, the listed
+### files won't be read!
+###
+### NOTES:
+### --> You can only select one biomass burning option (GFED, QFED, FINN).
+###
+### --> BOND_BIOMASS must be set to false if GFED, QFED, or FINN is enabled.
+###
+### --> The biomass burning POA scale factor is the same as for the biofuel
+###     and anthro sources.
+###
+### --> The NAP scale factor is determined as in the original simulation:
+###     Obtain NAP emissions using scale factor from Hays 2002 ES&T
+###     (0.0253 g NAP/kg DM) and Andreae and Merlet 2001 GBC (92 g CO/kg DM)
+###############################################################################
+# ExtNr ExtName           on/off  Species
+0       Base              : on    *
+    --> HEMCO_RESTART     :       true
+    --> AEIC              :       false
+    --> BIOFUEL           :       false
+    --> BOND              :       false
+    --> BRAVO             :       false
+    --> CAC               :       false
+    --> C2H6              :       false
+    --> EDGAR             :       false
+    --> HTAP              :  on   true
+    --> CEDS              :  on   true
+    --> CAMS              :       false
+    --> OMI_HTAP_SO2      :  off  false
+    --> Yuan_XLAI         :  off  false
+    --> MODIS_XLAI        :       false
+    --> ACCMIP            :  off  false
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+100     Custom            : off   -
+101     SeaFlux           : off   DMS/ACET
+102     ParaNOx           : off   NO/NO2/O3/HNO3
+    --> LUT data format   :       nc
+    --> LUT source dir    :       $ROOT/PARANOX/v2015-02
+103     LightNOx          : off   NO
+    --> OTD-LIS factors   :       true
+    --> CDF table         :       $ROOT/LIGHTNOX/v2014-07/light_dist.ott2010.dat
+104     SoilNOx           : off   NO
+    --> Use fertilizer NOx:       true
+105     DustDead          : off   DST1/DST2/DST3/DST4
+106     DustGinoux        : off   DST1/DST2/DST3/DST4
+107     SeaSalt           : off   SALA/SALC/Br2
+    --> SALA lower radius :       0.01
+    --> SALA upper radius :       0.5
+    --> SALC lower radius :       0.5
+    --> SALC upper radius :       8.0
+    --> Emit Br2          :       true
+    --> Br2 scaling       :       1.0
+108     MEGAN             : off   ISOP/ACET/PRPE/C2H4/ALD2/EOH/MOH/MTPA/MTPO/LIMO/SESQ
+    --> Isoprene scaling  :       1.0
+    --> CO2 inhibition    :       true
+    --> CO2 conc (ppmv)   :       411.0
+    --> Isoprene to SOAP  :       0.015
+    --> Isoprene to SOAS  :       0.015
+110     MEGAN_SOA         : off   MTPA/MTPO/LIMO/SESQ
+111     GFED              : off   NO/CO/ALK4/ACET/MEK/ALD2/PRPE/C3H8/CH2O/C2H6/SO2/NH3/BCPO/BCPI/OCPO/OCPI/POA1/NAP
+    --> GFED3             :       false
+    --> GFED4             :       true
+    --> GFED_daily        :       false
+    --> GFED_3hourly      :       false
+    --> CO scale factor   :       1.05
+    --> POA scale factor  :       1.27
+    --> NAP scale factor  :       2.75e-4
+    --> hydrophilic BC    :       0.2
+    --> hydrophilic OC    :       0.5
+114     FINN              : off   NO/CO/ALK4/ACET/MEK/ALD2/PRPE/C3H8/CH2O/C2H6/SO2/NH3/BCPI/BCPO/OCPI/OCPO/GLYC/HAC
+    --> FINN_daily        :       false
+    --> CO scale factor   :       1.0
+    --> hydrophilic BC    :       0.2
+    --> hydrophilic OC    :       0.5
+
+### END SECTION EXTENSION SWITCHES ###
+
+###############################################################################
+### BEGIN SECTION BASE EMISSIONS
+###############################################################################
+
+
+# ExtNr   Name sourceFile      sourceVar sourceTime C/R/E SrcDim SrcUnit Species ScalIDs Cat Hier
+0 UNIFORM 1.0 - * C xy kg/m2/s NO - 1 5
+
+
+
+
+
+
+
+
+
+
+
+
+#==============================================================================
+# --- CEDS 2024 ---
+#==============================================================================
+(((CEDS
+0 BC_agr CEDS_BC:BC_agr BC_agr 2000-2022/1-12/1/0 C xy kg/m2/s BC 25     1 1
+0 BC_ene CEDS_BC:BC_ene BC_ene 2000-2022/1-12/1/0 C xy kg/m2/s BC_elev 35/44  1 1
+0 BC_ind CEDS_BC:BC_ind BC_ind 2000-2022/1-12/1/0 C xy kg/m2/s BC 25     1 1
+0 BC_rco CEDS_BC:BC_rco BC_rco 2000-2022/1-12/1/0 C xy kg/m2/s BC 28/46  1 1
+0 BC_tra CEDS_BC:BC_tra BC_tra 2000-2022/1-12/1/0 C xy kg/m2/s BC 37/48  1 1
+0 BC_shp CEDS_BC:BC_shp BC_shp 2000-2022/1-12/1/0 C xy kg/m2/s BC_ship 25     1 1
+0 BC_sol CEDS_BC:BC_sol BC_sol 2000-2022/1-12/1/0 C xy kg/m2/s BC 25     1 1
+0 BC_was CEDS_BC:BC_was BC_was 2000-2022/1-12/1/0 C xy kg/m2/s BC 25     1 1
+
+0 OC_agr CEDS_OC:OC_agr OC_agr 2000-2022/1-12/1/0 C xy kg/m2/s OC 25     1 1
+0 OC_ene CEDS_OC:OC_ene OC_ene 2000-2022/1-12/1/0 C xy kg/m2/s OC_elev 35/44  1 1
+0 OC_ind CEDS_OC:OC_ind OC_ind 2000-2022/1-12/1/0 C xy kg/m2/s OC 25     1 1
+0 OC_rco CEDS_OC:OC_rco OC_rco 2000-2022/1-12/1/0 C xy kg/m2/s OC 28/46  1 1
+0 OC_tra CEDS_OC:OC_tra OC_tra 2000-2022/1-12/1/0 C xy kg/m2/s OC 37/48  1 1
+0 OC_shp CEDS_OC:OC_shp OC_shp 2000-2022/1-12/1/0 C xy kg/m2/s OC_ship 25     1 1
+0 OC_sol CEDS_OC:OC_sol OC_sol 2000-2022/1-12/1/0 C xy kg/m2/s OC 25     1 1
+0 OC_was CEDS_OC:OC_was OC_was 2000-2022/1-12/1/0 C xy kg/m2/s OC 25     1 1
+
+0 SO2_agr CEDS_SO2:SO2_agr SO2_agr 2000-2022/1-12/1/0 C xy kg/m2/s SO2 25     1 1
+0 SO2_ene CEDS_SO2:SO2_ene SO2_ene 2000-2022/1-12/1/0 C xy kg/m2/s SO2_elev 35/44  1 1
+0 SO2_ind CEDS_SO2:SO2_ind SO2_ind 2000-2022/1-12/1/0 C xy kg/m2/s SO2 25     1 1
+0 SO2_rco CEDS_SO2:SO2_rco SO2_rco 2000-2022/1-12/1/0 C xy kg/m2/s SO2 28/46  1 1
+0 SO2_tra CEDS_SO2:SO2_tra SO2_tra 2000-2022/1-12/1/0 C xy kg/m2/s SO2 37/48  1 1
+0 SO2_shp CEDS_SO2:SO2_shp SO2_shp 2000-2022/1-12/1/0 C xy kg/m2/s SO2_ship 25     1 1
+0 SO2_sol CEDS_SO2:SO2_sol SO2_sol 2000-2022/1-12/1/0 C xy kg/m2/s SO2 25     1 1
+0 SO2_was CEDS_SO2:SO2_was SO2_was 2000-2022/1-12/1/0 C xy kg/m2/s SO2 25     1 1
+
+# 0 NH3_agr $ROOT/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_agr 1994-2020/1-12/1/0 C xy kg/m2/s NH3_ag 25     1 1
+# 0 NH3_ene $ROOT/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_ene 2000-2022/1-12/1/0 C xy kg/m2/s NH3_en 35/44  1 1
+# 0 NH3_ind $ROOT/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_ind 2000-2022/1-12/1/0 C xy kg/m2/s NH3_in 25     1 1
+# 0 NH3_rco $ROOT/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_rco 2000-2022/1-12/1/0 C xy kg/m2/s NH3_re 28/46  1 1
+# 0 NH3_tra $ROOT/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_tra 2000-2022/1-12/1/0 C xy kg/m2/s NH3_tr 37/48  1 1
+# 0 NH3_shp $ROOT/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_shp 2000-2022/1-12/1/0 C xy kg/m2/s NH3_tr 25     1 1
+# 0 NH3_sol $ROOT/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_sol 2000-2022/1-12/1/0 C xy kg/m2/s NH3_oc 25     1 1
+# 0 NH3_was $ROOT/CEDS/v2025-01/NH3/NH3-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2024-11-25_gn_$YYYY01-$YYYY12_processed.nc NH3_was 2000-2022/1-12/1/0 C xy kg/m2/s NH3_oc 25     1 1
+)))CEDS
+
+
+###############################################################################
+### NON-EMISSIONS DATA (subsection of BASE EMISSIONS SECTION)
+###
+### Non-emissions data. The following fields are read through HEMCO but do
+### not contain emissions data. The extension number is set to wildcard
+### character denoting that these fields will not be considered for emission
+### calculation. A given entry is only read if the assigned species name is
+### an HEMCO species.
+###############################################################################
+
+#==============================================================================
+# --- Time zones (offset to UTC) ---
+#==============================================================================
+# NOTE: TIMEZONES disabled for standalone NEXUS testing - not critical for basic functionality
+# * TIMEZONES UTC_OFFSET UTC_OFFSET 2000/1/1/0 C xy count * - 1 1
+
+### END SECTION BASE EMISSIONS ###
+
+###############################################################################
+### BEGIN SECTION SCALE FACTORS
+###############################################################################
+
+# ScalID Name sourceFile sourceVar sourceTime C/R/E SrcDim SrcUnit Oper
+
+# Units carbon to species conversions for MEGANv2.1
+# Factor = # carbon atoms * MW carbon) / MW species
+61 CtoISOP_bio MATH:68.13/(5.0*12.0)   - - - xy unitless 1
+62 CtoMTPA_bio MATH:136.26/(10.0*12.0) - - - xy unitless 1
+64 CtoMBOX_bio MATH:86.13/(5.0*12.0)   - - - xy unitless 1
+
+#==============================================================================
+# --- annual scale factors ---
+#==============================================================================
+1  TOTFUEL_THISYR    AnnualScalar:NOxscalar NOxscalar 1985-2010/1/1/0 C xy 1  1
+27 TOTFUEL_2008_2010 AnnualScalar:NOxscalar NOxscalar 2008-2010/1/1/0 C xy 1 -1
+
+63 SO2toSO4       0.031 - - - xy unitless 1
+64 SOX2SO4_EU     0.05  - - - xy unitless 1
+65 SO2toSO4_CAC   0.014 - - - xy unitless 1
+199 SO2toSO4_HTAP 0.077 - - - xy unitless 1
+
+#==============================================================================
+# --- diurnal scale factors ---
+#==============================================================================
+25 EDGAR_TODNOX CEDS_SCALING:NOXscale NOXscale 2000/1/1/HH C xy unitless 1
+
+
+#==============================================================================
+# --- CAMS-TEMPO daily weights (Year Dependent) ---
+#==============================================================================
+
+28 CAMS_DAILY_RES CAMS_DAILY:FD_res FD_res 2011-2021/1/DD/0 C xy 1 -1
+
+#==============================================================================
+# --- CAMS-TEMPO weekly (DOW) weights ---
+#==============================================================================
+
+29 CAMS_WEEKLY_ENE_CH4 CAMS_WEEKLY:FW_ene_ch4 FW_ene_ch4 2017/1/WD/0 C xy 1 -1
+30 CAMS_WEEKLY_ENE_CO CAMS_WEEKLY:FW_ene_co FW_ene_co 2017/1/WD/0 C xy 1 -1
+31 CAMS_WEEKLY_ENE_CO2 CAMS_WEEKLY:FW_ene_co2 FW_ene_co2 2017/1/WD/0 C xy 1 -1
+32 CAMS_WEEKLY_ENE_NMVOC CAMS_WEEKLY:FW_ene_nmvoc FW_ene_nmvoc 2017/1/WD/0 C xy 1 -1
+33 CAMS_WEEKLY_ENE_NOX CAMS_WEEKLY:FW_ene_nox FW_ene_nox 2017/1/WD/0 C xy 1 -1
+34 CAMS_WEEKLY_ENE_PM10 CAMS_WEEKLY:FW_ene_pm10 FW_ene_pm10 2017/1/WD/0 C xy 1 -1
+35 CAMS_WEEKLY_ENE_PM25 CAMS_WEEKLY:FW_ene_pm25 FW_ene_pm25 2017/1/WD/0 C xy 1 -1
+36 CAMS_WEEKLY_ENE_SOX CAMS_WEEKLY:FW_ene_sox FW_ene_sox 2017/1/WD/0 C xy 1 -1
+37 CAMS_WEEKLY_TRO CAMS_WEEKLY:FW_tro FW_tro 2017/1/WD/0 C xy 1 -1
+
+#==============================================================================
+# --- CAMS-TEMPO hourly weights ---
+#==============================================================================
+
+38 CAMS_HOURLY_ENE_CH4 CAMS_HOURLY:FH_ene_ch4 FH_ene_ch4 2017/1/1/HH C xy 1 -1
+39 CAMS_HOURLY_ENE_CO CAMS_HOURLY:FH_ene_co FH_ene_co 2017/1/1/HH C xy 1 -1
+40 CAMS_HOURLY_ENE_CO2 CAMS_HOURLY:FH_ene_co2 FH_ene_co2 2017/1/1/HH C xy 1 -1
+41 CAMS_HOURLY_ENE_NMVOC CAMS_HOURLY:FH_ene_nmvoc FH_ene_nmvoc 2017/1/1/HH C xy 1 -1
+42 CAMS_HOURLY_ENE_NOX CAMS_HOURLY:FH_ene_nox FH_ene_nox 2017/1/1/HH C xy 1 -1
+43 CAMS_HOURLY_ENE_PM10 CAMS_HOURLY:FH_ene_pm10 FH_ene_pm10 2017/1/1/HH C xy 1 -1
+44 CAMS_HOURLY_ENE_PM25 CAMS_HOURLY:FH_ene_pm25 FH_ene_pm25 2017/1/1/HH C xy 1 -1
+45 CAMS_HOURLY_ENE_SOX CAMS_HOURLY:FH_ene_sox FH_ene_sox 2017/1/1/HH C xy 1 -1
+46 CAMS_HOURLY_RES_PM10_PM25 CAMS_HOURLY:FH_res_pm10_pm25 FH_res_pm10_pm25 2017/1/1/HH C xy 1 -1
+47 CAMS_HOURLY_RES_OTHERS CAMS_HOURLY:FH_res_others FH_res_others 2017/1/1/HH C xy 1 -1
+48 CAMS_HOURLY_TRO_WEEKDAY CAMS_HOURLY:FH_dow_tro FH_dow_tro 2017/1/1/HH C xy 1 -1
+
+
+#==============================================================================
+# --- seasonal scale factors ---
+#==============================================================================
+
+#==============================================================================
+# Units carbon to species conversions
+# Factor = # (carbon atoms * MW carbon) / MW species
+#==============================================================================
+
+
+### END SECTION SCALE FACTORS ###
+
+###############################################################################
+### BEGIN SECTION MASKS
+###############################################################################
+
+### END SECTION MASKS ###
+
+### END OF HEMCO INPUT FILE ###

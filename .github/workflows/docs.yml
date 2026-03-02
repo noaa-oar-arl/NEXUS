@@ -1,0 +1,43 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen
+          pip install mkdocs-material mkdoxy mike
+
+      - name: Configure Git User
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Deploy (develop)
+        if: github.ref == 'refs/heads/develop'
+        run: |
+          mike deploy --push --update-aliases develop latest
+
+      - name: Deploy (main)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          mike deploy --push main

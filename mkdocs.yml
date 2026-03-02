@@ -1,0 +1,54 @@
+site_name: NEXUS
+site_description: NOAA Emission and Exchange Unified System Documentation
+site_url: https://noaa-oar-arl.github.io/NEXUS/
+repo_url: https://github.com/noaa-oar-arl/NEXUS
+repo_name: noaa-oar-arl/NEXUS
+
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+plugins:
+  - search
+  - mkdoxy:
+      projects:
+        nexus:
+          src-dirs: src/nuopc
+          full-doc: True
+          doxy-cfg-file: Doxyfile
+
+nav:
+  - Home: index.md
+  - User Guide:
+    - Building: building.md
+    - Architecture: architecture.md
+    - HEMCO Integration: hemco.md
+  - API:
+      - Classes:
+          - 'Class List': 'nexus/annotated.md'
+          - 'Class Index': 'nexus/classes.md'
+          - 'Class Hierarchy': 'nexus/hierarchy.md'
+          - 'Class Members': 'nexus/class_members.md'
+      - Namespaces:
+          - 'Namespace List': 'nexus/namespaces.md'
+          - 'Namespace Members': 'nexus/namespace_members.md'
+      - Files: 'nexus/files.md'

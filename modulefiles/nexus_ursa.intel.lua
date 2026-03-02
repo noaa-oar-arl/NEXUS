@@ -26,6 +26,15 @@ setenv("I_MPI_CC", "icx")
 setenv("I_MPI_CXX", "icpx")
 setenv("I_MPI_F90", "ifort")
 
+-- Intel MPI settings for large grids and memory management
+setenv("I_MPI_SHM_HEAP_VSIZE", "4096")
+setenv("I_MPI_ADJUST_ALLREDUCE", "1")
+setenv("I_MPI_EAGER_THRESHOLD", "262144")
+setenv("I_MPI_FABRICS", "shm:tcp")
+unsetenv("I_MPI_OFI_PROVIDER")
+unsetenv("FI_PROVIDER")
+setenv("I_MPI_PIN_DOMAIN", "auto")
+
 setenv("CMAKE_Platform", "ursa.intel")
 
 whatis("Description: NEXUS build environment")
