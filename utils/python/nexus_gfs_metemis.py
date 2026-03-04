@@ -53,7 +53,7 @@ M2_DATA_VAR_INFO = {
         },
     },
     "PRECTOT": {
-        "gfs_name": "prate",
+        "gfs_name": "prate_ave",
         "attrs": {
             "long_name": "total_precipitation_rate",
             "standard_name": "total_precipitation_rate",
@@ -62,7 +62,7 @@ M2_DATA_VAR_INFO = {
         },
     },
     "FRSNO": {
-        "gfs_name": "sncov",
+        "gfs_name": "snowc_ave",
         "attrs": {
             "long_name": "fractional snow cover",
             "standard_name": "fractional_area_of_land_snowcover",
@@ -216,7 +216,13 @@ def main(i_fps, o_fp):
             print(f"{vn_old} -> {vn_new}")
             data = ds[vn_old][:].squeeze()  # squeeze singleton time
 
-            ds_new_pre[vn_new][i, :, :] = data[::-1, :] if lat_needs_flip else data
+            if vn_old == "snowc_ave":
+                # Convert from % to fraction
+                data_new = np.clip(data / 100, 0, 1)
+            else:
+                data_new = np.clip(data, 0, None)  # no negatives
+
+            ds_new_pre[vn_new][i, :, :] = data_new[::-1, :] if lat_needs_flip else data_new
 
     #
     # Time interpolation of data vars and set times
