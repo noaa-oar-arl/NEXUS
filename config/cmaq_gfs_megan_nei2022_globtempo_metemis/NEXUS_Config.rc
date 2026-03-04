@@ -112,13 +112,13 @@ Cap time shift              : true
     --> CAC               :       false
     --> C2H6              :       false
     --> EDGAR             :       false
-    --> HTAP              :  on   true
+    --> HTAP              :       true
     --> EMEP              :       false
     --> GEIA              :       false
     --> LIANG_BROMOCARB   :       false
     --> NEI2005           :       false
     --> GMU-NEI_AR        :       false
-    --> NEI2016v1_AR      :  on   true
+    --> NEI2016v1_AR      :       true
     --> RETRO             :       false
     --> SHIP              :       false
     --> MIX               :       false
@@ -132,11 +132,11 @@ Cap time shift              : true
     --> +UValbedo+        :       false
     --> +TOMS_SBUV_O3+    :       false
     --> +LinStratChem+    :       false
-    --> CEDS              :  on   true
-    --> OMI_HTAP_SO2      :  on   true
-    --> Yuan_XLAI         :  on   false
+    --> CEDS              :       true
+    --> OMI_HTAP_SO2      :       true
+    --> Yuan_XLAI         :       false
     --> MODIS_XLAI        :       false
-    --> OFFLINE_SOILNOX   :  on   true
+    --> OFFLINE_SOILNOX   :       true
 # -----------------------------------------------------------------------------
 100     Custom            : off   -
 101     SeaFlux           : off   DMS/ACET
