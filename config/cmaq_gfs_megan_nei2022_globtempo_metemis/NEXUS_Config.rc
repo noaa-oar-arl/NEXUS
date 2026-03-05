@@ -1314,6 +1314,7 @@ Cap time shift              : true
 
 
 # SURFACE ONROAD INVENTORY
+(((.not.ME Onroad
 0 NEI2016v1_ONROAD_CO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          CO            2016/1-12/1-31/$HH C xyz  kg/m2/s  CO           1007     1 50
 0 NEI2016v1_ONROAD_SO2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          SO2           2016/1-12/1-31/$HH C xyz  kg/m2/s  SO2          1007     1 50
 0 NEI2016v1_ONROAD_NO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          NO            2016/1-12/1-31/$HH C xyz  kg/m2/s  NOT          1007     1 50
@@ -1367,6 +1368,7 @@ Cap time shift              : true
 0 NEI2016v1_ONROAD_PSO4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          PSO4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PSO4         1007     1 50
 0 NEI2016v1_ONROAD_CH4_INV        $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          CH4_INV       2016/1-12/1-31/$HH C xyz  kg/m2/s  CH4_INV      1007     1 50
 0 NEI2016v1_ONROAD_CO2_INV        $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad.nc          CO2_INV       2016/1-12/1-31/$HH C xyz  kg/m2/s  CO2_INV      1007     1 50
+))).not.ME Onroad
 
 # SURFACE ONROADCAADJ INVENTORY
 0 NEI2016v1_ONROADCAADJ_CO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_ca_adj.nc          CO            2016/1-12/1-31/$HH C xyz  kg/m2/s  CO           1007     1 50
@@ -1532,6 +1534,7 @@ Cap time shift              : true
 0 NEI2016v1_ONROADMEX_PSO4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_onroad_mex.nc          PSO4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PSO4         1007     1 50
 
 # SURFACE RWC INVENTORY
+(((.not.ME RWC
 0 NEI2016v1_RWC_CO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          CO            2016/1-12/1-31/$HH C xyz  kg/m2/s  CO           1007     1 50
 0 NEI2016v1_RWC_SO2            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          SO2           2016/1-12/1-31/$HH C xyz  kg/m2/s  SO2          1007     1 50
 0 NEI2016v1_RWC_NO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          NO            2016/1-12/1-31/$HH C xyz  kg/m2/s  NOT          1007     1 50
@@ -1585,6 +1588,7 @@ Cap time shift              : true
 0 NEI2016v1_RWC_PSI            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          PSI           2016/1-12/1-31/$HH C xyz  kg/m2/s  PSI          1007     1 50
 0 NEI2016v1_RWC_PMC            $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          PMC           2016/1-12/1-31/$HH C xyz  kg/m2/s  PMC          1007     1 50
 0 NEI2016v1_RWC_PSO4           $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_rwc.nc          PSO4          2016/1-12/1-31/$HH C xyz  kg/m2/s  PSO4         1007     1 50
+))).not.ME RWC
 
 # SURFACE NPOILGAS INVENTORY (OTHER NON-MAJOR SOURCES
 0 NEI2016v1_NPOILGAS_CO             $ROOT/NEI2016v1/v2022-07/$MM/NEI2016v1_0.1x0.1_2016$MM$DD_np_oilgas.nc          CO            2016/1-12/1-31/$HH C xyz  kg/m2/s  CO           1007     1 50
@@ -1943,6 +1947,7 @@ Cap time shift              : true
 #####################################################################
 # Met fields for MetEmis
 #####################################################################
+(((MetEmis
 * T2M      $ROOT/GEOS_0.5x0.625/MERRA2/$YYYY/$MM/MERRA2.$YYYY$MM$DD.A1.05x0625.nc4   T2M      2014-2019/1-12/1-31/0-23 C xy  K        * - 1 1
 * QV2M     $ROOT/GEOS_0.5x0.625/MERRA2/$YYYY/$MM/MERRA2.$YYYY$MM$DD.A1.05x0625.nc4   QV2M     2014-2019/1-12/1-31/0-23 C xy  kg/kg    * - 1 1
 * PRECTOT  $ROOT/GEOS_0.5x0.625/MERRA2/$YYYY/$MM/MERRA2.$YYYY$MM$DD.A1.05x0625.nc4   PRECTOT  2014-2019/1-12/1-31/0-23 C xy  kg/m2/s  * - 1 1
@@ -1951,7 +1956,7 @@ Cap time shift              : true
 #==============================================================================
 # --- MetEmis Onroad Sector Tables: Used for MetEmis Extension:  Three digit suffixes are temperature in Fahrenheit for the 10 bins---
 #==============================================================================
-(((MetEmis
+(((ME Onroad
 * MEmisNO_GAS_OR_030 $ROOT/METEMIS/2021/MetEmis_tbl_disgas_split_0.1_degree_0_2021$MM$DD.nc          NO_GAS            2021/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
 * MEmisNO_GAS_OR_040 $ROOT/METEMIS/2021/MetEmis_tbl_disgas_split_0.1_degree_1_2021$MM$DD.nc          NO_GAS            2021/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
 * MEmisNO_GAS_OR_050 $ROOT/METEMIS/2021/MetEmis_tbl_disgas_split_0.1_degree_2_2021$MM$DD.nc          NO_GAS            2021/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
@@ -2542,11 +2547,12 @@ Cap time shift              : true
 * MEmisPSO4_OR_100      $ROOT/METEMIS/2021/MetEmis_tbl_disgas_split_0.1_degree_7_2021$MM$DD.nc         PSO4               2021/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
 * MEmisPSO4_OR_110      $ROOT/METEMIS/2021/MetEmis_tbl_disgas_split_0.1_degree_8_2021$MM$DD.nc         PSO4               2021/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
 * MEmisPSO4_OR_120      $ROOT/METEMIS/2021/MetEmis_tbl_disgas_split_0.1_degree_9_2021$MM$DD.nc         PSO4               2021/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
+)))ME Onroad
 
 #==============================================================================
 # --- MetEmis Livestock Sector Tables: Used for MetEmis Extension:  Three digit suffixes are temperature in Fahrenheit for the 12 bins---
 #==============================================================================
-
+(((ME Livestock
 * MEmisNH3_BEEF_LIV_010      $ROOT/METEMIS/2022/MetEmis_tbl_livestock_0.1_degree_0_20220101.nc   NH3_B         2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
 * MEmisNH3_BEEF_LIV_020      $ROOT/METEMIS/2022/MetEmis_tbl_livestock_0.1_degree_1_20220101.nc   NH3_B         2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
 * MEmisNH3_BEEF_LIV_030      $ROOT/METEMIS/2022/MetEmis_tbl_livestock_0.1_degree_2_20220101.nc   NH3_B         2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
@@ -3534,10 +3540,12 @@ Cap time shift              : true
 * MEmisSOAALK_POULTRY_LIV_100      $ROOT/METEMIS/2022/MetEmis_tbl_livestock_0.1_degree_9_20220101.nc   SOAALK_P         2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
 * MEmisSOAALK_POULTRY_LIV_110      $ROOT/METEMIS/2022/MetEmis_tbl_livestock_0.1_degree_10_20220101.nc  SOAALK_P         2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
 * MEmisSOAALK_POULTRY_LIV_120      $ROOT/METEMIS/2022/MetEmis_tbl_livestock_0.1_degree_11_20220101.nc  SOAALK_P         2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
+)))ME Livestock
 
 #==============================================================================
 # --- MetEmis RWC Sector: Used for MetEmis Extension
 #==============================================================================
+(((ME RWC
 * MEmisNO_RWC $ROOT/GMU-NEI2022v1/v2025-10/$MM/NEI2022v1_0.1_degree_2022$MM$DD_rwc.nc          NO            2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
 * MEmisNO2_RWC $ROOT/GMU-NEI2022v1/v2025-10/$MM/NEI2022v1_0.1_degree_2022$MM$DD_rwc.nc         NO2           2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
 * MEmisHONO_RWC $ROOT/GMU-NEI2022v1/v2025-10/$MM/NEI2022v1_0.1_degree_2022$MM$DD_rwc.nc        HONO          2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
@@ -3589,10 +3597,12 @@ Cap time shift              : true
 * MEmisPSI_RWC $ROOT/GMU-NEI2022v1/v2025-10/$MM/NEI2022v1_0.1_degree_2022$MM$DD_rwc.nc         PSI            2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
 * MEmisPMC_RWC $ROOT/GMU-NEI2022v1/v2025-10/$MM/NEI2022v1_0.1_degree_2022$MM$DD_rwc.nc         PMC            2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
 * MEmisPSO4_RWC $ROOT/GMU-NEI2022v1/v2025-10/$MM/NEI2022v1_0.1_degree_2022$MM$DD_rwc.nc        PSO4           2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
+)))ME RWC
 
 #==============================================================================
 # --- MetEmis afdust Sector: Used for MetEmis Extension
 #==============================================================================
+(((ME AFD
 * MEmisPEC_AFD $ROOT/GMU-NEI2022v1/v2025-10/$MM/NEI2022v1_0.1_degree_2022$MM$DD_afdust.nc         PEC            2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
 * MEmisPOC_AFD $ROOT/GMU-NEI2022v1/v2025-10/$MM/NEI2022v1_0.1_degree_2022$MM$DD_afdust.nc         POC            2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
 * MEmisPAL_AFD $ROOT/GMU-NEI2022v1/v2025-10/$MM/NEI2022v1_0.1_degree_2022$MM$DD_afdust.nc         PAL            2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
@@ -3612,6 +3622,7 @@ Cap time shift              : true
 * MEmisPSI_AFD $ROOT/GMU-NEI2022v1/v2025-10/$MM/NEI2022v1_0.1_degree_2022$MM$DD_afdust.nc         PSI            2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
 * MEmisPMC_AFD $ROOT/GMU-NEI2022v1/v2025-10/$MM/NEI2022v1_0.1_degree_2022$MM$DD_afdust.nc         PMC            2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
 * MEmisPSO4_AFD $ROOT/GMU-NEI2022v1/v2025-10/$MM/NEI2022v1_0.1_degree_2022$MM$DD_afdust.nc        PSO4           2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
+)))ME AFD
 )))MetEmis
 
 ###############################################################################
