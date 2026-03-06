@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.13)
 
 # Set the project name and version
 project(NEXUS
@@ -34,6 +34,30 @@ if(USE_MPI)
     message(STATUS "MPI_Fortran_LIBRARIES: ${MPI_Fortran_LIBRARIES}")
   endif()
 endif()
+
+# Find ESMF early to support CDEPS configuration
+find_package(ESMF REQUIRED)
+if(ESMF_FOUND)
+  message(STATUS "ESMF Found: ${ESMF_VERSION}")
+  if(ESMF_PIO STREQUAL "external")
+    message(STATUS "ESMF uses external PIO. Setting hints for PIO.")
+    if(EXISTS "${ESMF_PIO_LIBPATH}")
+       get_filename_component(PIO_ROOT_HINT "${ESMF_PIO_LIBPATH}" DIRECTORY)
+       set(ENV{PIO} "${PIO_ROOT_HINT}")
+       set(ENV{PIO_ROOT} "${PIO_ROOT_HINT}")
+       set(ENV{parallelio_ROOT} "${PIO_ROOT_HINT}")
+       set(PIO_ROOT "${PIO_ROOT_HINT}")
+       set(PIO_PATH "${PIO_ROOT_HINT}")
+       set(PIO_C_PATH "${PIO_ROOT_HINT}")
+       set(PIO_Fortran_PATH "${PIO_ROOT_HINT}")
+       message(STATUS "Setting PIO hint to ${PIO_ROOT_HINT} based on ESMF configuration")
+    endif()
+  endif()
+  # Promote ESMF module paths globally to ensure consistent ESMF version usage across CDEPS, HEMCO, and NEXUS
+  if(DEFINED ESMF_F90COMPILEPATHS)
+    include_directories(${ESMF_F90COMPILEPATHS})
+  endif()
+endif()
 # Control where the static and shared libraries are built
 # so that on Windows we don't need to tinker with the path to run the executable
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
@@ -48,6 +72,9 @@ if(CMAKE_BUILD_TYPE)
   string(TOUPPER ${CMAKE_BUILD_TYPE} UPPER_CMAKE_BUILD_TYPE)
 endif()
 message(STATUS "CMAKE_BUILD_TYPE: '${UPPER_CMAKE_BUILD_TYPE}'")
+
+# Force double precision for HEMCO and others
+add_compile_definitions(USE_REAL8)
 
 if(UPPER_CMAKE_BUILD_TYPE STREQUAL "DEBUG")
   # HEMCO already sets `-ftrapuv` for Intel and similar options for GNU
@@ -68,15 +95,17 @@ if(CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
 endif()
 
 # Add project's subdirectories
-# add_subdirectory(src/external/CDEPS)
+add_subdirectory(src/external/CDEPS)
 
 # Import external CDEPS (optional)
 if(NEXUS_USE_INLINE_CDEPS)
-  if(EXISTS "${CDEPS_INTERFACE_DIR}/cdeps-targets.cmake")
-    include("${CDEPS_INTERFACE_DIR}/cdeps-targets.cmake")
-    message(STATUS "Included external CDEPS targets from ${CDEPS_INTERFACE_DIR}")
-  else()
-    message(STATUS "CDEPS targets file not found in ${CDEPS_INTERFACE_DIR}; will link libraries directly if provided by src/nuopc CMake")
+  # Define macros required by CDEPS based on compiler
+  if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
+    add_compile_definitions(CPRGNU)
+    add_compile_definitions(HAVE_IEEE_ARITHMETIC)
+  elseif(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
+    add_compile_definitions(CPRINTEL)
+    add_compile_definitions(HAVE_IEEE_ARITHMETIC)
   endif()
 endif()
 

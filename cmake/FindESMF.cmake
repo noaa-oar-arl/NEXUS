@@ -33,14 +33,17 @@ if(EXISTS ${ESMFMKFILE})
   file(STRINGS "${ESMFMKFILE}" esmfmkfile_contents)
   # Parse each line in the mk file
   foreach(str ${esmfmkfile_contents})
-    # Only consider uncommented lines
+    # Consider uncommented lines OR commented PIO/NETCDF variables which are often commented in esmf.mk
     string(REGEX MATCH "^[^#]" def ${str})
-    # Line is not commented
-    if(def)
-      # Extract the variable name
-      string(REGEX MATCH "^[^=]+" esmf_varname ${str})
+    string(REGEX MATCH "^# +ESMF_" commented_var ${str})
+
+    # Line is not commented OR it is a commented ESMF variable we want
+    if(def OR commented_var)
+      # Extract the variable name (handle commented ones too)
+      string(REGEX REPLACE "^# +" "" str_clean ${str})
+      string(REGEX MATCH "^[^=]+" esmf_varname ${str_clean})
       # Extract the variable's value
-      string(REGEX MATCH "=.+$" esmf_vardef ${str})
+      string(REGEX MATCH "=.+$" esmf_vardef ${str_clean})
       # Only for variables with a defined value
       if(esmf_vardef)
         # Get rid of the assignment string
@@ -134,7 +137,7 @@ find_package_handle_standard_args(
     VERSION_VAR ESMF_VERSION)
 
 ## If ESMF is found create imported library target
-if(ESMF_FOUND)
+if(ESMF_FOUND AND NOT TARGET esmf)
   add_library(esmf ${_library_type} IMPORTED)
   set_target_properties(esmf PROPERTIES
     IMPORTED_LOCATION "${ESMF_LIBRARY_LOCATION}"

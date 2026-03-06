@@ -9,7 +9,7 @@ module nexus_cap
   use NUOPC_Model, modelSS => SetServices
 
   ! HEMCO core modules
-  use HCOI_NUOPC_MOD, only: HCO_SetServices_NUOPC, HCO_SetExtState_NUOPC, HCO_UpdateExportFields_NUOPC
+  use HCOI_NUOPC_MOD, only: HCO_SetServices_NUOPC, HCO_SetExtState_NUOPC
   use HCO_Config_Mod,  only: Config_ReadFile
   use HCO_Driver_Mod,  only: HCO_Init
   use HCOX_Driver_Mod, only: HCOX_Init
@@ -36,7 +36,7 @@ module nexus_cap
                              nxs_expt_state_init, nxs_expt_state_update, &
                              nxs_state_finalize, nxs_create_hemco_diagnostics
   use nexus_initialize_mod, only: nexus_initialize_phase_aware, ModuleHcoState, ModuleExtState
-  use nexus_io_mod, only: IO_Init, IO_Read, TransferFieldsToHEMCO, CreateAndPopulateStreamVariableFields
+  use nexus_io_mod, only: IO_Init, IO_Read, TransferFieldsToHEMCO, CreateAndPopulateStreamVariableFields, HCO_UpdateExportFields_NUOPC
   use nexus_species_mod, only: NEXUS_RegisterSpecies
 
   implicit none
@@ -261,7 +261,7 @@ contains
     ! Set HEMCO services - this must be done here where we have access to import/export states
     if (localPet == 0) print *, "NEXUS: Calling HCO_SetServices_NUOPC in Advertise with config file: ", trim(ConfigFile_)
     call HCO_SetServices_NUOPC( (localPet == 0), model, HcoConfig, &
-      trim(ConfigFile_), importState, exportState, localrc )
+      trim(ConfigFile_), localrc )
     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) then

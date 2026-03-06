@@ -8,9 +8,9 @@ module nexus_driver
 
   use nexus_cap, only: modelSS => SetServices
   use nexus_config_mod, only: nxs_read_full_config
-  
+
   ! CDEPS data atmosphere component
-  use cdeps_datm_comp, only: datm_SS => SetServices
+  ! use cdeps_datm_comp, only: datm_SS => SetServices
 
   implicit none
 
@@ -70,7 +70,7 @@ contains
     integer, intent(out) :: rc
 
     ! local variables
-    type(ESMF_GridComp)           :: child_nexus, child_datm
+    type(ESMF_GridComp)           :: child_nexus !, child_datm
     type(ESMF_CplComp)            :: connector
     ! Standalone toggle from nexus.rc configuration
     logical :: standalone_mode
@@ -87,14 +87,14 @@ contains
     rc = ESMF_SUCCESS
 
     call ESMF_LogWrite("NEXUS_DRIVER: Starting SetModelServices", ESMF_LOGMSG_INFO)
-    
+
     ! Read standalone mode from nexus.rc configuration
     call nxs_read_full_config('nexus.rc', hemco_config_file, grid_file, standalone_mode, regrid_file, config_rc)
     if (config_rc /= 0) then
       call ESMF_LogWrite('NEXUS_DRIVER: Warning - could not read config, defaulting to standalone mode', ESMF_LOGMSG_WARNING)
       standalone_mode = .true.
     end if
-    
+
     if (standalone_mode) then
       call ESMF_LogWrite('NEXUS_DRIVER: Standalone mode enabled (skipping external DATM + connector)', ESMF_LOGMSG_INFO)
     else
@@ -122,17 +122,17 @@ contains
 
     if (.not. standalone_mode) then
       ! Add CDEPS data atmosphere component for emission data provision
-      call NUOPC_DriverAddComp(driver, "DATM", datm_SS, comp=child_datm, rc=rc)
-      if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-        line=__LINE__, &
-        file=__FILE__)) &
-        return  ! bail out
-      call NUOPC_CompAttributeSet(child_datm, name="Verbosity", value="low", rc=rc)
-      if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-        line=__LINE__, &
-        file=__FILE__)) &
-        return  ! bail out
-      call ESMF_LogWrite("NEXUS_DRIVER: Added CDEPS DATM component", ESMF_LOGMSG_INFO)
+      ! call NUOPC_DriverAddComp(driver, "DATM", datm_SS, comp=child_datm, rc=rc)
+      ! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      !   line=__LINE__, &
+      !   file=__FILE__)) &
+      !   return  ! bail out
+      ! call NUOPC_CompAttributeSet(child_datm, name="Verbosity", value="low", rc=rc)
+      ! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      !   line=__LINE__, &
+      !   file=__FILE__)) &
+      !   return  ! bail out
+      call ESMF_LogWrite("NEXUS_DRIVER: Added CDEPS DATM component (DISABLED)", ESMF_LOGMSG_INFO)
     end if
 
     ! Add NEXUS emission processing component
@@ -150,13 +150,13 @@ contains
 
     if (.not. standalone_mode) then
       ! Add connector from DATM to NEXUS (DATM exports data to NEXUS imports)
-      call NUOPC_DriverAddComp(driver, srcCompLabel="DATM", dstCompLabel="NEXUS", &
-                              compSetServicesRoutine=connectorSS, comp=connector, rc=rc)
-      if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-        line=__LINE__, &
-        file=__FILE__)) &
-        return  ! bail out
-      call ESMF_LogWrite("NEXUS_DRIVER: Added DATM->NEXUS connector", ESMF_LOGMSG_INFO)
+      ! call NUOPC_DriverAddComp(driver, srcCompLabel="DATM", dstCompLabel="NEXUS", &
+      !                         compSetServicesRoutine=connectorSS, comp=connector, rc=rc)
+      ! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      !   line=__LINE__, &
+      !   file=__FILE__)) &
+      !   return  ! bail out
+      call ESMF_LogWrite("NEXUS_DRIVER: Connector DATM->NEXUS (DISABLED)", ESMF_LOGMSG_INFO)
     end if
 
     !

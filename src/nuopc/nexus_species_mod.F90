@@ -4,7 +4,7 @@
 !> @date 2024-12-19
 
 !> Module for registering NEXUS model species with HEMCO
-!> 
+!>
 !> This module handles the proper registration of model species with HEMCO
 !> as required by the HEMCO 3.0 coupling interface. It reads species definitions
 !> from HEMCO_sa_Spec.rc and registers them with both HcoConfig and HcoState
@@ -41,7 +41,7 @@ module nexus_species_mod
 contains
 
   !> @brief Read species definitions from HEMCO_sa_Spec.rc file
-  !> 
+  !>
   !> This subroutine reads the species definition file (typically HEMCO_sa_Spec.rc)
   !> and parses the species properties needed for HEMCO registration.
   !>
@@ -59,6 +59,7 @@ contains
 
     ! Local variables
     integer :: ios, lun, lineNum
+    logical :: is_open
     character(len=255) :: line, msg
     character(len=255), parameter :: thisProcedure = 'NEXUS_ReadSpeciesFile'
 
@@ -72,8 +73,8 @@ contains
     ! Find free logical unit
     lun = 10
     do while (lun < 100)
-      inquire(unit=lun, opened=ios)
-      if (.not. ios) exit
+      inquire(unit=lun, opened=is_open)
+      if (.not. is_open) exit
       lun = lun + 1
     end do
 
@@ -148,7 +149,7 @@ contains
   !> HEMCO 3.0 coupling interface requirements. It properly configures both
   !> HcoConfig and HcoState structures with species information.
   !>
-  !> @param[in]    specFile    Path to species definition file  
+  !> @param[in]    specFile    Path to species definition file
   !> @param[in]    am_I_Root   True if this is the root processor
   !> @param[inout] HcoConfig   HEMCO configuration object
   !> @param[inout] HcoState    HEMCO state object
@@ -190,10 +191,10 @@ contains
       if (am_I_Root) then
         print *, 'NEXUS: HcoConfig already exists, updating with ', nSpc, ' species'
       endif
-      
+
       ! Set number of model species
       HcoConfig%nModelSpc = nSpc
-      
+
       ! Allocate ModelSpc array if not already associated
       if (.not. associated(HcoConfig%ModelSpc)) then
         allocate(HcoConfig%ModelSpc(nSpc))
@@ -225,7 +226,7 @@ contains
     if (associated(HcoState)) then
       ! Set number of species
       HcoState%nSpc = nSpc
-      
+
       ! Allocate Spc array if not already associated
       if (.not. associated(HcoState%Spc)) then
         allocate(HcoState%Spc(nSpc))
@@ -234,7 +235,7 @@ contains
       ! Fill species information
       do i = 1, nSpc
         HcoState%Spc(i)%HcoID      = i
-        HcoState%Spc(i)%ModID      = species(i)%specID  
+        HcoState%Spc(i)%ModID      = species(i)%specID
         HcoState%Spc(i)%SpcName    = trim(species(i)%specName)
         HcoState%Spc(i)%MW_g       = species(i)%MW_g
         HcoState%Spc(i)%HenryK0    = species(i)%Henry_K0

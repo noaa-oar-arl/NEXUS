@@ -13,7 +13,6 @@ module nexus_state_mod
   use HCO_STATE_MOD, only: Hco_State
   use HCO_TYPES_MOD, only: DiagnCont
   use HCO_DIAGN_MOD, only: Diagn_Create, DiagnCollection_Get
-  use HCOI_NUOPC_MOD, only: HCO_UpdateExportFields_NUOPC
 
   implicit none
   private

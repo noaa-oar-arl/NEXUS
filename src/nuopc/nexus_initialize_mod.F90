@@ -25,8 +25,8 @@ module nexus_initialize_mod
   use nexus_grid_mod, only: nxs_create_hco_grid, nxs_create_hco_grid_static, nxs_set_hco_grid, nxs_set_hco_mesh
   use nexus_config_mod, only: nxs_read_time_config
   use nexus_state_mod, only: nxs_diag_state_init_disabled, nxs_create_hemco_diagnostics
-  use nexus_io_mod, only: IO_Init, InitializeFieldDataRegistry, GetRegistryFieldCount, GetRegistryFieldInfo
-  use HCOIO_Read_Mod, only: NEXUS_InitRegistry, NEXUS_RegisterField2D, NEXUS_RegisterField3D
+  use nexus_io_mod, only: IO_Init, InitializeFieldDataRegistry, GetRegistryFieldCount, GetRegistryFieldInfo, &
+                          NEXUS_InitRegistry, NEXUS_RegisterField2D, NEXUS_RegisterField3D
   use nexus_grid_mod, only: nxs_create_hco_grid_static
   use nexus_field_advertisement_mod, only: AdvertiseFields
   use nexus_runtime_config_mod, only: nexus_get_config_file

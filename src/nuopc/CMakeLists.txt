@@ -11,6 +11,7 @@ add_library(NEXUS_Shared STATIC EXCLUDE_FROM_ALL
   nexus_state_mod.F90
   nexus_field_advertisement_mod.F90
   nexus_initialize_mod.F90
+  nexus_cdeps_inline_mod.F90
   cap.F90
   driver.F90
   nexus_io_mod.F90
@@ -27,37 +28,26 @@ target_include_directories(NEXUS_Shared
 
 find_package(ESMF REQUIRED)
 find_package(NetCDF REQUIRED COMPONENTS Fortran)
-
-# Add PIO support required by CDEPS when inline CDEPS is enabled
-if(NEXUS_USE_INLINE_CDEPS)
-  if (DEFINED ENV{PIO_ROOT})
-    message("PIO_ROOT is $ENV{PIO_ROOT}")
-  else()
-    if (DEFINED PIO)
-      set(PIO_PATH ${PIO})
-    else()
-      set(PIO_PATH $ENV{parallelio_ROOT})
-    endif()
-    find_package(PIO REQUIRED COMPONENT C Fortran PATH ${PIO_PATH})
-  endif()
-endif()
+find_package(PIO REQUIRED COMPONENTS Fortran C)
 
 if(NetCDF_PARALLEL)
   target_compile_definitions(NEXUS_Shared PRIVATE USE_PNETCDF)
   target_compile_definitions(nexus PRIVATE USE_PNETCDF)
 endif()
 
-target_compile_options(NEXUS_Shared PRIVATE
-  "-I${ESMF_INCLUDE_DIRS}"
-  "-I${NetCDF_Fortran_INCLUDE_DIRS}"
+target_include_directories(NEXUS_Shared PRIVATE
+  ${ESMF_F90COMPILEPATHS}
+  ${NetCDF_Fortran_INCLUDE_DIRS}
+  ${PIO_Fortran_INCLUDE_DIRS}
 )
 
 # Optional include dirs and defs for inline CDEPS
 if(NEXUS_USE_INLINE_CDEPS)
-  target_compile_options(NEXUS_Shared PRIVATE
-    "-I${CDEPS_INTERFACE_DIR}/mod"
-    "-I${PIO_Fortran_INCLUDE_DIR}"
-  )
+  if(EXISTS "${CDEPS_INTERFACE_DIR}/mod")
+    target_compile_options(NEXUS_Shared PRIVATE
+      "-I${CDEPS_INTERFACE_DIR}/mod"
+    )
+  endif()
   target_compile_definitions(NEXUS_Shared PRIVATE NEXUS_USE_INLINE_CDEPS)
   target_compile_definitions(nexus PRIVATE NEXUS_USE_INLINE_CDEPS)
 endif()
@@ -67,19 +57,36 @@ target_link_libraries(NEXUS_Shared
   PUBLIC HCOI_NUOPC
 )
 
-# Link to CDEPS and PIO only when inline CDEPS is enabled
+if(TARGET PIO::PIO_Fortran)
+  target_link_libraries(NEXUS_Shared PUBLIC PIO::PIO_Fortran)
+else()
+  target_link_libraries(NEXUS_Shared PUBLIC ${PIO_Fortran_LIBRARIES} ${PIO_C_LIBRARIES})
+endif()
+
+# Link to CDEPS and ESMF when inline CDEPS is enabled
 if(NEXUS_USE_INLINE_CDEPS)
-  # Prefer cdeps target if available, else link archive directly
-  if(TARGET cdeps)
-    target_link_libraries(NEXUS_Shared PUBLIC cdeps)
-  elseif(EXISTS "${CDEPS_INTERFACE_DIR}/libcdeps.a")
-    target_link_libraries(NEXUS_Shared PUBLIC ${CDEPS_INTERFACE_DIR}/libcdeps.a)
-  else()
-    message(FATAL_ERROR "Inline CDEPS enabled but libcdeps target or archive not found. Set CDEPS_INTERFACE_DIR correctly.")
+  # When building CDEPS from source, link to the relevant library targets directly
+  if(TARGET dshr)
+     target_link_libraries(NEXUS_Shared PUBLIC dshr)
   endif()
+  if(TARGET streams)
+     target_link_libraries(NEXUS_Shared PUBLIC streams)
+  endif()
+  if(TARGET cdeps_share)
+     target_link_libraries(NEXUS_Shared PUBLIC cdeps_share)
+  endif()
+  if(TARGET datm)
+     target_link_libraries(NEXUS_Shared PUBLIC datm)
+  endif()
+
+  # Fallback for pre-built archive
+  if(NOT TARGET dshr AND EXISTS "${CDEPS_INTERFACE_DIR}/libcdeps.a")
+    target_link_libraries(NEXUS_Shared PUBLIC ${CDEPS_INTERFACE_DIR}/libcdeps.a)
+  endif()
+
   # ESMF must come after CDEPS in link order
+  # ESMF automatically provides PIO linkage when built with external PIO support
   target_link_libraries(NEXUS_Shared PUBLIC esmf)
-  target_link_libraries(NEXUS_Shared PUBLIC ${PIO_C_LIBRARIES} ${PIO_Fortran_LIBRARIES})
 endif()
 
 target_link_libraries(nexus
