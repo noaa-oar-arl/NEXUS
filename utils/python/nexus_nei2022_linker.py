@@ -114,6 +114,44 @@ def get_hemco_simulation_time(file_path):
     return dates
 
 
+def link_file(src_file, tgt_file):
+    """Create a symbolic link.
+
+    If the target already exists, it will be removed before creating the new link.
+
+    Parameters
+    ----------
+    src_file : str
+        Source file path.
+    tgt_file : str
+        Target file path (the link).
+
+    Raises
+    ------
+    FileNotFoundError
+        If the source file does not exist.
+    """
+    if not os.path.exists(src_file):
+        raise FileNotFoundError(f"Source file does not exist: {src_file}")
+
+    src_abs = os.path.abspath(src_file)
+
+    if os.path.lexists(tgt_file):
+        if os.path.islink(tgt_file):
+            current_link = os.readlink(tgt_file)
+            current_abs = os.path.abspath(os.path.join(os.path.dirname(tgt_file), current_link))
+            if current_abs == src_abs:
+                logger.info(f"Link already exists and points to correct source: {tgt_file}")
+                return
+            logger.info(f"Replacing existing link: {tgt_file} -> {current_link}")
+        else:
+            logger.info(f"Replacing existing file: {tgt_file}")
+        os.remove(tgt_file)
+
+    os.symlink(src_abs, tgt_file)
+    logger.info(f"Created link: {tgt_file} -> {src_abs}")
+
+
 def get_file_map(src_dir, version):
     """Create a mapping of month and day-of-week to NEI2022 file paths.
 
@@ -223,68 +261,6 @@ def get_file_map(src_dir, version):
 
     except Exception as e:
         logger.error(f"Error building file map: {e}")
-        raise
-
-
-def link_file(src_file, tgt_file):
-    """Create a symbolic link, with error handling.
-
-    Creates a symbolic link from source to target file with proper error handling.
-    If the target already exists, it will be removed before creating the new link.
-
-    Parameters
-    ----------
-    src_file : str
-        Source file path to link from
-    tgt_file : str
-        Target file path to link to
-
-    Raises
-    ------
-    FileNotFoundError
-        If the source file does not exist
-    Exception
-        For any errors during link creation
-    """
-    try:
-        if not os.path.exists(src_file):
-            logger.error(f"Source file does not exist: {src_file}")
-            raise FileNotFoundError(f"Source file not found: {src_file}")
-
-        if os.path.exists(tgt_file):
-            if os.path.islink(tgt_file):
-                current_link = os.readlink(tgt_file)
-                if current_link == src_file:
-                    logger.info(f"Link already exists and points to correct source: {tgt_file}")
-                    return
-                else:
-                    logger.warning(
-                        f"Target link exists but points to different source: {tgt_file} -> {current_link}"
-                    )
-                    os.remove(tgt_file)
-            else:
-                logger.warning(f"Target exists but is not a link, removing: {tgt_file}")
-                os.remove(tgt_file)
-
-        # Use os.path.abspath to ensure we have absolute paths for both source and target
-        src_abs = os.path.abspath(src_file)
-
-        # Create the symlink
-        os.symlink(src_abs, tgt_file)
-        logger.info(f"Created link: {tgt_file} -> {src_abs}")
-
-    except FileExistsError:
-        # This can happen if the file is created between our check and actual symlink creation
-        logger.warning(f"File appeared during linking, removing and retrying: {tgt_file}")
-        try:
-            os.remove(tgt_file)
-            os.symlink(os.path.abspath(src_file), tgt_file)
-            logger.info(f"Created link on second attempt: {tgt_file} -> {src_file}")
-        except Exception as e:
-            logger.error(f"Failed to create link on second attempt: {e}")
-            raise
-    except Exception as e:
-        logger.error(f"Failed to create link {tgt_file}: {e}")
         raise
 
 
