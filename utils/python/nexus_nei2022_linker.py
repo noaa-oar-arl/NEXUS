@@ -49,72 +49,69 @@ def get_hemco_simulation_time(file_path):
     Parameters
     ----------
     file_path : str
-        Path to the HEMCO configuration file
+        Path to the HEMCO configuration file.
 
     Returns
     -------
     list of datetime.datetime
-        List of dates in the simulation period
+        List of dates in the simulation period.
 
     Raises
     ------
     FileNotFoundError
-        If the HEMCO time file doesn't exist
+        If the HEMCO time file doesn't exist.
     ValueError
-        If required time information cannot be extracted
-    Exception
-        For any other errors during processing
+        If required time information cannot be extracted.
+        If the START time is not before the END time.
     """
     if not os.path.exists(file_path):
-        logger.error(f"HEMCO time file not found: {file_path}")
-        raise FileNotFoundError(f"Cannot find HEMCO time file: {file_path}")
+        raise FileNotFoundError(f"HEMCO time file path does not exist: {file_path}")
 
-    try:
-        with open(file_path) as reader:
-            lines = reader.readlines()
+    with open(file_path) as reader:
+        lines = reader.readlines()
 
-        start_time = None
-        end_time = None
+    start_time = None
+    end_time = None
 
-        for L in lines:
-            if L.startswith("START"):
-                start_base = datetime.strptime(L.split()[1], "%Y-%m-%d")  # noqa: F841
-                start_time = datetime.strptime(L, "START:   %Y-%m-%d %H:%M:%S\n")
-            if L.startswith("END"):
-                end_time = datetime.strptime(L, "END:     %Y-%m-%d %H:%M:%S\n")
-            if L.startswith("TS_EMIS"):
-                ts_emis = float(L.split()[1].strip("\n"))  # noqa: F841
+    for line in lines:
+        line = line.strip()
+        if line.startswith("START"):
+            try:
+                # Note strptime single space also matches multiple spaces
+                start_time = datetime.strptime(line, r"START: %Y-%m-%d %H:%M:%S")
+            except ValueError as e:
+                raise ValueError(f"Invalid START line in {file_path}: {line.strip()}") from e
+        elif line.startswith("END"):
+            try:
+                end_time = datetime.strptime(line, r"END: %Y-%m-%d %H:%M:%S")
+            except ValueError as e:
+                raise ValueError(f"Invalid END line in {file_path}: {line.strip()}") from e
 
-        if start_time is None or end_time is None:
-            logger.error(f"Failed to parse START or END times in {file_path}")
-            raise ValueError(f"Could not extract required time information from {file_path}")
+    if start_time is None or end_time is None:
+        raise ValueError(f"Could not extract START and END times from {file_path}")
 
-        if not start_time < end_time:
-            raise ValueError(f"START time {start_time} must be before END time {end_time}")
+    if start_time >= end_time:
+        raise ValueError(f"START time {start_time} must be before END time {end_time}")
 
-        logger.info(f"Simulation period: {start_time} to {end_time}")
+    logger.info(f"Simulation period: {start_time} to {end_time}")
 
-        dates = []
-        if start_time.date() == end_time.date():
-            logger.debug(f"Single-day simulation, adding date: {start_time}")
-            dates.append(start_time)
-        else:
-            curr_time = start_time
-            while curr_time.date() < end_time.date():
-                logger.debug(f"Adding date: {curr_time}")
-                dates.append(curr_time)
-                curr_time = curr_time + timedelta(days=1)
-            logger.debug(f"Adding date: {end_time}")
-            dates.append(end_time)
+    dates = []
+    if start_time.date() == end_time.date():
+        logger.debug(f"Single-day simulation, adding date: {start_time}")
+        dates.append(start_time)
+    else:
+        curr_time = start_time
+        while curr_time.date() < end_time.date():
+            logger.debug(f"Adding date: {curr_time}")
+            dates.append(curr_time)
+            curr_time = curr_time + timedelta(days=1)
+        logger.debug(f"Adding date: {end_time}")
+        dates.append(end_time)
 
-        if not dates:
-            logger.warning("No dates found in the simulation period")
+    if not dates:
+        logger.warning("No dates found in the simulation period")
 
-        return dates
-
-    except Exception as e:
-        logger.error(f"Error processing HEMCO time file: {e}")
-        raise
+    return dates
 
 
 def get_file_map(src_dir, version):
