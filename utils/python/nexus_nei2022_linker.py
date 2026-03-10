@@ -398,8 +398,8 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-s",
-        "--src_dir",
         "--src-dir",
+        "--src_dir",
         help=(
             "emissions base source directory, "
             "e.g., /gpfs/f6/bil-fire3/world-shared/Emissions/nexus on Gaea C6"
@@ -409,8 +409,8 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-w",
-        "--work_dir",
         "--work-dir",
+        "--work_dir",
         help="work directory in the workflow",
         required=True,
     )
@@ -422,31 +422,31 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-t",
-        "--read_hemco_time",
         "--read-hemco-time",
+        "--read_hemco_time",
         help="read HEMCO time file",
         action="store_true",
         default=True,
         required=False,
     )
     parser.add_argument(
-        "--no_read_hemco_time",
         "--no-read-hemco-time",
+        "--no_read_hemco_time",
         action="store_false",
         dest="read_hemco_time",
     )
     parser.add_argument(
         "-tf",
-        "--time_file_path",
         "--time-file-path",
+        "--time_file_path",
         help="location of the HEMCO time file",
         default=None,
         required=False,
     )
     parser.add_argument(
         "-v",
-        "--nei_version",
         "--nei-version",
+        "--nei_version",
         help="NEI version",
         default="v2026-03",
         required=False,
