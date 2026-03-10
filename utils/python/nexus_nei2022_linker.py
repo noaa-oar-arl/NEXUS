@@ -240,8 +240,7 @@ class FileMatcher:
 
         dates = []
         for fp in self.fps:
-            fn = os.path.basename(fp)
-            m = re.search(r"[0-9]{8}", fn.replace("-", ""))
+            m = re.search(r"[0-9]{8}", os.path.basename(fp).replace("-", ""))
             if m is None:
                 raise ValueError(f"Could not find date in file name: {fp}")
             dt = datetime.strptime(m.group(), r"%Y%m%d")
@@ -544,7 +543,7 @@ if __name__ == "__main__":
                 sys.exit(1)
 
             # Form target file path, maintaining the full relative path structure
-            m = re.search(r"[0-9]{8}", os.path.basename(src_fp))
+            m = re.search(r"[0-9]{8}", os.path.basename(src_fp).replace("-", ""))
             if m is None:
                 logger.error(f"Could not extract date from source filename: {src_fp}")
                 sys.exit(1)
