@@ -5,9 +5,85 @@ Simple utility to link the appropriate NEI2022 date for the workflow.
 
 import logging
 import os
+import re
 import sys
+from collections import Counter
 from datetime import datetime, timedelta
-from glob import glob
+
+HOLIDAY_MD = {
+    #   : "0101 0102 XXXX XXXX XXXX XXXX 0704 0705 XXXX XXXX XXXX XXXX XXXX 1224 1225 1226".split(),
+    2000: "0101 0102 0421 0422 0529 0530 0704 0705 0904 0905 1122 1123 1124 1224 1225 1226".split(),
+    2001: "0101 0102 0413 0414 0528 0529 0704 0705 0903 0904 1121 1122 1123 1224 1225 1226".split(),
+    2002: "0101 0102 0329 0330 0527 0528 0704 0705 0902 0903 1127 1128 1129 1224 1225 1226".split(),
+    2003: "0101 0102 0418 0419 0526 0527 0704 0705 0901 0902 1126 1127 1128 1224 1225 1226".split(),
+    2004: "0101 0102 0409 0410 0531 0601 0704 0705 0906 0907 1124 1125 1126 1224 1225 1226".split(),
+    2005: "0101 0102 0325 0326 0530 0531 0704 0705 0905 0906 1123 1124 1125 1224 1225 1226".split(),
+    2006: "0101 0102 0414 0415 0529 0530 0704 0705 0904 0905 1122 1123 1124 1224 1225 1226".split(),
+    2007: "0101 0102 0406 0407 0528 0529 0704 0705 0903 0904 1121 1122 1123 1224 1225 1226".split(),
+    2008: "0101 0102 0321 0322 0526 0527 0704 0705 0901 0902 1126 1127 1128 1224 1225 1226".split(),
+    2009: "0101 0102 0410 0411 0525 0526 0704 0705 0907 0908 1125 1126 1127 1224 1225 1226".split(),
+    2010: "0101 0102 0402 0403 0531 0601 0704 0705 0906 0907 1124 1125 1126 1224 1225 1226".split(),
+    2011: "0101 0102 0422 0423 0530 0531 0704 0705 0905 0906 1123 1124 1125 1224 1225 1226".split(),
+    2012: "0101 0102 0406 0407 0528 0529 0704 0705 0903 0904 1121 1122 1123 1224 1225 1226".split(),
+    2013: "0101 0102 0329 0330 0527 0528 0704 0705 0902 0903 1127 1128 1129 1224 1225 1226".split(),
+    2014: "0101 0102 0418 0419 0526 0527 0704 0705 0901 0902 1126 1127 1128 1224 1225 1226".split(),
+    2015: "0101 0102 0403 0404 0525 0526 0704 0705 0907 0908 1125 1126 1127 1224 1225 1226".split(),
+    2016: "0101 0102 0325 0326 0530 0531 0704 0705 0905 0906 1123 1124 1125 1224 1225 1226".split(),
+    2017: "0101 0102 0414 0415 0529 0530 0704 0705 0904 0905 1122 1123 1124 1224 1225 1226".split(),
+    2018: "0101 0102 0330 0331 0528 0529 0704 0705 0903 0904 1121 1122 1123 1224 1225 1226".split(),
+    2019: "0101 0102 0419 0420 0527 0528 0704 0705 0902 0903 1127 1128 1129 1224 1225 1226".split(),
+    2020: "0101 0102 0410 0411 0525 0526 0704 0705 0907 0908 1125 1126 1127 1224 1225 1226".split(),
+    2021: "0101 0102 0402 0403 0531 0601 0704 0705 0906 0907 1124 1125 1126 1224 1225 1226".split(),
+    2022: "0101 0102 0415 0416 0530 0531 0704 0705 0905 0906 1123 1124 1125 1224 1225 1226".split(),
+    2023: "0101 0102 0407 0408 0529 0530 0704 0705 0904 0905 1122 1123 1124 1224 1225 1226".split(),
+    2024: "0101 0102 0329 0330 0527 0528 0704 0705 0902 0903 1127 1128 1129 1224 1225 1226".split(),
+    2025: "0101 0102 0418 0419 0526 0527 0704 0705 0901 0902 1126 1127 1128 1224 1225 1226".split(),
+    2026: "0101 0102 0403 0404 0525 0526 0704 0705 0907 0908 1125 1126 1127 1224 1225 1226".split(),
+    2027: "0101 0102 0326 0327 0531 0601 0704 0705 0906 0907 1124 1125 1126 1224 1225 1226".split(),
+    2028: "0101 0102 0414 0415 0529 0530 0704 0705 0904 0905 1122 1123 1124 1224 1225 1226".split(),
+    2029: "0101 0102 0330 0331 0528 0529 0704 0705 0903 0904 1121 1122 1123 1224 1225 1226".split(),
+    2030: "0101 0102 0419 0420 0527 0528 0704 0705 0902 0903 1127 1128 1129 1224 1225 1226".split(),
+    2031: "0101 0102 0411 0412 0526 0527 0704 0705 0901 0902 1126 1127 1128 1224 1225 1226".split(),
+    2032: "0101 0102 0326 0327 0531 0601 0704 0705 0906 0907 1124 1125 1126 1224 1225 1226".split(),
+    2033: "0101 0102 0415 0416 0530 0531 0704 0705 0905 0906 1123 1124 1125 1224 1225 1226".split(),
+    2034: "0101 0102 0407 0408 0529 0530 0704 0705 0904 0905 1122 1123 1124 1224 1225 1226".split(),
+    2035: "0101 0102 0323 0324 0528 0529 0704 0705 0903 0904 1121 1122 1123 1224 1225 1226".split(),
+    2036: "0101 0102 0411 0412 0526 0527 0704 0705 0901 0902 1126 1127 1128 1224 1225 1226".split(),
+    2037: "0101 0102 0403 0404 0525 0526 0704 0705 0907 0908 1125 1126 1127 1224 1225 1226".split(),
+    2038: "0101 0102 0423 0424 0531 0601 0704 0705 0906 0907 1124 1125 1126 1224 1225 1226".split(),
+    2039: "0101 0102 0408 0409 0530 0531 0704 0705 0905 0906 1123 1124 1125 1224 1225 1226".split(),
+    2040: "0101 0102 0330 0331 0528 0529 0704 0705 0903 0904 1121 1122 1123 1224 1225 1226".split(),
+    2041: "0101 0102 0419 0420 0527 0528 0704 0705 0902 0903 1127 1128 1129 1224 1225 1226".split(),
+    2042: "0101 0102 0404 0405 0526 0527 0704 0705 0901 0902 1126 1127 1128 1224 1225 1226".split(),
+    2043: "0101 0102 0327 0328 0525 0526 0704 0705 0907 0908 1125 1126 1127 1224 1225 1226".split(),
+    2044: "0101 0102 0415 0416 0530 0531 0704 0705 0905 0906 1123 1124 1125 1224 1225 1226".split(),
+    2045: "0101 0102 0407 0408 0529 0530 0704 0705 0904 0905 1122 1123 1124 1224 1225 1226".split(),
+    2046: "0101 0102 0323 0324 0528 0529 0704 0705 0903 0904 1121 1122 1123 1224 1225 1226".split(),
+    2047: "0101 0102 0412 0413 0527 0528 0704 0705 0902 0903 1127 1128 1129 1224 1225 1226".split(),
+    2048: "0101 0102 0403 0404 0525 0526 0704 0705 0907 0908 1125 1126 1127 1224 1225 1226".split(),
+    2049: "0101 0102 0416 0417 0531 0601 0704 0705 0906 0907 1124 1125 1126 1224 1225 1226".split(),
+    2050: "0101 0102 0408 0409 0530 0531 0704 0705 0905 0906 1123 1124 1125 1224 1225 1226".split(),
+}
+# Holidays + day after:
+# - New Year's Day
+# - Good Friday
+# - Memorial Day
+# - Independence Day
+# - Labor Day
+# Holidays + day before and after:
+# - Thanksgiving
+# - Xmas
+
+
+def is_holiday(date):
+    """Is this a date that we treat as a holiday?"""
+    md = date.strftime(r"%m%d")
+    return md in HOLIDAY_MD[date.year]
+
+
+def dayofyear(date):
+    """Day-of-year (int)."""
+    return int(date.strftime(r"%j"))
 
 
 def setup_logger(log_level=logging.INFO):
@@ -152,116 +228,164 @@ def link_file(src_file, tgt_file):
     logger.info(f"Created link: {tgt_file} -> {src_abs}")
 
 
-def get_file_map(src_dir, version):
-    """Create a mapping of month and day-of-week to NEI2022 file paths.
+class FileMatcher:
+    def __init__(self, fps):
+        self.fps = sorted(fps)
 
-    Maps each month and day-of-week to the appropriate NEI2022 data file.
-    For days without data, fills in using a prioritized approach.
+    def _dates(self):
+        """Parse dates from the file paths."""
+        if not self.fps:
+            raise ValueError("No files provided for classification")
 
-    Parameters
-    ----------
-    src_dir : str
-        Source directory containing NEI2022 data files
-    version : str
-        Version of NEI2022 data (e.g., "v2023-03")
+        dates = []
+        for fp in self.fps:
+            fn = os.path.basename(fp)
+            ymd = re.search(r"[0-9]{8}", fn.replace("-", ""))
+            if ymd is None:
+                raise ValueError(f"Could not find date in file name: {fp}")
+            dt = datetime.strptime(ymd.group(), r"%Y%m%d")
+            dates.append(dt.date())
 
-    Returns
-    -------
-    dict
-        Dictionary mapping (month, isoweekday) tuples to (date, filepath) tuples
+        return dates
 
-    Raises
-    ------
-    FileNotFoundError
-        If no NEI2022 files are found
-    Exception
-        For any other errors during processing
-    """
-    try:
-        search_pattern = f"{src_dir}/NEMO/NEI2022/{version}/??/NEI2022*_all.nc"
-        logger.info(f"Searching for files with pattern: {search_pattern}")
+    def _classify(self):
+        """Classify the source file organization type.
 
-        files = [fp for fp in glob(search_pattern) if not os.path.islink(fp)]
+        - 1dpy: one representative day per year
+          (assumed if only one file)
+        - 1dpm: one representative day per month
+        - 4dpm: 4 days per month, no holidays
+          (representative Mon, Tue, Sat, Sun)
+        - 4dpmh: 4 days per month, with holidays
+        - 7dpm: 7 days per month, no holidays
+          (representative full week)
+        - 7dpmh: 7 days per month, with holidays
+        - daily: every day
+        """
+        dates = self._dates()
 
-        if not files:
-            logger.error(f"No files found matching pattern: {search_pattern}")
-            raise FileNotFoundError(f"No NEI2022 files found in {src_dir} for version {version}")
+        m_dates = {m: [] for m in range(1, 13)}
+        for date in dates:
+            m_dates[date.month].append(date)
+        m_counts = {m: len(md) for m, md in m_dates.items()}
+        dow_counts = Counter(date.isoweekday() for date in dates)
+        n_unique_dow = len(dow_counts)
 
-        logger.info(f"Found {len(files)} NEI2022 files")
+        if len(dates) == 1:
+            return "1dpy"
 
-        file_map = {}
-        for fp in files:
-            try:
-                sd = os.path.basename(fp).split("_")[-2]
-                d = datetime.strptime(sd, r"%Y%m%d")
-                key = (d.month, d.isoweekday())
-                if key in file_map:
-                    logger.warning(f"Duplicate files for key {key}: {file_map[key][1]}, {fp}")
-                file_map[key] = (d, fp)
-            except (ValueError, IndexError) as e:
-                logger.warning(f"Could not process filename {fp}: {str(e)}")
+        if all(n == 1 for n in m_counts.values()):
+            assert n_unique_dow == 1
+            return "1dpm"
+        elif all(n == 4 for n in m_counts.values()):
+            assert n_unique_dow == 4
+            return "4dpm"
+        elif all(n == 7 for n in m_counts.values()):
+            assert n_unique_dow == 7
+            return "7dpm"
 
-        # Create a more robust mapping by filling in missing days
-        all_months = {month for month, _ in file_map.keys()}
-        logger.info(f"Found data for {len(all_months)} months")
+        if n_unique_dow in {5, 6}:
+            assert all(4 <= n <= 6 for n in m_counts.values())
+            return "4dpmh"
+        elif n_unique_dow == 7:
+            if any(n >= 28 for n in m_counts.values()):
+                return "daily"
+            else:
+                assert all(7 <= n <= 10 for n in m_counts.values())
+                return "7dpmh"
+        else:
+            raise ValueError(
+                "Unexpected file organization type. "
+                f"Month counts: {m_counts}, day of week counts: {dow_counts}."
+            )
 
-        for mo in all_months:
-            # Check which day types are available for this month
-            available_days = {iwd for (month, iwd) in file_map if month == mo}
-            logger.debug(f"Month {mo} has data for days: {available_days}")
+    def closest(self, date):
+        """Match `date` to the most applicable source file."""
 
-            # First handle weekdays (1-5)
-            weekday_map = {}
-            for iwd in range(1, 6):  # Mon-Fri
-                if iwd in available_days:
-                    weekday_map[iwd] = file_map[(mo, iwd)]
+        src_dates = self._dates()
+        org = self._classify()
 
-            # If we have some weekdays but are missing some, fill them in
-            if weekday_map and len(weekday_map) < 5:
-                # Priority: Tue > Mon > Wed > Thu > Fri
-                priority_order = [2, 1, 3, 4, 5]
-                fill_source = None
-                for day in priority_order:
-                    if day in weekday_map:
-                        fill_source = day
-                        break
+        unique_years = sorted({d.year for d in src_dates})
+        if len(unique_years) > 1:
+            raise ValueError(f"Files span multiple years: {src_dates}")
+        src_year = unique_years[0]
 
-                if fill_source:
-                    for iwd in range(1, 6):
-                        if iwd not in weekday_map:
-                            file_map[(mo, iwd)] = weekday_map[fill_source]
-                            logger.info(f"Using day {fill_source} data for month {mo}, day {iwd}")
+        # Filter to target month
+        tgt_m = date.month
+        tgt_md = date.strftime(r"%m%d")
+        tgt_dow = date.isoweekday()
+        tgt_doy = dayofyear(date)
+        src_dates_m = []
+        fps_m = []
+        for d, fp in zip(src_dates, self.fps):
+            if d.month == tgt_m:
+                src_dates_m.append(d)
+                fps_m.append(fp)
 
-            # Handle weekend days (6-7)
-            weekend_map = {}
-            for iwd in range(6, 8):  # Sat-Sun
-                if iwd in available_days:
-                    weekend_map[iwd] = file_map[(mo, iwd)]
+        # Filter out holidays
+        src_dates_m_nh = []
+        fps_m_nh = []
+        for d, fp in zip(src_dates_m, fps_m):
+            if not is_holiday(d):
+                src_dates_m_nh.append(d)
+                fps_m_nh.append(fp)
 
-            # If we have one weekend day but not both, use the available one
-            if len(weekend_map) == 1:
-                available_weekend = list(weekend_map.keys())[0]
-                missing_weekend = 13 - available_weekend  # 13-6=7, 13-7=6
-                file_map[(mo, missing_weekend)] = weekend_map[available_weekend]
-                logger.info(
-                    f"Using day {available_weekend} data for month {mo}, day {missing_weekend}"
-                )
+        # Assess whether target is a holiday
+        tgt_is_holiday = is_holiday(date)
+        i_holiday = None
+        if tgt_is_holiday:
+            i_holiday = HOLIDAY_MD[date.year].index(tgt_md)
 
-            # If we have no weekend days but have weekdays, use a weekday
-            elif len(weekend_map) == 0 and weekday_map:
-                # Use Tuesday (or first available weekday) for weekend
-                fill_day = next((d for d in [2, 1, 3, 4, 5] if d in weekday_map), None)
-                if fill_day:
-                    for iwd in [6, 7]:
-                        file_map[(mo, iwd)] = weekday_map[fill_day]
-                        logger.info(f"Using weekday {fill_day} data for month {mo}, weekend {iwd}")
+        # Match
+        if org == "1dpy":
+            # One file, use it
+            return self.fps[0]
 
-        logger.info(f"Created file mapping with {len(file_map)} entries")
-        return file_map
+        elif org == "1dpm":
+            # One file in this month, use it
+            return fps_m[0]
 
-    except Exception as e:
-        logger.error(f"Error building file map: {e}")
-        raise
+        elif org == "7dpm" or (org == "7dpmh" and not tgt_is_holiday):
+            # Representative week, non-holiday
+            src_iwds = [d.isoweekday() for d in src_dates_m_nh]
+            assert src_iwds == list(range(1, 8))
+            i = src_iwds.index(tgt_dow)
+            return fps_m_nh[i]
+
+        elif org == "4dpm" or (org == "4dpmh" and not tgt_is_holiday):
+            # Representative 4 days, non-holiday
+            src_iwds = [d.isoweekday() for d in src_dates_m_nh]
+            assert src_iwds == [1, 2, 6, 7]
+            if tgt_dow in {6, 7}:  # weekend
+                i = src_iwds.index(tgt_dow)
+                return fps_m_nh[i]
+            else:  # Use Mon for Mon or Fri
+                if tgt_dow in {1, 5}:
+                    i = src_iwds.index(1)
+                else:  # and Tue for Tue--Thu
+                    i = src_iwds.index(2)
+                return fps_m_nh[i]
+
+        elif org in {"4dpmh", "7dpmh", "daily"} and tgt_is_holiday:
+            # Holiday
+            # It could be in a different month
+            assert i_holiday is not None
+            tgt_md = HOLIDAY_MD[src_year][i_holiday]
+            src_date = datetime.strptime(f"{src_year}{tgt_md}", r"%Y%m%d").date()
+            i = src_dates.index(src_date)
+            return self.fps[i]
+
+        elif org == "daily" and not tgt_is_holiday:
+            # Find the closest matching day-of-week that isn't holiday
+            # It could be in a different month
+            cands = [d for d in src_dates if d.isoweekday() == tgt_dow and not is_holiday(d)]
+            cands.sort(key=lambda d: abs(dayofyear(d) - tgt_doy))
+            best = cands[0]
+            i = src_dates.index(best)
+            return self.fps[i]
+
+        else:
+            raise AssertionError(f"Unexpected file organization type: {org}")
 
 
 if __name__ == "__main__":
