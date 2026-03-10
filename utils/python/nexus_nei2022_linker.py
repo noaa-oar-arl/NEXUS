@@ -9,6 +9,7 @@ import re
 import sys
 from collections import Counter
 from datetime import datetime, timedelta
+from glob import glob
 
 HOLIDAY_MD = {
     #   : "0101 0102 XXXX XXXX XXXX XXXX 0704 0705 XXXX XXXX XXXX XXXX XXXX 1224 1225 1226".split(),
@@ -232,23 +233,23 @@ class FileMatcher:
     def __init__(self, fps):
         self.fps = sorted(fps)
 
-    def _dates(self):
-        """Parse dates from the file paths."""
+    def dates(self):
+        """Parse dates (:class:`datetime.date`) from the file paths."""
         if not self.fps:
             raise ValueError("No files provided for classification")
 
         dates = []
         for fp in self.fps:
             fn = os.path.basename(fp)
-            ymd = re.search(r"[0-9]{8}", fn.replace("-", ""))
-            if ymd is None:
+            m = re.search(r"[0-9]{8}", fn.replace("-", ""))
+            if m is None:
                 raise ValueError(f"Could not find date in file name: {fp}")
-            dt = datetime.strptime(ymd.group(), r"%Y%m%d")
+            dt = datetime.strptime(m.group(), r"%Y%m%d")
             dates.append(dt.date())
 
         return dates
 
-    def _classify(self):
+    def classify(self):
         """Classify the source file organization type.
 
         - 1dpy: one representative day per year
@@ -262,7 +263,7 @@ class FileMatcher:
         - 7dpmh: 7 days per month, with holidays
         - daily: every day
         """
-        dates = self._dates()
+        dates = self.dates()
 
         m_dates = {m: [] for m in range(1, 13)}
         for date in dates:
@@ -302,8 +303,8 @@ class FileMatcher:
     def closest(self, date):
         """Match `date` to the most applicable source file."""
 
-        src_dates = self._dates()
-        org = self._classify()
+        src_dates = self.dates()
+        org = self.classify()
 
         unique_years = sorted({d.year for d in src_dates})
         if len(unique_years) > 1:
@@ -392,7 +393,7 @@ if __name__ == "__main__":
     from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 
     parser = ArgumentParser(
-        description="Link NEI2022 files to the work directory",
+        description="Link NEI 2022 files to the work directory",
         formatter_class=ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
@@ -400,8 +401,8 @@ if __name__ == "__main__":
         "--src_dir",
         "--src-dir",
         help=(
-            "Source Directory to Emission files "
-            "e.g., /scratch1/RDARCH/rda-arl-gpu/Barry.Baker/emissions/nexus on Hera."
+            "emissions base source directory, "
+            "e.g., /gpfs/f6/bil-fire3/world-shared/Emissions/nexus on Gaea C6"
         ),
         type=str,
         required=True,
@@ -423,7 +424,7 @@ if __name__ == "__main__":
         "-t",
         "--read_hemco_time",
         "--read-hemco-time",
-        help="Read HEMCO time file",
+        help="read HEMCO time file",
         action="store_true",
         default=True,
         required=False,
@@ -438,7 +439,7 @@ if __name__ == "__main__":
         "-tf",
         "--time_file_path",
         "--time-file-path",
-        help="Location of the HEMCO Time File",
+        help="location of the HEMCO time file",
         default=None,
         required=False,
     )
@@ -446,13 +447,13 @@ if __name__ == "__main__":
         "-v",
         "--nei_version",
         "--nei-version",
-        help="NEI VERSION",
-        default="v2023-03",
+        help="NEI version",
+        default="v2026-03",
         required=False,
     )
     parser.add_argument(
         "--debug",
-        help="Enable debug logging",
+        help="enable debug logging",
         action="store_true",
         default=False,
     )
@@ -463,89 +464,108 @@ if __name__ == "__main__":
         logger = setup_logger(logging.DEBUG)
         logger.debug("Debug logging enabled")
 
-    try:
-        src_dir = args.src_dir.rstrip("/")
-        work_dir = args.work_dir.rstrip("/")
-        version = args.nei_version
+    src_dir = args.src_dir.rstrip("/")
+    work_dir = args.work_dir.rstrip("/")
+    version = args.nei_version
 
-        logger.info(
-            f"Starting NEI2022 linker with src_dir={src_dir}, work_dir={work_dir}, version={version}"
-        )
+    logger.info(
+        f"Starting NEI2022 linker with src_dir={src_dir}, work_dir={work_dir}, version={version}"
+    )
 
-        if not os.path.isdir(src_dir):
-            logger.error(f"Source directory does not exist: {src_dir}")
-            sys.exit(2)
+    # Validate directories
+    if not os.path.isdir(src_dir):
+        logger.error(f"Source directory does not exist: {src_dir}")
+        sys.exit(2)
+    if not os.path.isdir(work_dir):
+        logger.error(f"Work directory does not exist: {work_dir}")
+        sys.exit(2)
 
-        if not os.path.isdir(work_dir):
-            logger.error(f"Work directory does not exist: {work_dir}")
-            sys.exit(2)
-
-        # Get dates for processing
-        if args.read_hemco_time:
-            if args.time_file_path is None:
-                hemco_time_file = os.path.join(args.work_dir, "../HEMCO_sa_Time.rc")
-            else:
-                hemco_time_file = args.time_file_path
-            logger.info(f"Reading simulation time from: {hemco_time_file}")
-            dates = get_hemco_simulation_time(hemco_time_file)
-        elif args.date is not None:
-            try:
-                d = datetime.strptime(args.date.replace("-", ""), r"%Y%m%d")
-                dates = [d]
-                logger.info(f"Using single date: {d.strftime('%Y-%m-%d')}")
-            except ValueError:
-                logger.error(f"Invalid date format: {args.date}")
-                sys.exit(2)
+    # Get target dates for processing
+    if args.read_hemco_time:
+        if args.time_file_path is None:
+            hemco_time_file = os.path.join(args.work_dir, "../HEMCO_sa_Time.rc")
         else:
-            logger.error("No date information provided. Use --date or --read-hemco-time")
+            hemco_time_file = args.time_file_path
+        logger.info(f"Reading simulation time from: {hemco_time_file}")
+        try:
+            dates = get_hemco_simulation_time(hemco_time_file)
+        except (FileNotFoundError, ValueError) as e:
+            logger.error(f"Failed to read HEMCO time file: {e}")
             sys.exit(2)
+    elif args.date is not None:
+        try:
+            d = datetime.strptime(args.date.replace("-", ""), r"%Y%m%d")
+            dates = [d]
+            logger.info(f"Using single date: {d.strftime(r'%Y-%m-%d')}")
+        except ValueError as e:
+            logger.error(f"Invalid date format '{args.date}': {e}")
+            sys.exit(2)
+    else:
+        logger.error("No date information provided. Use --date or --read-hemco-time")
+        sys.exit(2)
 
-        # Get file mapping
-        file_map = get_file_map(src_dir, version)
-        logger.info(f"File map contains {len(file_map)} entries")
+    # Identify NEI sectors
+    nei_dir = f"{src_dir}/NEI2022v1/{version}"
+    search_pattern = f"{nei_dir}/*"
+    logger.info(f"Searching for sectors: {search_pattern}")
+    sector_dirs = sorted([p for p in glob(search_pattern) if os.path.isdir(p)])
+    if not sector_dirs:
+        logger.error("No sectors found")
+        sys.exit(2)
 
-        if not file_map:
-            logger.error(f"No files found or mapped in {src_dir} for version {version}")
+    for sector_dir in sector_dirs:
+        sector = os.path.basename(sector_dir)
+        logger.info(f"Sector: {sector}")
+
+        search_pattern = f"{nei_dir}/{sector}/*.nc"
+        files = sorted(glob(search_pattern))
+        if not files:
+            logger.error(f"No NEI2022 files found matching: {search_pattern}")
+            sys.exit(1)
+        logger.info(f"Found {len(files)} source files")
+        try:
+            matcher = FileMatcher(files)
+            org = matcher.classify()
+            logger.info(f"Detected file organization: {org}")
+        except ValueError as e:
+            logger.error(f"Failed to analyze source files: {e}")
             sys.exit(1)
 
-        # Process each date
+        # Process each target date
         for d in dates:
-            mo = d.month
-            iwd = d.isoweekday()
-
-            logger.info(
-                f"Processing date: {d.strftime('%Y-%m-%d')}, month: {mo}, isoweekday: {iwd}"
-            )
-
-            if (mo, iwd) not in file_map:
-                logger.error(f"No source file found for month {mo}, day {iwd}")
-                sys.exit(1)
-
-            src_d, src_fp = file_map[(mo, iwd)]
-
-            # Form target file path, maintaining the full relative path structure
-            src_rel_dir = os.path.dirname(os.path.relpath(src_fp, src_dir))
-            tgt_fn = os.path.basename(src_fp).replace(
-                src_d.strftime(r"%Y%m%d"), d.strftime(r"%Y%m%d")
-            )
-            tgt_fp = os.path.join(work_dir, src_rel_dir, tgt_fn)
+            logger.info(f"Processing date: {d.strftime(r'%Y-%m-%d')}")
 
             try:
-                # Create the directory structure if it doesn't exist
-                target_dir = os.path.dirname(tgt_fp)
-                if not os.path.exists(target_dir):
-                    logger.debug(f"Creating directory structure: {target_dir}")
-                    os.makedirs(target_dir, exist_ok=True)
-
-                logger.info(f"Linking {src_fp} to {tgt_fp}")
-                link_file(src_fp, tgt_fp)
-            except Exception as e:
-                logger.error(f"Failed to create link for date {d.strftime('%Y-%m-%d')}: {e}")
+                src_fp = matcher.closest(d.date())
+            except (ValueError, AssertionError) as e:
+                logger.error(
+                    f"Failed to find matching source file for {d.strftime(r'%Y-%m-%d')}: {e}"
+                )
                 sys.exit(1)
 
-        logger.info("NEI2022 linking completed successfully")
+            # Form target file path, maintaining the full relative path structure
+            m = re.search(r"[0-9]{8}", os.path.basename(src_fp))
+            if m is None:
+                logger.error(f"Could not extract date from source filename: {src_fp}")
+                sys.exit(1)
+            src_date_str = m.group()
+            tgt_date_str = d.strftime(r"%Y%m%d")
+            src_rel_dir = os.path.dirname(os.path.relpath(src_fp, src_dir))
+            tgt_fn = os.path.basename(src_fp).replace(src_date_str, tgt_date_str)
+            tgt_fp = os.path.join(work_dir, src_rel_dir, tgt_fn)
 
-    except Exception as e:
-        logger.error(f"An error occurred during execution: {e}")
-        logger.debug("Error details:", exc_info=True)
-        sys.exit(1)
+            # Create directory structure if needed
+            target_dir = os.path.dirname(tgt_fp)
+            if not os.path.exists(target_dir):
+                logger.debug(f"Creating directory: {target_dir}")
+                os.makedirs(target_dir, exist_ok=True)
+
+            # Create the symlink
+            try:
+                logger.info(f"Linking {os.path.basename(src_fp)} -> {os.path.basename(tgt_fp)}")
+                link_file(src_fp, tgt_fp)
+            except (FileNotFoundError, OSError) as e:
+                logger.error(f"Failed to create link for {d.strftime(r'%Y-%m-%d')}: {e}")
+                sys.exit(1)
+
+    logger.info("NEI2022 linking completed successfully")
