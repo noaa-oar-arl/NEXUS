@@ -543,7 +543,7 @@ if __name__ == "__main__":
                 sys.exit(1)
 
             # Form target file path, maintaining the full relative path structure
-            m = re.search(r"[0-9]{8}", os.path.basename(src_fp).replace("-", ""))
+            m = re.search(r"[0-9\-]{8,}", os.path.basename(src_fp))
             if m is None:
                 logger.error(f"Could not extract date from source filename: {src_fp}")
                 sys.exit(1)
