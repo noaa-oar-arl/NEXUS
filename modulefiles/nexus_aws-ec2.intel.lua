@@ -21,13 +21,9 @@ load("zlib/1.2.13")
 nccmp_ver=os.getenv("nccmp_ver") or "1.9.0.1"
 load(pathJoin("nccmp", nccmp_ver))
 
-setenv("CC", "icx")
-setenv("CXX", "icpx")
-setenv("FC", "ifort")
-
--- setenv("CC", "mpiicx")
--- setenv("CXX", "mpiicpx")
--- setenv("FC", "mpiifort")
+setenv("CC", "mpiicx")
+setenv("CXX", "mpiicpx")
+setenv("FC", "mpiifort")
 
 setenv("CMAKE_Platform", "aws-ec2.intel")
 
