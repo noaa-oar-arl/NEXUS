@@ -316,7 +316,8 @@ class FileMatcher:
 
         unique_years = sorted({d.year for d in src_dates})
         if len(unique_years) > 1:
-            raise ValueError(f"Files span multiple years: {src_dates}")
+            sdates = ", ".join(str(d) for d in src_dates)
+            raise ValueError(f"Files span multiple years: {sdates}")
         src_year = unique_years[0]
 
         # Filter to target month
