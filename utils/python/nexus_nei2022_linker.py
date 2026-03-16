@@ -6,7 +6,6 @@ Simple utility to link the appropriate NEI2022 date for the workflow.
 import logging
 import os
 import re
-import sys
 from collections import Counter
 from datetime import datetime, timedelta
 from glob import glob
@@ -505,10 +504,10 @@ if __name__ == "__main__":
     # Validate directories
     if not os.path.isdir(src_dir):
         logger.error(f"Source directory does not exist: {src_dir}")
-        sys.exit(2)
+        raise SystemExit(2)
     if not os.path.isdir(work_dir):
         logger.error(f"Work directory does not exist: {work_dir}")
-        sys.exit(2)
+        raise SystemExit(2)
 
     # Get target dates for processing
     if args.read_hemco_time:
@@ -521,7 +520,7 @@ if __name__ == "__main__":
             dates = get_hemco_simulation_time(hemco_time_file)
         except (FileNotFoundError, ValueError) as e:
             logger.error(f"Failed to read HEMCO time file: {e}")
-            sys.exit(2)
+            raise SystemExit(2)
     elif args.date is not None:
         try:
             d = datetime.strptime(args.date.replace("-", ""), r"%Y%m%d")
@@ -529,10 +528,10 @@ if __name__ == "__main__":
             logger.info(f"Using single date: {d.strftime(r'%Y-%m-%d')}")
         except ValueError as e:
             logger.error(f"Invalid date format '{args.date}': {e}")
-            sys.exit(2)
+            raise SystemExit(2)
     else:
         logger.error("No date information provided. Use --date or --read-hemco-time")
-        sys.exit(2)
+        raise SystemExit(2)
 
     # Identify NEI sectors
     search_pattern = f"{src_dir}/NEI2022v1/{version}/*"
@@ -540,7 +539,7 @@ if __name__ == "__main__":
     sector_dirs = sorted([p for p in glob(search_pattern) if os.path.isdir(p)])
     if not sector_dirs:
         logger.error("No sectors found")
-        sys.exit(2)
+        raise SystemExit(2)
 
     # MetEmis files
     metemis_sector_dirs = []
@@ -548,7 +547,7 @@ if __name__ == "__main__":
         metemis_dir = f"{src_dir}/{METEMIS_SUBDIR[sector]}"
         if not os.path.isdir(metemis_dir):
             logger.error(f"MetEmis directory does not exist for sector '{sector}': {metemis_dir}")
-            sys.exit(2)
+            raise SystemExit(2)
         metemis_sector_dirs.append(metemis_dir)
     sector_dirs.extend(metemis_sector_dirs)
 
@@ -576,7 +575,7 @@ if __name__ == "__main__":
         files = sorted(glob(search_pattern))
         if not files:
             logger.error(f"No files found matching: {search_pattern}")
-            sys.exit(1)
+            raise SystemExit(1)
         logger.info(f"Found {len(files)} source files")
         try:
             matcher = FileMatcher(files)
@@ -584,7 +583,7 @@ if __name__ == "__main__":
             logger.info(f"Detected file organization: {org}")
         except ValueError as e:
             logger.error(f"Failed to analyze source files: {e}")
-            sys.exit(1)
+            raise SystemExit(1)
 
         # Process each target date
         for d in dates:
@@ -596,13 +595,13 @@ if __name__ == "__main__":
                 logger.error(
                     f"Failed to find matching source file for {d.strftime(r'%Y-%m-%d')}: {e}"
                 )
-                sys.exit(1)
+                raise SystemExit(1)
 
             # Form target file path, maintaining the full relative path structure
             m = re.search(r"[0-9\-]{8,}", os.path.basename(src_fp))
             if m is None:
                 logger.error(f"Could not extract date from source filename: {src_fp}")
-                sys.exit(1)
+                raise SystemExit(1)
             src_date_str = m.group()
             tgt_date_str = d.strftime(r"%Y%m%d")
             src_rel_dir = os.path.dirname(os.path.relpath(src_fp, src_dir))
@@ -623,6 +622,6 @@ if __name__ == "__main__":
                 link_file(src_fp, tgt_fp)
             except (FileNotFoundError, OSError) as e:
                 logger.error(f"Failed to create link for {d.strftime(r'%Y-%m-%d')}: {e}")
-                sys.exit(1)
+                raise SystemExit(1)
 
     logger.info("NEI2022 linking completed successfully")
