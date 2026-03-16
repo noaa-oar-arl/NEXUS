@@ -84,6 +84,13 @@ METEMIS_SUBDIR = {
     "afdust": "METEMIS/afdust/2022",
 }
 
+METEMIS_NUMS = {
+    "onroad": list(range(10)),
+    "livestock": list(range(12)),
+    "rwc": None,
+    "afdust": None,
+}
+
 
 def is_holiday(date):
     """Is this a date that we treat as a holiday?"""
@@ -543,6 +550,8 @@ if __name__ == "__main__":
         logger.error("No date information provided. Use --date or --read-hemco-time")
         raise SystemExit(2)
 
+    todo = []
+
     # Identify NEI sectors
     search_pattern = f"{src_dir}/NEI2022v1/{version}/*"
     logger.info(f"Searching for sectors: {search_pattern}")
@@ -551,25 +560,35 @@ if __name__ == "__main__":
         logger.error("No sectors found")
         raise SystemExit(2)
     logger.info(f"Found {len(sector_dirs)} NEI sectors")
+    for sector_dir in sector_dirs:
+        name = os.path.basename(sector_dir)
+        todo.append(
+            (
+                name,
+                f"{sector_dir}/*.nc",
+                False,
+            )
+        )
 
     # MetEmis files
-    metemis_sector_dirs = []
     for sector in metemis_sectors:
         metemis_dir = f"{src_dir}/{METEMIS_SUBDIR[sector]}"
         if not os.path.isdir(metemis_dir):
             logger.error(f"MetEmis directory does not exist for sector '{sector}': {metemis_dir}")
             raise SystemExit(2)
-        metemis_sector_dirs.append(metemis_dir)
-    sector_dirs.extend(metemis_sector_dirs)
-
-    for sector_dir in sector_dirs:
-        is_metemis = sector_dir in metemis_sector_dirs
-        if is_metemis:
-            sector = os.path.basename(os.path.dirname(sector_dir))
+        # Some MetEmis sectors have multiple files per day (bins),
+        # which we want to handle separately
+        nums = METEMIS_NUMS.get(sector)
+        if nums is not None:
+            for num in nums:
+                name = f"{sector}_{num}"
+                search_pattern = f"{metemis_dir}/*_{num}_*.nc"
+                todo.append((name, search_pattern, True))
         else:
-            sector = os.path.basename(sector_dir)
-        sector_dir_rel = sector_dir.replace(src_dir, "$ROOT")
+            todo.append((sector, f"{metemis_dir}/*.nc", True))
 
+    for sector, search_pattern, is_metemis in todo:
+        sector_dir_rel = os.path.dirname(search_pattern).replace(src_dir, "$ROOT")
         logger.info(f"Sector: {sector} ({sector_dir_rel})")
 
         if (
@@ -582,7 +601,6 @@ if __name__ == "__main__":
             logger.info(f"Skipping {sector} in favor of MetEmis")
             continue
 
-        search_pattern = f"{sector_dir}/*.nc"
         files = sorted(glob(search_pattern))
         if not files:
             logger.error(f"No files found matching: {search_pattern}")
@@ -618,8 +636,11 @@ if __name__ == "__main__":
             src_rel_dir = os.path.dirname(os.path.relpath(src_fp, src_dir))
             tgt_fn = os.path.basename(src_fp).replace(src_date_str, tgt_date_str)
             tgt_fp = os.path.join(work_dir, src_rel_dir, tgt_fn)
+
+            # Currently MetEmis are METEMIS/sector/YYYY/ but we want METEMIS/YYYY/
             if is_metemis:
-                tgt_fp = tgt_fp.replace(f"/{sector}/", "/")
+                base_sector = re.sub(r"_[0-9]+$", "", sector)
+                tgt_fp = tgt_fp.replace(f"{base_sector}/", "")
 
             # Create directory structure if needed
             target_dir = os.path.dirname(tgt_fp)
