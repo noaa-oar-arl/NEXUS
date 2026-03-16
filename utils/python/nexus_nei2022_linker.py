@@ -75,6 +75,16 @@ HOLIDAY_MD = {
 # - Thanksgiving
 # - Xmas
 
+# Location of MetEmis files for sector under base
+# Note currently there is only one MetEmis setup
+# (don't need to support multiple versions)
+METEMIS_SUBDIR = {
+    "onroad": "METEMIS/onroad/2021",
+    "livestock": "METEMIS/livestock/2022",
+    "rwc": "METEMIS/rwc/2022",
+    "afdust": "METEMIS/afdust/2022",
+}
+
 
 def is_holiday(date):
     """Is this a date that we treat as a holiday?"""
@@ -391,6 +401,9 @@ class FileMatcher:
 if __name__ == "__main__":
     from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 
+    metemis_all_sectors = list(METEMIS_SUBDIR)
+    metemis_arg_choices = metemis_all_sectors + ["all"]
+
     parser = ArgumentParser(
         description="Link NEI 2022 files to the work directory",
         formatter_class=ArgumentDefaultsHelpFormatter,
@@ -451,6 +464,16 @@ if __name__ == "__main__":
         required=False,
     )
     parser.add_argument(
+        "-m",
+        "--met-emis",
+        "--met_emis",
+        help="MetEmis sector(s) to use (default: all)",
+        nargs="+",
+        choices=metemis_arg_choices,
+        default="all",
+        required=False,
+    )
+    parser.add_argument(
         "--debug",
         help="enable debug logging",
         action="store_true",
@@ -467,8 +490,16 @@ if __name__ == "__main__":
     work_dir = args.work_dir.rstrip("/")
     version = args.nei_version
 
+    metemis_sectors = args.met_emis
+    if isinstance(metemis_sectors, str):
+        metemis_sectors = [metemis_sectors]
+    metemis_sectors = sorted(set(metemis_sectors), key=lambda sec: metemis_arg_choices.index(sec))
+    if "all" in metemis_sectors:
+        metemis_sectors = metemis_all_sectors
+
     logger.info(
-        f"Starting NEI2022 linker with src_dir={src_dir}, work_dir={work_dir}, version={version}"
+        f"Starting NEI2022 linker with src_dir={src_dir}, work_dir={work_dir}, version={version}, "
+        f"met_emis={metemis_sectors}"
     )
 
     # Validate directories
@@ -512,14 +543,41 @@ if __name__ == "__main__":
         logger.error("No sectors found")
         sys.exit(2)
 
-    for sector_dir in sector_dirs:
-        sector = os.path.basename(sector_dir)
-        logger.info(f"Sector: {sector}")
+    # MetEmis files
+    metemis_sector_dirs = []
+    for sector in metemis_sectors:
+        metemis_dir = f"{src_dir}/{METEMIS_SUBDIR[sector]}"
+        if not os.path.isdir(metemis_dir):
+            logger.error(f"MetEmis directory does not exist for sector '{sector}': {metemis_dir}")
+            sys.exit(2)
+        metemis_sector_dirs.append(metemis_dir)
+    sector_dirs.extend(metemis_sector_dirs)
 
-        search_pattern = f"{nei_dir}/{sector}/*.nc"
+    for sector_dir in sector_dirs:
+        is_metemis = sector_dir in metemis_sector_dirs
+        if is_metemis:
+            sector = os.path.basename(os.path.dirname(sector_dir))
+        else:
+            sector = os.path.basename(sector_dir)
+        sector_dir_rel = sector_dir.replace(src_dir, "$ROOT")
+
+        logger.info(f"Sector: {sector} ({sector_dir_rel})")
+
+        if is_metemis:
+            search_pattern = f"{src_dir}/{METEMIS_SUBDIR[sector]}/*.nc"
+        else:
+            if any(sec in sector for sec in metemis_sectors) and not any(
+                sec_part in sector for sec_part in ["canada", "mexico"]
+            ):
+                # We skip sector if MetEmis is doing it, but it only includes CONUS,
+                # so we always include the Canada/Mexico files if they exist
+                logger.info(f"Skipping {sector} in favor of MetEmis")
+                continue
+            search_pattern = f"{nei_dir}/{sector}/*.nc"
+
         files = sorted(glob(search_pattern))
         if not files:
-            logger.error(f"No NEI2022 files found matching: {search_pattern}")
+            logger.error(f"No files found matching: {search_pattern}")
             sys.exit(1)
         logger.info(f"Found {len(files)} source files")
         try:
@@ -552,6 +610,8 @@ if __name__ == "__main__":
             src_rel_dir = os.path.dirname(os.path.relpath(src_fp, src_dir))
             tgt_fn = os.path.basename(src_fp).replace(src_date_str, tgt_date_str)
             tgt_fp = os.path.join(work_dir, src_rel_dir, tgt_fn)
+            if is_metemis:
+                tgt_fp = tgt_fp.replace(f"/{sector}/", "/")
 
             # Create directory structure if needed
             target_dir = os.path.dirname(tgt_fp)
