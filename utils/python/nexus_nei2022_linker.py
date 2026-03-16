@@ -535,8 +535,7 @@ if __name__ == "__main__":
         sys.exit(2)
 
     # Identify NEI sectors
-    nei_dir = f"{src_dir}/NEI2022v1/{version}"
-    search_pattern = f"{nei_dir}/*"
+    search_pattern = f"{src_dir}/NEI2022v1/{version}/*"
     logger.info(f"Searching for sectors: {search_pattern}")
     sector_dirs = sorted([p for p in glob(search_pattern) if os.path.isdir(p)])
     if not sector_dirs:
@@ -563,18 +562,17 @@ if __name__ == "__main__":
 
         logger.info(f"Sector: {sector} ({sector_dir_rel})")
 
-        if is_metemis:
-            search_pattern = f"{src_dir}/{METEMIS_SUBDIR[sector]}/*.nc"
-        else:
-            if any(sec in sector for sec in metemis_sectors) and not any(
-                sec_part in sector for sec_part in ["canada", "mexico"]
-            ):
-                # We skip sector if MetEmis is doing it, but it only includes CONUS,
-                # so we always include the Canada/Mexico files if they exist
-                logger.info(f"Skipping {sector} in favor of MetEmis")
-                continue
-            search_pattern = f"{nei_dir}/{sector}/*.nc"
+        if (
+            not is_metemis
+            and any(sec in sector for sec in metemis_sectors)
+            and not any(sec_part in sector for sec_part in ["canada", "mexico"])
+        ):
+            # We skip sector if MetEmis is doing it, but it only includes CONUS,
+            # so we always include the Canada/Mexico files if they exist
+            logger.info(f"Skipping {sector} in favor of MetEmis")
+            continue
 
+        search_pattern = f"{sector_dir}/*.nc"
         files = sorted(glob(search_pattern))
         if not files:
             logger.error(f"No files found matching: {search_pattern}")
