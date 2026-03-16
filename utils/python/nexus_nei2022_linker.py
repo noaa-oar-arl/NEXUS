@@ -314,10 +314,17 @@ class FileMatcher:
         src_dates = self.dates()
         org = self.classify()
 
-        unique_years = sorted({d.year for d in src_dates})
+        year_counts = Counter(d.year for d in src_dates)
+        max_year_count = max(year_counts.values())
+        if len(year_counts) > 1:
+            s_year_counts = ", ".join(f"{y} ({n})" for y, n in year_counts.items())
+            logger.info(f"Pruning source dates to a single source year from {s_year_counts}")
+            year_counts = Counter({y: n for y, n in year_counts.items() if 12 * n < max_year_count})
+        unique_years = sorted(year_counts)
         if len(unique_years) > 1:
-            sdates = ", ".join(str(d) for d in src_dates)
-            raise ValueError(f"Files span multiple years: {sdates}")
+            s_year_counts = ", ".join(f"{y} ({n})" for y, n in year_counts.items())
+            s_dates = ", ".join(str(d) for d in src_dates)
+            raise ValueError(f"Files span multiple years ({s_year_counts}): {s_dates}")
         src_year = unique_years[0]
 
         # Filter to target month
