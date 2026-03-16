@@ -550,6 +550,7 @@ if __name__ == "__main__":
     if not sector_dirs:
         logger.error("No sectors found")
         raise SystemExit(2)
+    logger.info(f"Found {len(sector_dirs)} NEI sectors")
 
     # MetEmis files
     metemis_sector_dirs = []
