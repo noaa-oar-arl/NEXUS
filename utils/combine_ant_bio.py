@@ -159,6 +159,7 @@ def main(ifp, ofp, *, compress=True):
             )
         elif spc == "SOILNOX_NO":
             ds_new["NO"][:] = ds["SOILNOX_NO"][:] + ds["NO_ant"][:]
+
         # 4. The remainder of species are just anthropogenic from HEMCO
         else:
             # NEMO/NEI2019 doesn't have these
@@ -168,7 +169,19 @@ def main(ifp, ofp, *, compress=True):
 
             ds_new[spc][:] = ds[f"{spc}_ant"][:]
 
+    # Add MetEmis
+    for vn in ds_new.variables:
+        if vn in {"time"}:
+            continue
+        spc = vn
+
+        if f"{spc}_MetEmis" in ds.variables:
+            ds_new[spc][:] += ds[f"{spc}_MetEmis"][:]
+        else:
+            print(f"note: no MetEmis for {spc}")
+
     ds.close()
+    ds_new.close()
 
     return 0
 
