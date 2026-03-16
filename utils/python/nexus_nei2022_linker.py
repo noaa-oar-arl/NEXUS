@@ -402,7 +402,7 @@ if __name__ == "__main__":
     from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 
     metemis_all_sectors = list(METEMIS_SUBDIR)
-    metemis_arg_choices = metemis_all_sectors + ["all"]
+    metemis_arg_choices = metemis_all_sectors + ["all", "none"]
 
     parser = ArgumentParser(
         description="Link NEI 2022 files to the work directory",
@@ -496,6 +496,8 @@ if __name__ == "__main__":
     metemis_sectors = sorted(set(metemis_sectors), key=lambda sec: metemis_arg_choices.index(sec))
     if "all" in metemis_sectors:
         metemis_sectors = metemis_all_sectors
+    elif "none" in metemis_sectors:
+        metemis_sectors = []
 
     logger.info(
         f"Starting NEI2022 linker with src_dir={src_dir}, work_dir={work_dir}, version={version}, "
