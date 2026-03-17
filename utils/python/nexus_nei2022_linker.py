@@ -301,7 +301,7 @@ class FileMatcher:
             return "7dpm"
 
         if n_unique_dow in {5, 6}:
-            assert all(4 <= n <= 6 for n in m_counts.values())
+            assert all(4 <= n <= 7 for n in m_counts.values())
             return "4dpmh"
         elif n_unique_dow == 7:
             if any(n >= 28 for n in m_counts.values()):
@@ -602,6 +602,11 @@ if __name__ == "__main__":
             continue
 
         files = sorted(glob(search_pattern))
+        if is_metemis and sector in {"rwc", "afdust"}:
+            # Remove Dec 27 (we don't treat it as holiday)
+            assert files[-1].endswith(f"1227_{sector}.nc")
+            files = files[:-1]
+
         if not files:
             logger.error(f"No files found matching: {search_pattern}")
             raise SystemExit(1)
