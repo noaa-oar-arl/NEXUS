@@ -593,7 +593,7 @@ if __name__ == "__main__":
 
         if (
             not is_metemis
-            and any(sec in sector for sec in metemis_sectors)
+            and any(sec in sector.split("_") for sec in metemis_sectors)
             and not any(sec_part in sector for sec_part in ["canada", "mexico"])
         ):
             # We skip sector if MetEmis is doing it, but it only includes CONUS,
