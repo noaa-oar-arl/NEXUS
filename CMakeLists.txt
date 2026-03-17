@@ -110,3 +110,10 @@ if(NEXUS_USE_INLINE_CDEPS)
 endif()
 
 add_subdirectory(src)
+
+# Add tests AFTER src so NEXUS_Shared is available
+option(BUILD_TESTING "Build the testing tree" ON)
+if(BUILD_TESTING)
+  enable_testing()
+  add_subdirectory(tests)
+endif()

@@ -37,6 +37,7 @@ module nexus_cap
                              nxs_state_finalize, nxs_create_hemco_diagnostics
   use nexus_initialize_mod, only: nexus_initialize_phase_aware, ModuleHcoState, ModuleExtState
   use nexus_io_mod, only: IO_Init, IO_Read, TransferFieldsToHEMCO, CreateAndPopulateStreamVariableFields, HCO_UpdateExportFields_NUOPC
+  use nexus_output_mod, only: OutputInit, CollectOutputFields, WriteOutputFields
   use nexus_species_mod, only: NEXUS_RegisterSpecies
 
   implicit none
@@ -52,6 +53,7 @@ module nexus_cap
 
   ! IO initialization flag
   logical, save :: IO_Initialized = .false.
+  logical, save :: Output_Initialized = .false.
   character(len=255) :: ExptFile = 'NEXUS_Expt.nc'
   character(len=255) :: ConfigFile_
   character(len=255) :: ReGridFile_
@@ -466,11 +468,25 @@ contains
       if (localPet == 0) print *, "NEXUS: Realized", itemCount, "import fields for CDEPS coupling"
     endif
 
-    ! Initialize ModuleHcoState here since Initialize phase is not being called
+    ! ================================================================
+    ! TASK 4: NUOPC Phase Handling and Clock Initialization
+    ! ================================================================
+    ! Initialize ModuleHcoState exactly once in Realize phase
+    ! CRITICAL: Ensure ModuleHcoState is initialized only once to prevent
+    ! state corruption and null pointer dereferences in Advance phase
+    ! (Requirement 1.2, 1.6, 2.2, 2.6)
     if (.not. associated(ModuleHcoState)) then
        if (localPet == 0) print *, "NEXUS DEBUG: Realize - ModuleHcoState not initialized, initializing now"
 
-       ! Read HEMCO config file
+       ! ================================================================
+       ! TASK 4.2: Verify initialization sequence in Realize phase
+       ! Required sequence: Config_ReadFile → HcoState_Init → HcoClock_Init
+       !                    → nxs_set_hco_mesh → HCO_Init → HCOX_Init
+       ! (Requirement 2.2, 2.4)
+       ! ================================================================
+
+       ! Step 1: Read HEMCO configuration file
+       if (localPet == 0) print *, "NEXUS DEBUG: Realize - Step 1: Reading HEMCO config file"
        call Config_ReadFile((localPet == 0), HcoConfig, ConfigFile_, 0, localrc)
        if ( localrc /= HCO_SUCCESS ) then
           call ESMF_LogWrite("NEXUS: Error reading HEMCO config in Realize", ESMF_LOGMSG_ERROR)
@@ -478,8 +494,8 @@ contains
           return
        endif
 
-       ! Initialize HEMCO state object and store in module-level variable
-       if (localPet == 0) print *, "NEXUS DEBUG: Realize - About to call HcoState_Init for ModuleHcoState"
+       ! Step 2: Initialize HEMCO state object and store in module-level variable
+       if (localPet == 0) print *, "NEXUS DEBUG: Realize - Step 2: Calling HcoState_Init"
        call HcoState_Init(ModuleHcoState, HcoConfig, 0, localrc)
        if ( localrc /= HCO_SUCCESS ) then
           call ESMF_LogWrite("NEXUS: Error initializing module-level HEMCO state in Realize", ESMF_LOGMSG_ERROR)
@@ -487,8 +503,14 @@ contains
           return
        endif
 
-       ! Initialize HEMCO clock - this was the missing step!
-       if (localPet == 0) print *, "NEXUS DEBUG: Realize - About to call HcoClock_Init for ModuleHcoState"
+       ! ================================================================
+       ! TASK 4.1: Add HcoClock_Init call in Realize phase
+       ! CRITICAL: HcoClock_Init MUST be called after HcoState_Init
+       ! and BEFORE HCO_Init. This was the missing step causing
+       ! "Clock not associated" errors (Requirement 1.4, 2.4)
+       ! ================================================================
+       ! Step 3: Initialize HEMCO clock - CRITICAL MISSING STEP
+       if (localPet == 0) print *, "NEXUS DEBUG: Realize - Step 3: Calling HcoClock_Init"
        call HcoClock_Init(ModuleHcoState, localrc)
        if ( localrc /= HCO_SUCCESS ) then
           call ESMF_LogWrite("NEXUS: Error initializing HEMCO clock in Realize", ESMF_LOGMSG_ERROR)
@@ -497,8 +519,9 @@ contains
        endif
        if (localPet == 0) print *, "NEXUS DEBUG: Realize - HcoClock_Init successful, Clock associated=", associated(ModuleHcoState%Clock)
 
-       ! Set grid in HEMCO state BEFORE calling HCO_Init - required for SetReadList
-       if (localPet == 0) print *, "NEXUS DEBUG: Realize - About to set HEMCO grid before HCO_Init"
+       ! Step 4: Set grid in HEMCO state BEFORE calling HCO_Init
+       ! Required for SetReadList operations
+       if (localPet == 0) print *, "NEXUS DEBUG: Realize - Step 4: Setting HEMCO grid"
        call nxs_set_hco_mesh(ModuleHcoState, HCO_Mesh, localrc)
        if ( localrc /= HCO_SUCCESS ) then
           call ESMF_LogWrite("NEXUS: Error setting HEMCO grid in Realize", ESMF_LOGMSG_ERROR)
@@ -507,8 +530,9 @@ contains
        endif
        if (localPet == 0) print *, "NEXUS DEBUG: Realize - HEMCO grid set successfully"
 
-       ! Initialize HEMCO core modules (ReadLists, Diagnostics, etc.) - CRITICAL for HCO_Run!
-       if (localPet == 0) print *, "NEXUS DEBUG: Realize - About to call HCO_Init for ModuleHcoState"
+       ! Step 5: Initialize HEMCO core modules (ReadLists, Diagnostics, etc.)
+       ! CRITICAL for HCO_Run! Requires clock to be initialized (Step 3)
+       if (localPet == 0) print *, "NEXUS DEBUG: Realize - Step 5: Calling HCO_Init"
        call HCO_Init(ModuleHcoState, localrc)
        if ( localrc /= HCO_SUCCESS ) then
           call ESMF_LogWrite("NEXUS: Error initializing HEMCO core modules in Realize", ESMF_LOGMSG_ERROR)
@@ -517,8 +541,8 @@ contains
        endif
        if (localPet == 0) print *, "NEXUS DEBUG: Realize - HCO_Init successful, ReadLists associated=", associated(ModuleHcoState%ReadLists)
 
-       ! Initialize HEMCO extensions - Let HCOX_Init handle ExtState initialization
-       if (localPet == 0) print *, "NEXUS DEBUG: Realize - About to call HCOX_Init (will auto-initialize ExtState)"
+       ! Step 6: Initialize HEMCO extensions
+       if (localPet == 0) print *, "NEXUS DEBUG: Realize - Step 6: Calling HCOX_Init"
        call HCOX_Init(ModuleHcoState, ModuleExtState, localrc)
        if ( localrc /= HCO_SUCCESS ) then
           call ESMF_LogWrite("NEXUS: Error initializing HEMCO extensions in Realize", ESMF_LOGMSG_ERROR)
@@ -527,7 +551,14 @@ contains
        endif
        if (localPet == 0) print *, "NEXUS DEBUG: Realize - HCOX_Init successful, ExtState associated=", associated(ModuleExtState)
 
-       if (localPet == 0) print *, "NEXUS DEBUG: Realize - HcoState_Init successful, ModuleHcoState associated=", associated(ModuleHcoState)
+       if (localPet == 0) print *, "NEXUS DEBUG: Realize - ModuleHcoState initialization complete"
+    else
+       ! ================================================================
+       ! TASK 4.3: Remove duplicate ModuleHcoState initialization
+       ! ModuleHcoState is already initialized, skip re-initialization
+       ! (Requirement 1.2, 1.6, 2.2, 2.6)
+       ! ================================================================
+       if (localPet == 0) print *, "NEXUS DEBUG: Realize - ModuleHcoState already initialized, skipping re-initialization"
     endif
 
     if (localPet == 0) print *, "NEXUS: Realize phase completed - ready for external data from CDEPS"
@@ -792,6 +823,36 @@ contains
       line=__LINE__, &
       file=__FILE__, &
       rcToReturn=rc)) return
+
+    !=================================================================
+    ! Initialize output system on first advance (after HEMCO is ready)
+    !=================================================================
+    if (.not. Output_Initialized) then
+      if (localPet == 0) print *, "NEXUS DEBUG: Initializing CF-compliant output system"
+      call OutputInit('nexus_output.yaml', HCO_Grid, clock, localrc)
+      if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+      if (localPet == 0) print *, "NEXUS DEBUG: Output system initialized"
+      Output_Initialized = .true.
+    endif
+
+    !=================================================================
+    ! Collect output fields from HEMCO diagnostics
+    !=================================================================
+    if (localPet == 0) print *, "NEXUS DEBUG: Collecting output fields"
+    call CollectOutputFields(ModuleHcoState, 1, localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+
+    !=================================================================
+    ! Write output if due
+    !=================================================================
+    ! Check if output is due based on frequency
+    ! For now, write every timestep (will be controlled by frequency check)
+    if (localPet == 0) print *, "NEXUS DEBUG: Writing output fields"
+    call WriteOutputFields(ModuleHcoState, HCO_Grid, clock, 1, localrc)
+    if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, file=__FILE__, rcToReturn=rc)) return
 
     !=================================================================
     ! Update NEXUS Diagnostic state (using export state)
@@ -1061,6 +1122,7 @@ contains
     use HCOIO_DIAGN_MOD, only: HcoDiagn_Write
     use HCO_Diagn_Mod,   only: DiagnBundle_Cleanup
     use nexus_initialize_mod, only: ModuleHcoState, ModuleExtState, nexus_finalize_module_variables
+    use nexus_output_mod, only: OutputFinalize
 
     type(ESMF_GridComp) :: model
     integer, intent(out) :: rc
@@ -1082,6 +1144,15 @@ contains
       line=__LINE__, file=__FILE__, rcToReturn=rc)) return
 
     if (localPet == 0) print *, "NEXUS: Starting finalization"
+
+    ! Finalize output system if initialized
+    if (Output_Initialized) then
+       if (localPet == 0) print *, "NEXUS: Finalizing output system"
+       call OutputFinalize(localrc)
+       if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
+         line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+       Output_Initialized = .false.
+    endif
 
     ! Finalize HEMCO if it was initialized
     if (associated(ModuleHcoState)) then

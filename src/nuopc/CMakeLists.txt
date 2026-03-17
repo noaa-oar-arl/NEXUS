@@ -84,6 +84,15 @@ if(NEXUS_USE_INLINE_CDEPS)
     target_link_libraries(NEXUS_Shared PUBLIC ${CDEPS_INTERFACE_DIR}/libcdeps.a)
   endif()
 
+  # FoX libraries must be linked for CDEPS XML parsing
+  # Find FoX libraries built in the same build
+  if(TARGET FoX_dom)
+    target_link_libraries(NEXUS_Shared PUBLIC FoX_dom FoX_sax FoX_wxml FoX_common FoX_utils FoX_fsys)
+  endif()
+
+  # Explicitly link PIO Fortran library for CDEPS
+  target_link_libraries(NEXUS_Shared PUBLIC piof pioc)
+
   # ESMF must come after CDEPS in link order
   # ESMF automatically provides PIO linkage when built with external PIO support
   target_link_libraries(NEXUS_Shared PUBLIC esmf)

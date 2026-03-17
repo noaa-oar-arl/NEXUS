@@ -1,0 +1,62 @@
+# NEXUS CF-compliant output configuration
+# This file configures diagnostic output streams for NEXUS standalone mode
+
+output_streams:
+  - name: nexus_hourly
+    filename_template: "NEXUS.%Y%m%d_%H%M%S.nc"
+    frequency: 1h
+    mode: instantaneous  # or time_averaged
+    variables:
+      - EmisBC_Total
+      - EmisOC_Total
+      - EmisSO2_Total
+      - EmisNO_Total
+      - EmisCO_Total
+      - EmisNH3_Total
+    compression:
+      enabled: true
+      deflate_level: 1
+      shuffle: true
+
+  - name: nexus_daily
+    filename_template: "NEXUS_daily.%Y%m%d.nc"
+    frequency: 1d
+    mode: time_averaged
+    variables:
+      - EmisBC_Total
+      - EmisOC_Total
+      - EmisSO2_Total
+      - EmisNO_Total
+      - EmisCO_Total
+    compression:
+      enabled: true
+      deflate_level: 1
+      shuffle: true
+
+# CF-1.8 global attributes
+global_attributes:
+  Conventions: "CF-1.8"
+  title: "NEXUS Emission Diagnostics"
+  institution: "NASA GMAO"
+  source: "NEXUS-HEMCO v1.0"
+  references: "http://wiki.seas.harvard.edu/geos-chem/index.php/HEMCO"
+  comment: "Emissions calculated by HEMCO in NEXUS standalone mode"
+
+# Coordinate variable configuration
+coordinates:
+  lon:
+    standard_name: "longitude"
+    long_name: "longitude"
+    units: "degrees_east"
+    axis: "X"
+  lat:
+    standard_name: "latitude"
+    long_name: "latitude"
+    units: "degrees_north"
+    axis: "Y"
+  time:
+    standard_name: "time"
+    long_name: "time"
+    units: "seconds since 1970-01-01 00:00:00"
+    calendar: "gregorian"
+    axis: "T"
