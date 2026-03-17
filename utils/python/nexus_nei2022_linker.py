@@ -291,23 +291,34 @@ class FileMatcher:
             return "1dpy"
 
         if all(n == 1 for n in m_counts.values()):
-            assert n_unique_dow == 1
+            if n_unique_dow != 1:
+                raise AssertionError(
+                    f"1dpm should have 1 unique day-of-week. Got: {n_unique_dow} ({dow_counts})"
+                )
             return "1dpm"
         elif all(n == 4 for n in m_counts.values()):
-            assert n_unique_dow == 4
+            if n_unique_dow != 4:
+                raise AssertionError(
+                    f"4dpm should have 4 unique days-of-week. Got: {n_unique_dow} ({dow_counts})"
+                )
             return "4dpm"
         elif all(n == 7 for n in m_counts.values()):
-            assert n_unique_dow == 7
+            if n_unique_dow != 7:
+                raise AssertionError(
+                    f"7dpm should have 7 unique days-of-week. Got: {n_unique_dow} ({dow_counts})"
+                )
             return "7dpm"
 
         if n_unique_dow in {5, 6}:
-            assert all(4 <= n <= 7 for n in m_counts.values())
+            if not all(4 <= n <= 7 for n in m_counts.values()):
+                raise AssertionError(f"4dpmh should have 4-7 files per month. Got: {m_counts}")
             return "4dpmh"
         elif n_unique_dow == 7:
             if any(n >= 28 for n in m_counts.values()):
                 return "daily"
             else:
-                assert all(7 <= n <= 10 for n in m_counts.values())
+                if not all(7 <= n <= 10 for n in m_counts.values()):
+                    raise AssertionError(f"7dpmh should have 7-10 files per month. Got: {m_counts}")
                 return "7dpmh"
         else:
             raise ValueError(
@@ -372,14 +383,20 @@ class FileMatcher:
         elif org == "7dpm" or (org == "7dpmh" and not tgt_is_holiday):
             # Representative week, non-holiday
             src_iwds = [d.isoweekday() for d in src_dates_m_nh]
-            assert src_iwds == list(range(1, 8))
+            if src_iwds != list(range(1, 8)):
+                raise AssertionError(
+                    f"7dpm/7dpmh should have non-holiday Mon-Sun. Got days-of-week: {src_iwds}"
+                )
             i = src_iwds.index(tgt_dow)
             return fps_m_nh[i]
 
         elif org == "4dpm" or (org == "4dpmh" and not tgt_is_holiday):
             # Representative 4 days, non-holiday
             src_iwds = [d.isoweekday() for d in src_dates_m_nh]
-            assert src_iwds == [1, 2, 6, 7]
+            if src_iwds != [1, 2, 6, 7]:
+                raise AssertionError(
+                    f"4dpm/4dpmh should have non-holiday Mon, Tue, Sat, Sun. Got days-of-week: {src_iwds}"
+                )
             if tgt_dow in {6, 7}:  # weekend
                 i = src_iwds.index(tgt_dow)
                 return fps_m_nh[i]
