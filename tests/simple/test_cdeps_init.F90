@@ -37,7 +37,7 @@ program test_cdeps_init
   logical :: test_passed
 
   ! Initialize ESMF
-  call ESMF_Initialize(logkind=ESMF_LOGKIND_MULTI, rc=rc)
+  call ESMF_Initialize(logkindflag=ESMF_LOGKIND_MULTI, rc=rc)
   if (rc /= ESMF_SUCCESS) then
      print *, 'ESMF_Initialize failed'
      stop 1
@@ -57,7 +57,7 @@ program test_cdeps_init
   print *, ''
 
   ! Create a simple clock for testing
-  clock = ESMF_ClockCreate(name='TestClock', rc=rc)
+  call ESMF_ClockCreate(name='TestClock', timeStep=ESMF_TimeInterval(h=1), rc=rc)
   if (rc /= ESMF_SUCCESS) then
      print *, 'Failed to create clock'
      call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -126,9 +126,9 @@ program test_cdeps_init
   print *, ''
 
   ! Clean up for next test
-  if (associated(sdat%pstrm)) then
+  if (allocated(sdat%pstrm)) then
      if (allocated(sdat%pstrm(1)%fldlist_model)) deallocate(sdat%pstrm(1)%fldlist_model)
-     deallocate(sdat%pstrm(1))
+     deallocate(sdat%pstrm)
   endif
 
   !==============================================================================
@@ -178,9 +178,9 @@ program test_cdeps_init
   print *, ''
 
   ! Clean up for next test
-  if (associated(sdat%pstrm)) then
+  if (allocated(sdat%pstrm)) then
      if (allocated(sdat%pstrm(1)%fldlist_model)) deallocate(sdat%pstrm(1)%fldlist_model)
-     deallocate(sdat%pstrm(1))
+     deallocate(sdat%pstrm)
   endif
 
   !==============================================================================
@@ -230,9 +230,9 @@ program test_cdeps_init
   print *, ''
 
   ! Clean up for next test
-  if (associated(sdat%pstrm)) then
+  if (allocated(sdat%pstrm)) then
      if (allocated(sdat%pstrm(1)%fldlist_model)) deallocate(sdat%pstrm(1)%fldlist_model)
-     deallocate(sdat%pstrm(1))
+     deallocate(sdat%pstrm)
   endif
 
   !==============================================================================
@@ -282,9 +282,9 @@ program test_cdeps_init
   print *, ''
 
   ! Clean up for next test
-  if (associated(sdat%pstrm)) then
+  if (allocated(sdat%pstrm)) then
      if (allocated(sdat%pstrm(1)%fldlist_model)) deallocate(sdat%pstrm(1)%fldlist_model)
-     deallocate(sdat%pstrm(1))
+     deallocate(sdat%pstrm)
   endif
 
   !==============================================================================
@@ -334,9 +334,9 @@ program test_cdeps_init
   print *, ''
 
   ! Clean up for next test
-  if (associated(sdat%pstrm)) then
+  if (allocated(sdat%pstrm)) then
      if (allocated(sdat%pstrm(1)%fldlist_model)) deallocate(sdat%pstrm(1)%fldlist_model)
-     deallocate(sdat%pstrm(1))
+     deallocate(sdat%pstrm)
   endif
 
   !==============================================================================
@@ -386,9 +386,9 @@ program test_cdeps_init
   print *, ''
 
   ! Clean up for next test
-  if (associated(sdat%pstrm)) then
+  if (allocated(sdat%pstrm)) then
      if (allocated(sdat%pstrm(1)%fldlist_model)) deallocate(sdat%pstrm(1)%fldlist_model)
-     deallocate(sdat%pstrm(1))
+     deallocate(sdat%pstrm)
   endif
 
   !==============================================================================

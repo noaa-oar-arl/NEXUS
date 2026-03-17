@@ -12,7 +12,6 @@ module nexus_output_mod
   use ESMF
   use NUOPC
   use HCO_STATE_MOD, only: HCO_State
-  use HCO_DIAGN_MOD, only: HcoDiagn
   use HCO_ERROR_MOD, only: HCO_SUCCESS, HCO_FAIL
 
   implicit none
@@ -143,12 +142,12 @@ contains
 
   !> @brief Initialize output system from configuration file
   !> @param config_file Path to nexus_output.yaml or nexus_output.rc
-  !> @param grid ESMF grid for output fields
+  !> @param mesh ESMF mesh for output fields
   !> @param clock ESMF clock for timing
   !> @param rc Return code
-  subroutine OutputInit(config_file, grid, clock, rc)
+  subroutine OutputInit(config_file, mesh, clock, rc)
     character(len=*), intent(in) :: config_file
-    type(ESMF_Grid), intent(in) :: grid
+    type(ESMF_Mesh), intent(in) :: mesh
     type(ESMF_Clock), intent(in) :: clock
     integer, intent(out) :: rc
 
@@ -168,15 +167,15 @@ contains
     inquire(file=trim(config_file), exist=file_exists)
     if (.not. file_exists) then
        if (localPet == 0) print *, "OutputInit: Config file not found, using defaults"
-       call CreateDefaultOutputConfig(grid, clock, rc)
+       call CreateDefaultOutputConfig(mesh, clock, rc)
        return
     endif
 
     ! Parse configuration file
     if (index(config_file, '.yaml') > 0 .or. index(config_file, '.yml') > 0) then
-       call ParseYAMLOutputConfig(config_file, grid, clock, rc)
+       call ParseYAMLOutputConfig(config_file, mesh, clock, rc)
     else
-       call ParseRCOutputConfig(config_file, grid, clock, rc)
+       call ParseRCOutputConfig(config_file, mesh, clock, rc)
     endif
 
     if (localPet == 0) print *, "OutputInit: Initialized ", num_output_streams, " output streams"
@@ -184,8 +183,8 @@ contains
   end subroutine OutputInit
 
   !> @brief Create default output configuration
-  subroutine CreateDefaultOutputConfig(grid, clock, rc)
-    type(ESMF_Grid), intent(in) :: grid
+  subroutine CreateDefaultOutputConfig(mesh, clock, rc)
+    type(ESMF_Mesh), intent(in) :: mesh
     type(ESMF_Clock), intent(in) :: clock
     integer, intent(out) :: rc
 
@@ -229,27 +228,27 @@ contains
   end subroutine CreateDefaultOutputConfig
 
   !> @brief Parse YAML output configuration
-  subroutine ParseYAMLOutputConfig(config_file, grid, clock, rc)
+  subroutine ParseYAMLOutputConfig(config_file, mesh, clock, rc)
     character(len=*), intent(in) :: config_file
-    type(ESMF_Grid), intent(in) :: grid
+    type(ESMF_Mesh), intent(in) :: mesh
     type(ESMF_Clock), intent(in) :: clock
     integer, intent(out) :: rc
 
     ! For now, use default config
     ! Full YAML parsing would require additional libraries
-    call CreateDefaultOutputConfig(grid, clock, rc)
+    call CreateDefaultOutputConfig(mesh, clock, rc)
 
   end subroutine ParseYAMLOutputConfig
 
   !> @brief Parse RC-format output configuration
-  subroutine ParseRCOutputConfig(config_file, grid, clock, rc)
+  subroutine ParseRCOutputConfig(config_file, mesh, clock, rc)
     character(len=*), intent(in) :: config_file
-    type(ESMF_Grid), intent(in) :: grid
+    type(ESMF_Mesh), intent(in) :: mesh
     type(ESMF_Clock), intent(in) :: clock
     integer, intent(out) :: rc
 
     ! For now, use default config
-    call CreateDefaultOutputConfig(grid, clock, rc)
+    call CreateDefaultOutputConfig(mesh, clock, rc)
 
   end subroutine ParseRCOutputConfig
 
@@ -313,13 +312,13 @@ contains
 
   !> @brief Write output fields to NetCDF file
   !> @param HcoState HEMCO state object
-  !> @param grid ESMF grid
+  !> @param mesh ESMF mesh
   !> @param clock ESMF clock
   !> @param stream_idx Output stream index
   !> @param rc Return code
-  subroutine WriteOutputFields(HcoState, grid, clock, stream_idx, rc)
+  subroutine WriteOutputFields(HcoState, mesh, clock, stream_idx, rc)
     type(HCO_State), pointer :: HcoState
-    type(ESMF_Grid), intent(in) :: grid
+    type(ESMF_Mesh), intent(in) :: mesh
     type(ESMF_Clock), intent(in) :: clock
     type(ESMF_Time) :: curr_time
     integer, intent(in) :: stream_idx
@@ -350,7 +349,7 @@ contains
     if (localPet == 0) print *, "WriteOutputFields: Writing to ", trim(filename)
 
     ! Write fields using ESMF I/O
-    call WriteNetCDFOutput(HcoState, grid, curr_time, stream_idx, filename, rc)
+    call WriteNetCDFOutput(HcoState, mesh, curr_time, stream_idx, filename, rc)
 
     ! Update next output time
     output_streams(stream_idx)%next_output_time = &
@@ -402,9 +401,9 @@ contains
   end subroutine ReplaceToken
 
   !> @brief Write NetCDF output with CF-1.8 conventions
-  subroutine WriteNetCDFOutput(HcoState, grid, curr_time, stream_idx, filename, rc)
+  subroutine WriteNetCDFOutput(HcoState, mesh, curr_time, stream_idx, filename, rc)
     type(HCO_State), pointer :: HcoState
-    type(ESMF_Grid), intent(in) :: grid
+    type(ESMF_Mesh), intent(in) :: mesh
     type(ESMF_Time), intent(in) :: curr_time
     integer, intent(in) :: stream_idx
     character(len=*), intent(in) :: filename
@@ -425,13 +424,13 @@ contains
     if (rc /= ESMF_SUCCESS) return
 
     ! Write coordinate variables
-    call WriteCoordinateVariables(grid, filename, rc)
+    call WriteCoordinateVariables(mesh, filename, rc)
     if (rc /= ESMF_SUCCESS) return
 
     ! Write each output variable
     do i = 1, output_streams(stream_idx)%num_variables
        var_name = trim(output_streams(stream_idx)%variable_list(i))
-       call WriteVariableToNetCDF(HcoState, grid, var_name, filename, &
+       call WriteVariableToNetCDF(HcoState, mesh, var_name, filename, &
                                   output_streams(stream_idx)%time_averaged, rc)
     enddo
 
@@ -467,8 +466,8 @@ contains
   end subroutine CreateCFNetCDFFile
 
   !> @brief Write coordinate variables with CF attributes
-  subroutine WriteCoordinateVariables(grid, filename, rc)
-    type(ESMF_Grid), intent(in) :: grid
+  subroutine WriteCoordinateVariables(mesh, filename, rc)
+    type(ESMF_Mesh), intent(in) :: mesh
     character(len=*), intent(in) :: filename
     integer, intent(out) :: rc
 
@@ -491,9 +490,9 @@ contains
   end subroutine WriteCoordinateVariables
 
   !> @brief Write a single variable to NetCDF with CF metadata
-  subroutine WriteVariableToNetCDF(HcoState, grid, var_name, filename, time_averaged, rc)
+  subroutine WriteVariableToNetCDF(HcoState, mesh, var_name, filename, time_averaged, rc)
     type(HCO_State), pointer :: HcoState
-    type(ESMF_Grid), intent(in) :: grid
+    type(ESMF_Mesh), intent(in) :: mesh
     character(len=*), intent(in) :: var_name
     character(len=*), intent(in) :: filename
     logical, intent(in) :: time_averaged

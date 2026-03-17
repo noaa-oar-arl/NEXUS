@@ -12,6 +12,7 @@ add_library(NEXUS_Shared STATIC EXCLUDE_FROM_ALL
   nexus_field_advertisement_mod.F90
   nexus_initialize_mod.F90
   nexus_cdeps_inline_mod.F90
+  nexus_output_mod.F90
   cap.F90
   driver.F90
   nexus_io_mod.F90

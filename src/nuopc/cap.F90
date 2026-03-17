@@ -829,7 +829,7 @@ contains
     !=================================================================
     if (.not. Output_Initialized) then
       if (localPet == 0) print *, "NEXUS DEBUG: Initializing CF-compliant output system"
-      call OutputInit('nexus_output.yaml', HCO_Grid, clock, localrc)
+      call OutputInit('nexus_output.yaml', HCO_Mesh, clock, localrc)
       if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
         line=__LINE__, file=__FILE__, rcToReturn=rc)) return
       if (localPet == 0) print *, "NEXUS DEBUG: Output system initialized"
@@ -850,7 +850,7 @@ contains
     ! Check if output is due based on frequency
     ! For now, write every timestep (will be controlled by frequency check)
     if (localPet == 0) print *, "NEXUS DEBUG: Writing output fields"
-    call WriteOutputFields(ModuleHcoState, HCO_Grid, clock, 1, localrc)
+    call WriteOutputFields(ModuleHcoState, HCO_Mesh, clock, 1, localrc)
     if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, file=__FILE__, rcToReturn=rc)) return
 

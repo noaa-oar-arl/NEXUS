@@ -32,7 +32,7 @@ program test_nuopc_phase
   logical :: test_passed
 
   ! Initialize ESMF
-  call ESMF_Initialize(logkind=ESMF_LOGKIND_MULTI, rc=rc)
+  call ESMF_Initialize(logkindflag=ESMF_LOGKIND_MULTI, rc=rc)
   if (rc /= ESMF_SUCCESS) then
      print *, 'ESMF_Initialize failed'
      stop 1
@@ -128,7 +128,7 @@ program test_nuopc_phase
   print *, '----------------------------------------'
 
   ! Create a simple clock for Advance
-  clock = ESMF_ClockCreate(name='TestClock', rc=rc)
+  call ESMF_ClockCreate(name='TestClock', timeStep=ESMF_TimeInterval(h=1), rc=rc)
   if (rc == ESMF_SUCCESS) then
      call ESMF_GridCompSet(model, clock=clock, rc=rc)
   endif
