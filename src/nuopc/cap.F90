@@ -1776,9 +1776,9 @@ contains
     end if
 
     !%%%%% Snow fields %%%%%
-    if ( ExtState%SNOWHGT%DoUse ) then
+    if ( ExtState%SNOMAS%DoUse ) then
       Name = 'SNOMAS'
-      call ExtDat_Set( HcoState,     ExtState%SNOWHGT,                      &
+      call ExtDat_Set( HcoState,     ExtState%SNOMAS,                       &
         trim( Name ), RC,       FIRST=FIRST                 )
       if ( RC /= HCO_SUCCESS ) then
         ErrMsg = 'Could not find quantity "' // trim( Name )            // &
