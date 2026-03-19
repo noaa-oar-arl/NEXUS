@@ -659,10 +659,9 @@ if __name__ == "__main__":
             tgt_fn = os.path.basename(src_fp).replace(src_date_str, tgt_date_str)
             tgt_fp = os.path.join(work_dir, src_rel_dir, tgt_fn)
 
-            # Currently MetEmis are METEMIS/sector/YYYY/ but we want METEMIS/YYYY/
-            if is_metemis:
-                base_sector = re.sub(r"_[0-9]+$", "", sector)
-                tgt_fp = tgt_fp.replace(f"{base_sector}/", "")
+            # Remove sector from sub-directory structure to match config
+            base_sector = re.sub(r"_[0-9]+$", "", sector)
+            tgt_fp = tgt_fp.replace(f"{base_sector}/", "")
 
             # Create directory structure if needed
             target_dir = os.path.dirname(tgt_fp)
