@@ -2007,6 +2007,7 @@ Cap time shift              : true
 )))NEI2022v1_AR
 
 #### MEGAN EMISSION
+(((MEGAN
 108  MEGAN_AEF_ISOP               $ROOT/MEGAN/v2020-02/MEGAN2.1_EF.geos.025x03125.nc      AEF_ISOPRENE            1985/1/1/0        C xy kgC/m2/s * 61 1 1
 108  MEGAN_AEF_MBOX               $ROOT/MEGAN/v2020-02/MEGAN2.1_EF.geos.025x03125.nc      AEF_MBO                 1985/1/1/0        C xy kgC/m2/s * 64 1 1
 #108 MEGAN_AEF_APIN               $ROOT/MEGAN/v2020-02/MEGAN2.1_EF.geos.025x03125.nc      AEF_ALPHA_PINENE        1985/1/1/0        C xy kgC/m2/s * 62 1 1
@@ -2033,6 +2034,7 @@ Cap time shift              : true
 108  CLM4_PFT_C4_GRSS             $ROOT/MEGAN/v2018-05/CLM4_PFT.geos.025x03125.v201805.nc PFT_C4_GRSS             2000/1/1/0        C xy 1        * - 1 1
 108  CLM4_PFT_CROP                $ROOT/MEGAN/v2018-05/CLM4_PFT.geos.025x03125.v201805.nc PFT_CROP                2000/1/1/0        C xy 1        * - 1 1
 108  MEGAN_ORVC                   $ROOT/SOA/v2014-07/NVOC.geos.1x1.nc                     OCPI                    1990/1-12/1/0     C xy kgC/m2/s * - 1 1
+)))MEGAN
 
 #==============================================================================
 # --- Olson land map masks ---
@@ -2297,20 +2299,24 @@ Cap time shift              : true
 #####################################################################
 # Met fields for stand-alone/offline GFS MEGANv2.1 use
 #####################################################################
+(((MEGAN
 * LAI      $ROOT/GEOS_0.5x0.625/MERRA2/2019/$MM/MERRA2.2019$MM$DD.A1.05x0625.nc4   LAI      2014-2019/1-12/1-31/0-23 C xy  count * - 1 1
-* T2M      $ROOT/../GFS_SFC_MEGAN_INPUT.nc   T2M      2014-2019/1-12/1-31/0-23 C xy  K     * - 1 1
+* T2M      $ROOT/../GFS_SFC_MEGAN_INPUT.nc   T2M      2014-2019/1-12/1-31/0-23 C xy  K    * - 1 1
 * GWETROOT $ROOT/../GFS_SFC_MEGAN_INPUT.nc   GWETROOT 2014-2019/1-12/1-31/0-23 C xy  1    * - 1 1
 * PARDR    $ROOT/../GFS_SFC_MEGAN_INPUT.nc   PARDR    2014-2019/1-12/1-31/0-23 C xy  W/m2 * - 1 1
 * PARDF    $ROOT/../GFS_SFC_MEGAN_INPUT.nc   PARDF    2014-2019/1-12/1-31/0-23 C xy  W/m2 * - 1 1
+)))MEGAN
 
 #####################################################################
 # Met fields for MetEmis
 #####################################################################
 (((MetEmis
-* T2M      $ROOT/GEOS_0.5x0.625/MERRA2/$YYYY/$MM/MERRA2.$YYYY$MM$DD.A1.05x0625.nc4   T2M      2014-2019/1-12/1-31/0-23 C xy  K        * - 1 1
-* QV2M     $ROOT/GEOS_0.5x0.625/MERRA2/$YYYY/$MM/MERRA2.$YYYY$MM$DD.A1.05x0625.nc4   QV2M     2014-2019/1-12/1-31/0-23 C xy  kg/kg    * - 1 1
-* PRECTOT  $ROOT/GEOS_0.5x0.625/MERRA2/$YYYY/$MM/MERRA2.$YYYY$MM$DD.A1.05x0625.nc4   PRECTOT  2014-2019/1-12/1-31/0-23 C xy  kg/m2/s  * - 1 1
-* FRSNO    $ROOT/GEOS_0.5x0.625/MERRA2/$YYYY/$MM/MERRA2.$YYYY$MM$DD.A1.05x0625.nc4   FRSNO    2014-2019/1-12/1-31/0-23 C xy  1        * - 1 1
+(((.not.MEGAN
+* T2M      $ROOT/../GFS_SFC_METEMIS_INPUT.nc   T2M      2014-2019/1-12/1-31/0-23 C xy  K        * - 1 1
+))).not.MEGAN
+* QV2M     $ROOT/../GFS_SFC_METEMIS_INPUT.nc   QV2M     2014-2019/1-12/1-31/0-23 C xy  kg/kg    * - 1 1
+* PRECTOT  $ROOT/../GFS_SFC_METEMIS_INPUT.nc   PRECTOT  2014-2019/1-12/1-31/0-23 C xy  kg/m2/s  * - 1 1
+* FRSNO    $ROOT/../GFS_SFC_METEMIS_INPUT.nc   FRSNO    2014-2019/1-12/1-31/0-23 C xy  1        * - 1 1
 
 #==============================================================================
 # --- MetEmis Onroad Sector Tables: Used for MetEmis Extension:  Three digit suffixes are temperature in Fahrenheit for the 10 bins---
