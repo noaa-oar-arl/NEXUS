@@ -663,6 +663,10 @@ if __name__ == "__main__":
             base_sector = re.sub(r"_[0-9]+$", "", sector)
             tgt_fp = tgt_fp.replace(f"{base_sector}/", "")
 
+            # Work around NEI file name flux by simplifying
+            if not is_metemis:
+                tgt_fp = os.path.join(os.path.dirname(tgt_fp), f"{sector}_{tgt_date_str}.nc")
+
             # Create directory structure if needed
             target_dir = os.path.dirname(tgt_fp)
             if not os.path.exists(target_dir):
