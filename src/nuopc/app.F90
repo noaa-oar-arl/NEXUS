@@ -86,7 +86,7 @@ program app
     file=__FILE__)) &
     call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
-  ConfigFile = ""
+  ConfigFile = "NEXUS_Config.rc"
   ReGridFile = ""
   OutputFile = ""
 
