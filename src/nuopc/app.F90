@@ -238,7 +238,7 @@ program app
   ! Finalize ESMF
   call ESMF_Finalize()
 
-  print "('NEXUS: ', a)", "Done"
+  if (localPet == rootPet) print "('NEXUS: ', a)", "Done"
 
 contains
 
