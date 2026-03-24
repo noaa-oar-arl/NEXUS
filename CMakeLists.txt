@@ -15,6 +15,7 @@ else()
     message(STATUS "FC is set: '$ENV{FC}'")
   endif()
 endif()
+message(STATUS "CMAKE_Fortran_COMPILER_ID: '${CMAKE_Fortran_COMPILER_ID}'")
 
 # Include local macros
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
