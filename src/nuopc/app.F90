@@ -88,7 +88,7 @@ program app
 
   ConfigFile = "NEXUS_Config.rc"
   ReGridFile = ""
-  OutputFile = ""
+  OutputFile = "NEXUS_Expt.nc"
 
   debugLevel = 0
   writeRestart = .false.
