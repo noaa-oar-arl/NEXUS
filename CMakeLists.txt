@@ -39,7 +39,7 @@ if(UPPER_CMAKE_BUILD_TYPE STREQUAL "DEBUG")
   # https://github.com/geoschem/HEMCO/blob/main/CMakeLists.txt
   # and its options get applied to NEXUS as well.
   # Note HEMCO only support GNU and Intel.
-  if(CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
+  if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
     set(EXTRA_FLAGS "-check all -traceback")
   elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
     set(EXTRA_FLAGS "-fcheck=all -ftraceback")
