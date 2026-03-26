@@ -30,23 +30,43 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 set(HEMCO_EXTERNAL_CONFIG TRUE)
 set(GCCLASSIC_WRAPPER TRUE)
 
-if(CMAKE_BUILD_TYPE)
-  string(TOUPPER ${CMAKE_BUILD_TYPE} UPPER_CMAKE_BUILD_TYPE)
+if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
 endif()
+string(TOUPPER "${CMAKE_BUILD_TYPE}" UPPER_CMAKE_BUILD_TYPE)
+
+set(GDB_FRIENDLY_DEFAULT OFF)
+if(DEFINED ENV{GDB_FRIENDLY} AND NOT "$ENV{GDB_FRIENDLY}" STREQUAL "")
+  set(GDB_FRIENDLY_DEFAULT "$ENV{GDB_FRIENDLY}")
+endif()
+option(GDB_FRIENDLY "Build with GDB-friendly settings by forcing Debug but skipping extra runtime checks" ${GDB_FRIENDLY_DEFAULT})
+
+if(GDB_FRIENDLY AND NOT UPPER_CMAKE_BUILD_TYPE STREQUAL "DEBUG")
+  message(STATUS "GDB_FRIENDLY is enabled; forcing CMAKE_BUILD_TYPE=Debug")
+  set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
+  set(UPPER_CMAKE_BUILD_TYPE DEBUG)
+endif()
+
 message(STATUS "CMAKE_BUILD_TYPE: '${UPPER_CMAKE_BUILD_TYPE}'")
+message(STATUS "GDB_FRIENDLY: '${GDB_FRIENDLY}'")
 
 if(UPPER_CMAKE_BUILD_TYPE STREQUAL "DEBUG")
   # HEMCO already sets `-ftrapuv` for Intel and similar options for GNU
   # https://github.com/geoschem/HEMCO/blob/main/CMakeLists.txt
   # and its options get applied to NEXUS as well.
-  # Note HEMCO only support GNU and Intel.
-  if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
-    set(EXTRA_FLAGS "-check all")
-  elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
-    set(EXTRA_FLAGS "-fcheck=all")
+  # Note HEMCO only support GNU and Intel (classic).
+  # For GDB usage, we don't want check-all because it prevents GDB backtrace from working properly.
+  if(GDB_FRIENDLY)
+    message(STATUS "Skipping extra debug runtime-check flags because GDB_FRIENDLY is enabled")
+  else()
+    if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
+      set(EXTRA_FLAGS "-check all")
+    elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
+      set(EXTRA_FLAGS "-fcheck=all")
+    endif()
+    set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} ${EXTRA_FLAGS}")
+    message(STATUS "CMAKE_Fortran_FLAGS_DEBUG: ${CMAKE_Fortran_FLAGS_DEBUG}")
   endif()
-  set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} ${EXTRA_FLAGS}")
-  message(STATUS "CMAKE_Fortran_FLAGS_DEBUG: ${CMAKE_Fortran_FLAGS_DEBUG}")
 endif()
 
 if(CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
