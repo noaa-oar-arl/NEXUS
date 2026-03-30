@@ -34,7 +34,6 @@ SPECIES = [
     "MEOH",
     "NAPH",
     "NH3",
-    "NH3_FERT",
     "NO",
     "NO2",
     "OLE",

@@ -11,7 +11,6 @@ CL2_ant          CL2            0    -1  -1   2   kg/m2/s
 HONO_ant         HONO           0    -1  -1   2   kg/m2/s
 SULF_ant         SULF           0    -1  -1   2   kg/m2/s
 NH3_ant          NH3            0    -1  -1   2   kg/m2/s
-NH3_FERT_ant     NH3_FERT       0    -1  -1   2   kg/m2/s
 CH4_ant          CH4            0    -1  -1   2   kg/m2/s
 ACROLEIN_ant     ACROLEIN       0    -1  -1   2   kg/m2/s
 BUTADIENE13_ant  BUTADIENE13    0    -1  -1   2   kg/m2/s
