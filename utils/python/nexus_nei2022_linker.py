@@ -521,6 +521,7 @@ if __name__ == "__main__":
     work_dir = args.work_dir.rstrip("/")
     version = args.nei_version
 
+    # Resolve MetEmis sectors to use
     metemis_sectors = args.met_emis
     if isinstance(metemis_sectors, str):
         metemis_sectors = [metemis_sectors]
