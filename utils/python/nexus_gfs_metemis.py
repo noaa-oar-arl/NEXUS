@@ -70,6 +70,24 @@ M2_DATA_VAR_INFO = {
             "gamap_category": "GMAO-2D",
         },
     },
+    "U10M": {
+        "gfs_name": "ugrd10m",
+        "attrs": {
+            "long_name": "10-meter_eastward_wind",
+            "standard_name": "10-meter_eastward_wind",
+            "units": "m/s",
+            "gamap_category": "GMAO-2D",
+        },
+    },
+    "V10M": {
+        "gfs_name": "vgrd10m",
+        "attrs": {
+            "long_name": "10-meter_northward_wind",
+            "standard_name": "10-meter_northward_wind",
+            "units": "m/s",
+            "gamap_category": "GMAO-2D",
+        },
+    },
 }
 
 M2_DATA_VAR_OLD_TO_NEW = {d["gfs_name"]: k for k, d in M2_DATA_VAR_INFO.items()}

@@ -188,6 +188,8 @@ Cap time shift              : true
     --> ME RWC                :       true
     --> RWC temp (deg F)      :       50.0
     --> ME AFD                :       true
+    --> AFD Wind              :       true
+    --> AFD 10-m wind (m/s)   :       5.0
     --> AFD precip (mm)       :       0.10
     --> AFD frsno (fraction)  :       0.10
 
@@ -2180,6 +2182,8 @@ Cap time shift              : true
 * QV2M     $ROOT/../GFS_SFC_METEMIS_INPUT.nc   QV2M     2014-2019/1-12/1-31/0-23 C xy  kg/kg    * - 1 1
 * PRECTOT  $ROOT/../GFS_SFC_METEMIS_INPUT.nc   PRECTOT  2014-2019/1-12/1-31/0-23 C xy  kg/m2/s  * - 1 1
 * FRSNO    $ROOT/../GFS_SFC_METEMIS_INPUT.nc   FRSNO    2014-2019/1-12/1-31/0-23 C xy  1        * - 1 1
+* U10M     $ROOT/../GFS_SFC_METEMIS_INPUT.nc   U10M     2014-2019/1-12/1-31/0-23 C xy  m/s      * - 1 1
+* V10M     $ROOT/../GFS_SFC_METEMIS_INPUT.nc   V10M     2014-2019/1-12/1-31/0-23 C xy  m/s      * - 1 1
 
 #==============================================================================
 # --- MetEmis Onroad Sector Tables: Used for MetEmis Extension:  Three digit suffixes are temperature in Fahrenheit for the 10 bins---
