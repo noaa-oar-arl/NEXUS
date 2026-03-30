@@ -57,7 +57,7 @@ M2_DATA_VAR_INFO = {
         "attrs": {
             "long_name": "total_precipitation_rate",
             "standard_name": "total_precipitation_rate",
-            "units": "kg/m^2/s",
+            "units": "kg/m2/s",
             "gamap_category": "GMAO-2D",
         },
     },
