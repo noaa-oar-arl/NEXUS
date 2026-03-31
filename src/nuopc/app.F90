@@ -86,9 +86,9 @@ program app
     file=__FILE__)) &
     call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
-  ConfigFile = ""
+  ConfigFile = "NEXUS_Config.rc"
   ReGridFile = ""
-  OutputFile = ""
+  OutputFile = "NEXUS_Expt.nc"
 
   debugLevel = 0
   writeRestart = .false.
@@ -238,7 +238,7 @@ program app
   ! Finalize ESMF
   call ESMF_Finalize()
 
-  print "('NEXUS: ', a)", "Done"
+  if (localPet == rootPet) print "('NEXUS: ', a)", "Done"
 
 contains
 
