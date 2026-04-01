@@ -74,14 +74,12 @@ HOLIDAY_MD = {
 # - Thanksgiving
 # - Xmas
 
-# Location of MetEmis files for sector under base
-# Note currently there is only one MetEmis setup
-# (don't need to support multiple versions)
-METEMIS_SUBDIR = {
-    "onroad": "METEMIS/onroad/2021",
-    "livestock": "METEMIS/livestock/2022",
-    "rwc": "METEMIS/rwc/2022",
-    "afdust": "METEMIS/afdust/2022",
+# File pattern for a certain MetEmis sector
+METEMIS_PATT = {
+    "onroad": r"MetEmis_tbl_disgas_*_{num}_*.nc",
+    "livestock": r"MetEmis_tbl_livestock_*_{num}_*.nc",
+    "rwc": "rwc_*.nc",
+    "afdust": "*_afdust.nc",
 }
 
 METEMIS_NUMS = {
@@ -432,7 +430,7 @@ class FileMatcher:
 if __name__ == "__main__":
     from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 
-    metemis_all_sectors = list(METEMIS_SUBDIR)
+    metemis_all_sectors = list(METEMIS_PATT)
     metemis_arg_choices = metemis_all_sectors + ["all", "none"]
 
     parser = ArgumentParser(
@@ -490,7 +488,7 @@ if __name__ == "__main__":
         "-v",
         "--nei-version",
         "--nei_version",
-        help="NEI version",
+        help="NEI version (subdir)",
         default="v2026-03",
         required=False,
     )
@@ -502,6 +500,13 @@ if __name__ == "__main__":
         nargs="+",
         choices=metemis_arg_choices,
         default="all",
+        required=False,
+    )
+    parser.add_argument(
+        "--met-emis-version",
+        "--met_emis_version",
+        help="MetEmis version (subdir)",
+        default="v2026-04",
         required=False,
     )
     parser.add_argument(
@@ -520,6 +525,7 @@ if __name__ == "__main__":
     src_dir = args.src_dir.rstrip("/")
     work_dir = args.work_dir.rstrip("/")
     version = args.nei_version
+    metemis_version = args.met_emis_version
 
     # Resolve MetEmis sectors to use
     metemis_sectors = args.met_emis
@@ -533,7 +539,7 @@ if __name__ == "__main__":
 
     logger.info(
         f"Starting NEI2022 linker with src_dir={src_dir}, work_dir={work_dir}, version={version}, "
-        f"met_emis={metemis_sectors}"
+        f"met_emis={metemis_sectors}, met_emis_version={metemis_version}"
     )
 
     # Validate directories
@@ -590,20 +596,17 @@ if __name__ == "__main__":
 
     # MetEmis files
     for sector in metemis_sectors:
-        metemis_dir = f"{src_dir}/{METEMIS_SUBDIR[sector]}"
-        if not os.path.isdir(metemis_dir):
-            logger.error(f"MetEmis directory does not exist for sector '{sector}': {metemis_dir}")
-            raise SystemExit(2)
+        sector_pattern = f"{src_dir}/METEMIS/{metemis_version}/{METEMIS_PATT[sector]}"
         # Some MetEmis sectors have multiple files per day (bins),
         # which we want to handle separately
         nums = METEMIS_NUMS.get(sector)
         if nums is not None:
             for num in nums:
                 name = f"{sector}_{num}"
-                search_pattern = f"{metemis_dir}/*_{num}_*.nc"
+                search_pattern = sector_pattern.format(num=num)
                 todo.append((name, search_pattern, True))
         else:
-            todo.append((sector, f"{metemis_dir}/*.nc", True))
+            todo.append((sector, sector_pattern, True))
 
     for sector, search_pattern, is_metemis in todo:
         sector_dir_rel = os.path.dirname(search_pattern).replace(src_dir, "$ROOT")
@@ -620,7 +623,7 @@ if __name__ == "__main__":
             continue
 
         files = sorted(glob(search_pattern))
-        if is_metemis and sector in {"rwc", "afdust"}:
+        if is_metemis and sector in {"afdust"}:  # NEMO
             # Remove Dec 27 (we don't treat it as holiday)
             assert files[-1].endswith(f"1227_{sector}.nc")
             files = files[:-1]
@@ -660,12 +663,8 @@ if __name__ == "__main__":
             tgt_fn = os.path.basename(src_fp).replace(src_date_str, tgt_date_str)
             tgt_fp = os.path.join(work_dir, src_rel_dir, tgt_fn)
 
-            # Remove sector from sub-directory structure to match config
-            base_sector = re.sub(r"_[0-9]+$", "", sector)
-            tgt_fp = tgt_fp.replace(f"{base_sector}/", "")
-
             # Work around NEI file name flux by simplifying
-            if not is_metemis:
+            if not is_metemis or (is_metemis and sector in {"rwc"}):
                 tgt_fp = os.path.join(os.path.dirname(tgt_fp), f"{sector}_{tgt_date_str}.nc")
 
             # Create directory structure if needed
