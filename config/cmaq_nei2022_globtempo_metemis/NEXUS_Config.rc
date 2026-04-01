@@ -2166,10 +2166,10 @@ Cap time shift              : true
 #####################################################################
 (((MEGAN
 * LAI      $ROOT/GEOS_0.5x0.625/MERRA2/2019/$MM/MERRA2.2019$MM$DD.A1.05x0625.nc4   LAI      2014-2019/1-12/1-31/0-23 C xy  count * - 1 1
-* T2M      $ROOT/../GFS_SFC_MEGAN_INPUT.nc   T2M      2014-2019/1-12/1-31/0-23 C xy  K    * - 1 1
-* GWETROOT $ROOT/../GFS_SFC_MEGAN_INPUT.nc   GWETROOT 2014-2019/1-12/1-31/0-23 C xy  1    * - 1 1
-* PARDR    $ROOT/../GFS_SFC_MEGAN_INPUT.nc   PARDR    2014-2019/1-12/1-31/0-23 C xy  W/m2 * - 1 1
-* PARDF    $ROOT/../GFS_SFC_MEGAN_INPUT.nc   PARDF    2014-2019/1-12/1-31/0-23 C xy  W/m2 * - 1 1
+* T2M      $ROOT/GEOS_0.5x0.625/MERRA2/2019/$MM/MERRA2.2019$MM$DD.A1.05x0625.nc4   T2M      2014-2019/1-12/1-31/0-23 C xy  K    * - 1 1
+* GWETROOT $ROOT/GEOS_0.5x0.625/MERRA2/2019/$MM/MERRA2.2019$MM$DD.A1.05x0625.nc4   GWETROOT 2014-2019/1-12/1-31/0-23 C xy  1    * - 1 1
+* PARDR    $ROOT/GEOS_0.5x0.625/MERRA2/2019/$MM/MERRA2.2019$MM$DD.A1.05x0625.nc4   PARDR    2014-2019/1-12/1-31/0-23 C xy  W/m2 * - 1 1
+* PARDF    $ROOT/GEOS_0.5x0.625/MERRA2/2019/$MM/MERRA2.2019$MM$DD.A1.05x0625.nc4   PARDF    2014-2019/1-12/1-31/0-23 C xy  W/m2 * - 1 1
 )))MEGAN
 
 #####################################################################
@@ -2177,13 +2177,13 @@ Cap time shift              : true
 #####################################################################
 (((MetEmis
 (((.not.MEGAN
-* T2M      $ROOT/../GFS_SFC_METEMIS_INPUT.nc   T2M      2014-2019/1-12/1-31/0-23 C xy  K        * - 1 1
+* T2M      $ROOT/GEOS_0.5x0.625/MERRA2/2019/$MM/MERRA2.2019$MM$DD.A1.05x0625.nc4   T2M      2014-2019/1-12/1-31/0-23 C xy  K        * - 1 1
 ))).not.MEGAN
-* QV2M     $ROOT/../GFS_SFC_METEMIS_INPUT.nc   QV2M     2014-2019/1-12/1-31/0-23 C xy  kg/kg    * - 1 1
-* PRECTOT  $ROOT/../GFS_SFC_METEMIS_INPUT.nc   PRECTOT  2014-2019/1-12/1-31/0-23 C xy  kg/m2/s  * - 1 1
-* FRSNO    $ROOT/../GFS_SFC_METEMIS_INPUT.nc   FRSNO    2014-2019/1-12/1-31/0-23 C xy  1        * - 1 1
-* U10M     $ROOT/../GFS_SFC_METEMIS_INPUT.nc   U10M     2014-2019/1-12/1-31/0-23 C xy  m/s      * - 1 1
-* V10M     $ROOT/../GFS_SFC_METEMIS_INPUT.nc   V10M     2014-2019/1-12/1-31/0-23 C xy  m/s      * - 1 1
+* QV2M     $ROOT/GEOS_0.5x0.625/MERRA2/2019/$MM/MERRA2.2019$MM$DD.A1.05x0625.nc4   QV2M     2014-2019/1-12/1-31/0-23 C xy  kg/kg    * - 1 1
+* PRECTOT  $ROOT/GEOS_0.5x0.625/MERRA2/2019/$MM/MERRA2.2019$MM$DD.A1.05x0625.nc4   PRECTOT  2014-2019/1-12/1-31/0-23 C xy  kg/m2/s  * - 1 1
+* FRSNO    $ROOT/GEOS_0.5x0.625/MERRA2/2019/$MM/MERRA2.2019$MM$DD.A1.05x0625.nc4   FRSNO    2014-2019/1-12/1-31/0-23 C xy  1        * - 1 1
+* U10M     $ROOT/GEOS_0.5x0.625/MERRA2/2019/$MM/MERRA2.2019$MM$DD.A1.05x0625.nc4   U10M     2014-2019/1-12/1-31/0-23 C xy  m/s      * - 1 1
+* V10M     $ROOT/GEOS_0.5x0.625/MERRA2/2019/$MM/MERRA2.2019$MM$DD.A1.05x0625.nc4   V10M     2014-2019/1-12/1-31/0-23 C xy  m/s      * - 1 1
 
 #==============================================================================
 # --- MetEmis Onroad Sector Tables: Used for MetEmis Extension:  Three digit suffixes are temperature in Fahrenheit for the 10 bins---
