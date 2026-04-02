@@ -494,8 +494,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-m",
-        "--met-emis",
-        "--met_emis",
+        "--metemis",
         help="MetEmis sector(s) to use (default: all)",
         nargs="+",
         choices=metemis_arg_choices,
@@ -503,8 +502,8 @@ if __name__ == "__main__":
         required=False,
     )
     parser.add_argument(
-        "--met-emis-version",
-        "--met_emis_version",
+        "--metemis-version",
+        "--metemis_version",
         help="MetEmis version (subdir)",
         default="v2026-04",
         required=False,
@@ -525,10 +524,10 @@ if __name__ == "__main__":
     src_dir = args.src_dir.rstrip("/")
     work_dir = args.work_dir.rstrip("/")
     version = args.nei_version
-    metemis_version = args.met_emis_version
+    metemis_version = args.metemis_version
 
     # Resolve MetEmis sectors to use
-    metemis_sectors = args.met_emis
+    metemis_sectors = args.metemis
     if isinstance(metemis_sectors, str):
         metemis_sectors = [metemis_sectors]
     metemis_sectors = sorted(set(metemis_sectors), key=lambda sec: metemis_arg_choices.index(sec))
@@ -539,7 +538,7 @@ if __name__ == "__main__":
 
     logger.info(
         f"Starting NEI2022 linker with src_dir={src_dir}, work_dir={work_dir}, version={version}, "
-        f"met_emis={metemis_sectors}, met_emis_version={metemis_version}"
+        f"metemis={metemis_sectors}, metemis_version={metemis_version}"
     )
 
     # Validate directories
