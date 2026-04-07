@@ -633,9 +633,13 @@ if __name__ == "__main__":
 
         files = sorted(glob(search_pattern))
         if is_metemis and sector in {"afdust"}:  # NEMO
-            # Remove Dec 27 (we don't treat it as holiday)
-            assert files[-1].endswith(f"1227_{sector}.nc")
-            files = files[:-1]
+            # We don't treat Dec 27 as a holiday
+            # And for Thanksgiving (2022), we include the day before and after, but not two days after
+            files = [f for f in files if not f.endswith((f"1227_{sector}.nc", f"1126_{sector}.nc"))]
+        elif is_metemis and sector.startswith("onroad"):
+            # 7dpmh, but we don't treat Jul 3 as a holiday
+            # And for Thanksgiving (2021), we include the day before and after, but not two days after
+            files = [f for f in files if not f.endswith(("0703.nc", "1127.nc"))]
 
         if not files:
             logger.error(f"No files found matching: {search_pattern}")
