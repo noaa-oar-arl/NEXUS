@@ -335,8 +335,11 @@ class FileMatcher:
         if len(year_counts) > 1:
             s_year_counts = ", ".join(f"{y} ({n})" for y, n in year_counts.items())
             logger.info(f"Pruning source dates to a single source year from {s_year_counts}")
-            year_counts = Counter({y: n for y, n in year_counts.items() if 12 * n < max_year_count})
-        unique_years = sorted(year_counts)
+            year_counts = Counter(
+                {y: n for y, n in year_counts.items() if max_year_count / 12 < n <= max_year_count}
+            )
+            logger.debug(f"Remaining years: {list(year_counts)}")
+        unique_years = list(year_counts)
         if len(unique_years) > 1:
             s_year_counts = ", ".join(f"{y} ({n})" for y, n in year_counts.items())
             s_dates = ", ".join(str(d) for d in src_dates)
