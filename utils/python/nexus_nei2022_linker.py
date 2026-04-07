@@ -509,6 +509,11 @@ if __name__ == "__main__":
         required=False,
     )
     parser.add_argument(
+        "--link-all",
+        help="override the --metemis argument and link all NEI and MetEmis files (for testing)",
+        action="store_true",
+    )
+    parser.add_argument(
         "--debug",
         help="enable debug logging",
         action="store_true",
@@ -525,6 +530,7 @@ if __name__ == "__main__":
     work_dir = args.work_dir.rstrip("/")
     version = args.nei_version
     metemis_version = args.metemis_version
+    link_all = args.link_all
 
     # Resolve MetEmis sectors to use
     metemis_sectors = args.metemis
@@ -535,6 +541,9 @@ if __name__ == "__main__":
         metemis_sectors = metemis_all_sectors
     elif "none" in metemis_sectors:
         metemis_sectors = []
+    if link_all and metemis_sectors != metemis_all_sectors:
+        logger.info("--link-all overrides --metemis argument. Linking all sectors.")
+        metemis_sectors = metemis_all_sectors
 
     logger.info(
         f"Starting NEI2022 linker with src_dir={src_dir}, work_dir={work_dir}, version={version}, "
@@ -615,6 +624,7 @@ if __name__ == "__main__":
             not is_metemis
             and any(sec in sector.split("_") for sec in metemis_sectors)
             and not any(sec_part in sector for sec_part in ["canada", "mexico"])
+            and not link_all
         ):
             # We skip sector if MetEmis is doing it, but it only includes CONUS,
             # so we always include the Canada/Mexico files if they exist
