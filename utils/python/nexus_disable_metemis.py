@@ -66,16 +66,16 @@ if __name__ == "__main__":
         "-s",
         "--sector",
         help="MetEmis sector to disable. If not specified, disables all of MetEmis.",
-        choices=sector_options + ["all"],
+        choices=sector_options + ["all", "none"],
         type=str,
         default=None,
     )
     parser.add_argument(
         "-e",
         "--except",
-        help="leave this sector on",
+        help="leave this MetEmis sector on. Use either --except or --sector (not both).",
         dest="except_sector",
-        choices=sector_options + ["none"],
+        choices=sector_options + ["none", "all"],
         type=str,
         default=None,
     )
@@ -100,8 +100,12 @@ if __name__ == "__main__":
         "dry_run": args.dry_run,
     }
     if args.except_sector is not None:
-        to_disable = [s for s in sector_options if s != args.except_sector]
+        if args.except_sector == "all":
+            to_disable = []
+        else:
+            to_disable = [s for s in sector_options if s != args.except_sector]
         for sector in to_disable:
             disable_metemis(sector=sector, **kwargs)
     else:
-        disable_metemis(sector=args.sector, **kwargs)
+        if args.sector != "none":
+            disable_metemis(sector=args.sector, **kwargs)
