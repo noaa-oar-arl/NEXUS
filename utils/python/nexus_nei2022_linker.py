@@ -372,6 +372,19 @@ class FileMatcher:
         if tgt_is_holiday:
             i_holiday = HOLIDAY_MD[date.year].index(tgt_md)
 
+            # Allow day before Thanksgiving to be missing
+            if i_holiday == 10 and org in {"4dpmh", "7dpmh", "daily"}:
+                assert date.month == 11
+                src_md = HOLIDAY_MD[src_year][i_holiday]
+                src_date = datetime.strptime(f"{src_year}{src_md}", r"%Y%m%d").date()
+                if src_date not in src_dates:
+                    logger.warning(
+                        f"Target date {date} is day before Thanksgiving, "
+                        f"but we don't have a source file for that day ({src_date}). "
+                        f"Using day after Thanksgiving instead."
+                    )
+                    i_holiday += 2
+
         # Match
         if org == "1dpy":
             # One file, use it
@@ -412,8 +425,8 @@ class FileMatcher:
             # Holiday
             # It could be in a different month
             assert i_holiday is not None
-            tgt_md = HOLIDAY_MD[src_year][i_holiday]
-            src_date = datetime.strptime(f"{src_year}{tgt_md}", r"%Y%m%d").date()
+            src_md = HOLIDAY_MD[src_year][i_holiday]
+            src_date = datetime.strptime(f"{src_year}{src_md}", r"%Y%m%d").date()
             i = src_dates.index(src_date)
             return self.fps[i]
 
