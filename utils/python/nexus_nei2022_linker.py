@@ -372,8 +372,8 @@ class FileMatcher:
         if tgt_is_holiday:
             i_holiday = HOLIDAY_MD[date.year].index(tgt_md)
 
-            # Allow day before Thanksgiving to be missing
-            if i_holiday == 10 and org in {"4dpmh", "7dpmh", "daily"}:
+            # Allow day before Thanksgiving to be missing in representative days + holidays cases
+            if i_holiday == 10 and org in {"4dpmh", "7dpmh"}:
                 assert date.month == 11
                 src_md = HOLIDAY_MD[src_year][i_holiday]
                 src_date = datetime.strptime(f"{src_year}{src_md}", r"%Y%m%d").date()
