@@ -63,7 +63,7 @@ if __name__ == "__main__":
         "-s",
         "--sector",
         help="MetEmis sector to disable. If not specified, disables all of MetEmis.",
-        choices=sector_options,
+        choices=sector_options + ["all"],
         type=str,
         default=None,
     )
@@ -71,7 +71,7 @@ if __name__ == "__main__":
         "--except",
         help="leave this sector on",
         dest="except_sector",
-        choices=sector_options,
+        choices=sector_options + ["none"],
         type=str,
         default=None,
     )
@@ -82,6 +82,11 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+
+    if args.sector == "all":
+        args.sector = None
+    if args.except_sector == "none":
+        args.except_sector = None
 
     if args.sector is not None and args.except_sector is not None:
         parser.error("can't use both --sector and --except")
