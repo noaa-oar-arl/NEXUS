@@ -68,6 +68,7 @@ if __name__ == "__main__":
         default=None,
     )
     parser.add_argument(
+        "-e",
         "--except",
         help="leave this sector on",
         dest="except_sector",
