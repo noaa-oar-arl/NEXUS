@@ -32,7 +32,10 @@ def disable_metemis(config_path, *, sector=None, dry_run=False):
             lhs, rhs = line.split(":")
             assert lhs.lstrip().startswith(pre)
             val0 = rhs.split()[0].strip()
-            print(f"found line ({i+1}):\n{line}")
+            print(f"found line ({i+1}):\n{line.rstrip()}")
+            if val0 == val:
+                print(f"{tgt} already disabled")
+                return
             print(f"'{val0}' -> '{val}'")
             lines[i] = line.replace(val0, val)
             break
