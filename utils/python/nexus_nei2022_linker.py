@@ -505,7 +505,7 @@ if __name__ == "__main__":
         "--nei-version",
         "--nei_version",
         help="NEI version (subdir)",
-        default="v2026-03",
+        default="v2026-04",
         required=False,
     )
     parser.add_argument(
