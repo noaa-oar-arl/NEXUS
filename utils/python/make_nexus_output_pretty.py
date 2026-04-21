@@ -2,6 +2,7 @@
 """
 Make NEXUS output pretty
 """
+
 from pathlib import Path
 
 DEFAULT_GRID_FILE_PATH = Path("./grid_spec.nc")

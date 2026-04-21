@@ -3,6 +3,7 @@
 Extract variables from GFS output and format for HEMCO
 (i.e., as if MERRA-2)
 """
+
 from pathlib import Path
 
 # MERRA-2 data looks like this:
