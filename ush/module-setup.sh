@@ -101,7 +101,7 @@ elif [[ $MACHINE_ID = noaacloud* ]]; then
     module purge
 
 elif [[ ${MACHINE_ID} == "aws-ec2" ]] ; then
-    # We are on AWS-ec2
+    # We are on AWS EC2
     module purge
 
 else
