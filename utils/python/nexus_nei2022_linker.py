@@ -702,6 +702,9 @@ if __name__ == "__main__":
             src_date_str = m.group()
             tgt_date_str = d.strftime(r"%Y%m%d")
             src_rel_dir = os.path.dirname(os.path.relpath(src_fp, src_dir))
+            if use_2026 and "NEI2026" in src_rel_dir:
+                # Conform to the NEXUS config
+                src_rel_dir = src_rel_dir.replace("NEI2026", "NEI2022")
             tgt_fn = os.path.basename(src_fp).replace(src_date_str, tgt_date_str)
             tgt_fp = os.path.join(work_dir, src_rel_dir, tgt_fn)
 
