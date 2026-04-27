@@ -517,7 +517,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-m",
         "--metemis",
-        help="MetEmis sector(s) to use (default: all)",
+        help="MetEmis sector(s) to use",
         nargs="+",
         choices=metemis_arg_choices,
         default="all",
