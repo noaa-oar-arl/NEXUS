@@ -450,7 +450,7 @@ if __name__ == "__main__":
     metemis_arg_choices = metemis_all_sectors + ["all", "none"]
 
     parser = ArgumentParser(
-        description="Link NEI 2022 files to the work directory",
+        description="Link NEI 2022v1 files to the work directory",
         formatter_class=ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
@@ -504,9 +504,15 @@ if __name__ == "__main__":
         "-v",
         "--nei-version",
         "--nei_version",
-        help="NEI version (subdir)",
+        help="internal version of the processed NEI files (subdir)",
         default="v2026-04",
         required=False,
+    )
+    parser.add_argument(
+        "--2026",
+        help='use the "analytic year emissions inventories for the year 2026"',
+        action="store_true",
+        dest="use_2026",
     )
     parser.add_argument(
         "-m",
@@ -520,7 +526,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--metemis-version",
         "--metemis_version",
-        help="MetEmis version (subdir)",
+        help="internal version of the MetEmis files (subdir)",
         default="v2026-04",
         required=False,
     )
@@ -547,6 +553,7 @@ if __name__ == "__main__":
     version = args.nei_version
     metemis_version = args.metemis_version
     link_all = args.link_all
+    use_2026 = args.use_2026
 
     # Resolve MetEmis sectors to use
     metemis_sectors = args.metemis
@@ -562,8 +569,11 @@ if __name__ == "__main__":
         metemis_sectors = metemis_all_sectors
 
     logger.info(
-        f"Starting NEI2022 linker with src_dir={src_dir}, work_dir={work_dir}, version={version}, "
-        f"metemis={metemis_sectors}, metemis_version={metemis_version}"
+        "Starting NEI2022 linker with "
+        f"src_dir={src_dir}, work_dir={work_dir}, "
+        f"version={version}, "
+        f"metemis={metemis_sectors}, metemis_version={metemis_version}, "
+        f"link_all={link_all}, use_2026={use_2026}"
     )
 
     # Validate directories
@@ -602,6 +612,9 @@ if __name__ == "__main__":
 
     # Identify NEI sectors
     search_pattern = f"{src_dir}/NEI2022v1/{version}/*"
+    if use_2026:
+        # Note this is still NEI2022v1 MP data, just for 2026 (though dates are still 2022)
+        search_pattern = search_pattern.replace("NEI2022v1", "NEI2026v1")
     logger.info(f"Searching for sectors: {search_pattern}")
     sector_dirs = sorted([p for p in glob(search_pattern) if os.path.isdir(p)])
     if not sector_dirs:
