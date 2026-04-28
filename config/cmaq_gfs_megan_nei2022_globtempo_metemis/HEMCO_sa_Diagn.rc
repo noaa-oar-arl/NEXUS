@@ -5,7 +5,7 @@
 CO_ant           CO             0    -1  -1   2   kg/m2/s
 SO2_ant          SO2            0    -1  -1   2   kg/m2/s
 NO2_ant          NO2            0    -1  -1   2   kg/m2/s
-NO_ant           NOT            0    -1  -1   2   kg/m2/s
+NO_ant           NOT            0     1  -1   2   kg/m2/s
 HCL_ant          HCL            0    -1  -1   2   kg/m2/s
 CL2_ant          CL2            0    -1  -1   2   kg/m2/s
 HONO_ant         HONO           0    -1  -1   2   kg/m2/s
