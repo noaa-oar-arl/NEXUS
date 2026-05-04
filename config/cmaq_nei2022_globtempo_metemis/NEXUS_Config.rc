@@ -4207,7 +4207,7 @@ Cap time shift              : true
 464 CtoFORM_PRIMARY MATH:30.0/(1.0*12.0)   - - - xy unitless 1
 465 CtoSOAALK MATH:112.0/(4.0*12.0)   - - - xy unitless 1
 
-399 SOILNOX_SCALE 0.25 - - - xy unitless 1
+399 SOILNOX_SCALE 0.75 - - - xy unitless 1
 ### END SECTION SCALE FACTORS ###
 
 ###############################################################################
