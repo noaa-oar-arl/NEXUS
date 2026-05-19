@@ -3951,25 +3951,25 @@ Cap time shift              : true
 # --- MetEmis afdust Sector: Used for MetEmis Extension
 #==============================================================================
 (((ME AFD
-* MEmisPEC_AFD    $ROOT/METEMIS/v2026-04/NEI2022v2_0.1_degree_2022$MM$DD_afdust.nc  PEC     2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
-* MEmisPOC_AFD    $ROOT/METEMIS/v2026-04/NEI2022v2_0.1_degree_2022$MM$DD_afdust.nc  POC     2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
-* MEmisPAL_AFD    $ROOT/METEMIS/v2026-04/NEI2022v2_0.1_degree_2022$MM$DD_afdust.nc  PAL     2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
-* MEmisPCA_AFD    $ROOT/METEMIS/v2026-04/NEI2022v2_0.1_degree_2022$MM$DD_afdust.nc  PCA     2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
-* MEmisPCL_AFD    $ROOT/METEMIS/v2026-04/NEI2022v2_0.1_degree_2022$MM$DD_afdust.nc  PCL     2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
-* MEmisPFE_AFD    $ROOT/METEMIS/v2026-04/NEI2022v2_0.1_degree_2022$MM$DD_afdust.nc  PFE     2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
-* MEmisPH2O_AFD   $ROOT/METEMIS/v2026-04/NEI2022v2_0.1_degree_2022$MM$DD_afdust.nc  PH2O    2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
-* MEmisPK_AFD     $ROOT/METEMIS/v2026-04/NEI2022v2_0.1_degree_2022$MM$DD_afdust.nc  PK      2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
-* MEmisPMG_AFD    $ROOT/METEMIS/v2026-04/NEI2022v2_0.1_degree_2022$MM$DD_afdust.nc  PMG     2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
-* MEmisPMN_AFD    $ROOT/METEMIS/v2026-04/NEI2022v2_0.1_degree_2022$MM$DD_afdust.nc  PMN     2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
-* MEmisPMOTHR_AFD $ROOT/METEMIS/v2026-04/NEI2022v2_0.1_degree_2022$MM$DD_afdust.nc  PMOTHR  2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
-* MEmisPNA_AFD    $ROOT/METEMIS/v2026-04/NEI2022v2_0.1_degree_2022$MM$DD_afdust.nc  PNA     2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
-* MEmisPNCOM_AFD  $ROOT/METEMIS/v2026-04/NEI2022v2_0.1_degree_2022$MM$DD_afdust.nc  PNCOM   2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
-* MEmisPNH4_AFD   $ROOT/METEMIS/v2026-04/NEI2022v2_0.1_degree_2022$MM$DD_afdust.nc  PNH4    2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
-* MEmisPNO3_AFD   $ROOT/METEMIS/v2026-04/NEI2022v2_0.1_degree_2022$MM$DD_afdust.nc  PNO3    2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
-* MEmisPTI_AFD    $ROOT/METEMIS/v2026-04/NEI2022v2_0.1_degree_2022$MM$DD_afdust.nc  PTI     2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
-* MEmisPSI_AFD    $ROOT/METEMIS/v2026-04/NEI2022v2_0.1_degree_2022$MM$DD_afdust.nc  PSI     2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
-* MEmisPMC_AFD    $ROOT/METEMIS/v2026-04/NEI2022v2_0.1_degree_2022$MM$DD_afdust.nc  PMC     2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
-* MEmisPSO4_AFD   $ROOT/METEMIS/v2026-04/NEI2022v2_0.1_degree_2022$MM$DD_afdust.nc  PSO4    2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
+* MEmisPEC_AFD    $ROOT/METEMIS/v2026-04/NEI2022v1_0.1_degree_2022$MM$DD_afdust.nc  PEC     2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
+* MEmisPOC_AFD    $ROOT/METEMIS/v2026-04/NEI2022v1_0.1_degree_2022$MM$DD_afdust.nc  POC     2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
+* MEmisPAL_AFD    $ROOT/METEMIS/v2026-04/NEI2022v1_0.1_degree_2022$MM$DD_afdust.nc  PAL     2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
+* MEmisPCA_AFD    $ROOT/METEMIS/v2026-04/NEI2022v1_0.1_degree_2022$MM$DD_afdust.nc  PCA     2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
+* MEmisPCL_AFD    $ROOT/METEMIS/v2026-04/NEI2022v1_0.1_degree_2022$MM$DD_afdust.nc  PCL     2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
+* MEmisPFE_AFD    $ROOT/METEMIS/v2026-04/NEI2022v1_0.1_degree_2022$MM$DD_afdust.nc  PFE     2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
+* MEmisPH2O_AFD   $ROOT/METEMIS/v2026-04/NEI2022v1_0.1_degree_2022$MM$DD_afdust.nc  PH2O    2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
+* MEmisPK_AFD     $ROOT/METEMIS/v2026-04/NEI2022v1_0.1_degree_2022$MM$DD_afdust.nc  PK      2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
+* MEmisPMG_AFD    $ROOT/METEMIS/v2026-04/NEI2022v1_0.1_degree_2022$MM$DD_afdust.nc  PMG     2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
+* MEmisPMN_AFD    $ROOT/METEMIS/v2026-04/NEI2022v1_0.1_degree_2022$MM$DD_afdust.nc  PMN     2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
+* MEmisPMOTHR_AFD $ROOT/METEMIS/v2026-04/NEI2022v1_0.1_degree_2022$MM$DD_afdust.nc  PMOTHR  2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
+* MEmisPNA_AFD    $ROOT/METEMIS/v2026-04/NEI2022v1_0.1_degree_2022$MM$DD_afdust.nc  PNA     2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
+* MEmisPNCOM_AFD  $ROOT/METEMIS/v2026-04/NEI2022v1_0.1_degree_2022$MM$DD_afdust.nc  PNCOM   2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
+* MEmisPNH4_AFD   $ROOT/METEMIS/v2026-04/NEI2022v1_0.1_degree_2022$MM$DD_afdust.nc  PNH4    2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
+* MEmisPNO3_AFD   $ROOT/METEMIS/v2026-04/NEI2022v1_0.1_degree_2022$MM$DD_afdust.nc  PNO3    2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
+* MEmisPTI_AFD    $ROOT/METEMIS/v2026-04/NEI2022v1_0.1_degree_2022$MM$DD_afdust.nc  PTI     2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
+* MEmisPSI_AFD    $ROOT/METEMIS/v2026-04/NEI2022v1_0.1_degree_2022$MM$DD_afdust.nc  PSI     2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
+* MEmisPMC_AFD    $ROOT/METEMIS/v2026-04/NEI2022v1_0.1_degree_2022$MM$DD_afdust.nc  PMC     2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
+* MEmisPSO4_AFD   $ROOT/METEMIS/v2026-04/NEI2022v1_0.1_degree_2022$MM$DD_afdust.nc  PSO4    2022/1-12/1-31/0-23 C xy  kg/m2/s *  - 1 1
 )))ME AFD
 )))MetEmis
 
