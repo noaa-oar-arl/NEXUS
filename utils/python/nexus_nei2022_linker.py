@@ -681,6 +681,12 @@ if __name__ == "__main__":
             # And for Thanksgiving (2021), we include the day before and after, but not two days after
             files = [f for f in files if not f.endswith(("0703.nc", "1127.nc"))]
 
+        # Non-daily-filled
+        if len(files) not in {4 * 12, 7 * 12} and len(files) < 365:  # not (4dpm, 7dpm, daily)
+            files = [
+                f for f in files if not any(d in f for d in ["20220703", "20221126", "20221227"])
+            ]
+
         if not files:
             logger.error(f"No files found matching: {search_pattern}")
             raise SystemExit(1)
