@@ -2,6 +2,7 @@
 """
 Disable a certain MetEmis sector.
 """
+
 from pathlib import Path
 
 SECTOR_SWITCHES = {
