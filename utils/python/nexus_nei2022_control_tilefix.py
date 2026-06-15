@@ -52,16 +52,20 @@ if __name__ == "__main__":
     # get input NEXUS_Config.rc
     finput = args.files
     d = get_start_time(args.time_file)
+    ymd = d.strftime("%Y$MM$DD")
 
     with open(finput) as f:
         lines = f.readlines()
         for index, line in enumerate(lines):
-            if not line.startswith("#"):
-                if "$ROOT/" in line:
-                    if "NEI2022" in line:
-                        if "2022$MM$DD" in line:
-                            line = line.replace("2022$MM$DD", d.strftime("%Y$MM$DD"))
-                            lines[index] = line
+            if line.startswith("#"):
+                continue
+            if "$ROOT/" in line and "NEI2022" in line:
+                new_line = line.replace("2022$MM$DD", ymd)
+                lines[index] = new_line
+            elif "$ROOT/" in line and "METEMIS" in line:
+                # MetEmis onroad is 2021 instead of 2022
+                new_line = line.replace("2022$MM$DD", ymd).replace("2021$MM$DD", ymd)
+                lines[index] = new_line
         f.close()
 
     with open(finput, "w") as writer:
