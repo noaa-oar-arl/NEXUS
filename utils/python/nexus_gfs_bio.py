@@ -238,6 +238,7 @@ def main(i_fps, o_fp):
     # Get GFS file times and grid
     #
 
+    print("Reading times")
     gfs_times = []
     for i, fp in enumerate(files):
         ds = nc.Dataset(fp, "r")
@@ -247,7 +248,7 @@ def main(i_fps, o_fp):
         t_num = ds["time"][0]
         t = nc.num2date(t_num, units=ds["time"].units, calendar=ds["time"].calendar)
         gfs_times.append(t)
-        print(t_num, t, fp)
+        print(t, fp)
 
         # Get grid
         if i == 0:
@@ -362,7 +363,7 @@ def main(i_fps, o_fp):
     assert (np.floor(gfs_times_num) == gfs_times_num).all(), "on the hour"
     assert gfs_time_units.startswith("hours since ")
 
-    m2_times_num = np.arange(gfs_times_num[0], gfs_times_num[-1] + 1, 1, dtype=gfs_time_dtype)
+    m2_times_num = np.arange(gfs_times_num[0], gfs_times_num[-1] + 1, 1, dtype=gfs_times_num.dtype)
     assert m2_times_num.size == ntime_m2
 
     time[:] = m2_times_num
@@ -379,6 +380,9 @@ def main(i_fps, o_fp):
             "(but the GFS input is already hourly, so we won't actually do time interp, "
             "just load variables)"
         )
+    else:
+        print(gfs_times_num, gfs_time_units)
+        print("->", m2_times_num)
     for vn in M2_DATA_VAR_INFO:
         print(vn)
         if gfs_is_hourly:
