@@ -363,7 +363,7 @@ Cap time shift              : true
 #==============================================================================
 # --- diurnal scale factors ---
 #==============================================================================
-25 EDGAR_TODNOX $ROOT/EDGARv42/v2015-02/NO/EDGAR_hourly_NOxScal.nc NOXscale 2000/1/1/HH C xy unitless 1
+25 EDGAR_TODNOX $ROOT/EDGARv42/v2015-02/NO/EDGAR_hourly_NOxScal.nc NOXscale 2000/1/1/0-23 C xy unitless 1
 
 {% if NEXUS_DO_CAMSTEMPO %}
 #==============================================================================
@@ -390,17 +390,17 @@ Cap time shift              : true
 # --- CAMS-TEMPO hourly weights ---
 #==============================================================================
 
-38 CAMS_HOURLY_ENE_CH4 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime_utc.nc FH_ene_ch4 2021/1/1/HH C xy 1 1
-39 CAMS_HOURLY_ENE_CO $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime_utc.nc FH_ene_co 2021/1/1/HH C xy 1 1
-40 CAMS_HOURLY_ENE_CO2 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime_utc.nc FH_ene_co2 2021/1/1/HH C xy 1 1
-41 CAMS_HOURLY_ENE_NMVOC $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime_utc.nc FH_ene_nmvoc 2021/1/1/HH C xy 1 1
-42 CAMS_HOURLY_ENE_NOX $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime_utc.nc FH_ene_nox 2021/1/1/HH C xy 1 1
-43 CAMS_HOURLY_ENE_PM10 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime_utc.nc FH_ene_pm10 2021/1/1/HH C xy 1 1
-44 CAMS_HOURLY_ENE_PM25 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime_utc.nc FH_ene_pm25 2021/1/1/HH C xy 1 1
-45 CAMS_HOURLY_ENE_SOX $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime_utc.nc FH_ene_sox 2021/1/1/HH C xy 1 1
-46 CAMS_HOURLY_RES_PM10_PM25 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime_utc.nc FH_res_pm10_pm25 2021/1/1/HH C xy 1 1
-47 CAMS_HOURLY_RES_OTHERS $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime_utc.nc FH_res_others 2021/1/1/HH C xy 1 1
-48 CAMS_HOURLY_TRO_WEEKDAY $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime_utc.nc FH_dow_tro 2021/1/1/HH C xy 1 1
+38 CAMS_HOURLY_ENE_CH4 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime_utc.nc FH_ene_ch4 2021/1/1/0-23 C xy 1 1
+39 CAMS_HOURLY_ENE_CO $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime_utc.nc FH_ene_co 2021/1/1/0-23 C xy 1 1
+40 CAMS_HOURLY_ENE_CO2 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime_utc.nc FH_ene_co2 2021/1/1/0-23 C xy 1 1
+41 CAMS_HOURLY_ENE_NMVOC $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime_utc.nc FH_ene_nmvoc 2021/1/1/0-23 C xy 1 1
+42 CAMS_HOURLY_ENE_NOX $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime_utc.nc FH_ene_nox 2021/1/1/0-23 C xy 1 1
+43 CAMS_HOURLY_ENE_PM10 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime_utc.nc FH_ene_pm10 2021/1/1/0-23 C xy 1 1
+44 CAMS_HOURLY_ENE_PM25 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime_utc.nc FH_ene_pm25 2021/1/1/0-23 C xy 1 1
+45 CAMS_HOURLY_ENE_SOX $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime_utc.nc FH_ene_sox 2021/1/1/0-23 C xy 1 1
+46 CAMS_HOURLY_RES_PM10_PM25 $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime_utc.nc FH_res_pm10_pm25 2021/1/1/0-23 C xy 1 1
+47 CAMS_HOURLY_RES_OTHERS $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime_utc.nc FH_res_others 2021/1/1/0-23 C xy 1 1
+48 CAMS_HOURLY_TRO_WEEKDAY $ROOT/CAMS-TEMPO/v3.1-2021/CAMS-GLOB-TEMPO_Glb_0.1x0.1_tmp_weights_v3.1_hourly_fixtime_utc.nc FH_dow_tro 2021/1/1/0-23 C xy 1 1
 {% endif %}
 
 #==============================================================================
