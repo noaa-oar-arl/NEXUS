@@ -255,7 +255,6 @@ def main(i_fps, o_fp):
             # TODO: should move this up and here check that these are same for all files
             gfs_lon_1d = ds["grid_xt"][:]
             gfs_lat_1d = ds["grid_yt"][:]
-            gfs_time_units = ds["time"].units
             gfs_time_calendar = ds["time"].calendar
             gfs_time_dtype = ds["time"].dtype
 
@@ -358,10 +357,10 @@ def main(i_fps, o_fp):
     # Time interpolation of data vars and set times
     #
 
+    gfs_time_units = gfs_times[0].strftime(r"hours since %Y-%m-%d %H:%M:%S")
     gfs_times_num = nc.date2num(gfs_times, units=gfs_time_units, calendar=gfs_time_calendar)
     gfs_is_hourly = (np.diff(gfs_times_num) == 1).all()
     assert (np.floor(gfs_times_num) == gfs_times_num).all(), "on the hour"
-    assert gfs_time_units.startswith("hours since ")
 
     m2_times_num = np.arange(gfs_times_num[0], gfs_times_num[-1] + 1, 1, dtype=gfs_times_num.dtype)
     assert m2_times_num.size == ntime_m2
