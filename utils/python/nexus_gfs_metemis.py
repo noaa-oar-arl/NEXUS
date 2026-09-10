@@ -148,6 +148,7 @@ def main(i_fps, o_fp):
     # Get GFS file times and grid
     #
 
+    print("Reading times")
     gfs_times = []
     for i, fp in enumerate(files):
         ds = nc.Dataset(fp, "r")
@@ -156,15 +157,14 @@ def main(i_fps, o_fp):
         assert ds.dimensions["time"].size == 1
         t_num = ds["time"][0]
         t = nc.num2date(t_num, units=ds["time"].units, calendar=ds["time"].calendar)
-        gfs_times.append(t_num)
-        print(t_num, t, fp)
+        gfs_times.append(t)
+        print(t, fp)
 
         # Get grid
         if i == 0:
             # TODO: should move this up and here check that these are same for all files
             gfs_lon_1d = ds["grid_xt"][:]
             gfs_lat_1d = ds["grid_yt"][:]
-            gfs_time_units = ds["time"].units
             gfs_time_calendar = ds["time"].calendar
             gfs_time_dtype = ds["time"].dtype
 
@@ -190,7 +190,7 @@ def main(i_fps, o_fp):
         ds_new.setncattr(k, v)
 
     ntime_gfs = len(files)  # e.g. 25 (0:3:72)
-    ntime_m2 = int(gfs_times[-1] - gfs_times[0] + 1)  # e.g. 73 (0:1:72)
+    ntime_m2 = int((gfs_times[-1] - gfs_times[0]).total_seconds() / 3600) + 1  # e.g. 73 (0:1:72)
     # NOTE: ^ assumes GFS times are on the hour
     ds_new.createDimension("time", ntime_m2)
     time = ds_new.createVariable("time", gfs_time_dtype, ("time",))
@@ -247,28 +247,31 @@ def main(i_fps, o_fp):
     # Time interpolation of data vars and set times
     #
 
-    gfs_times = np.array(gfs_times, dtype=gfs_time_dtype)
-    gfs_is_hourly = (np.diff(gfs_times) == 1).all()
-    assert (np.floor(gfs_times) == gfs_times).all(), "on the hour"
-    assert gfs_time_units.startswith("hours since ")
+    gfs_time_units = gfs_times[0].strftime(r"hours since %Y-%m-%d %H:%M:%S")
+    gfs_times_num = nc.date2num(gfs_times, units=gfs_time_units, calendar=gfs_time_calendar)
+    gfs_is_hourly = (np.diff(gfs_times_num) == 1).all()
+    assert (np.floor(gfs_times_num) == gfs_times_num).all(), "on the hour"
 
-    m2_times = np.arange(gfs_times[0], gfs_times[-1] + 1, 1, dtype=gfs_time_dtype)
-    assert m2_times.size == ntime_m2
+    m2_times_num = np.arange(gfs_times_num[0], gfs_times_num[-1] + 1, 1, dtype=gfs_times_num.dtype)
+    assert m2_times_num.size == ntime_m2
 
-    time[:] = m2_times
+    time[:] = m2_times_num
     time.calendar = gfs_time_calendar
     time.units = gfs_time_units
 
-    x = gfs_times
-    x_new = m2_times
+    x = gfs_times_num
+    x_new = m2_times_num
 
     print("Time interp")
     if gfs_is_hourly:
-        assert (gfs_times == m2_times).all()
+        assert (gfs_times_num == m2_times_num).all()
         print(
             "(but the GFS input is already hourly, so we won't actually do time interp, "
             "just load variables)"
         )
+    else:
+        print(gfs_times_num, gfs_time_units)
+        print("->", m2_times_num)
     for vn in M2_DATA_VAR_INFO:
         print(vn)
         if gfs_is_hourly:
